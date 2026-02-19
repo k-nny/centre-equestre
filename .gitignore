@@ -1,0 +1,8 @@
+# Ne JAMAIS committer le .env — il contient vos clés secrètes
+.env
+
+# Fichier généré automatiquement par build.js
+index.html
+
+# Node
+node_modules/

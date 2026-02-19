@@ -1,15 +1,12 @@
 {
   "name": "centre-equestre",
   "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "@supabase/supabase-js": "^2.6.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1"
-  },
+  "description": "Application de gestion d'un centre équestre",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build"
+    "build": "node build.js",
+    "dev": "node build.js && npx serve . -p 3000"
+  },
+  "engines": {
+    "node": ">=16"
   }
 }
