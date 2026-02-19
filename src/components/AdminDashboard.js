@@ -1,42 +1,53 @@
-import React, { useState, useEffect } from 'react'
-import { supabase } from '../supabaseClient'
-import Planning from './Planning'
+import React, { useEffect, useState } from 'react';
+import { supabase, APP_KEY } from '../supabaseClient';
+import Planning from './Planning';
+import FormCavalier from './FormCavalier';
+import FormCheval from './FormCheval';
+import FormCours from './FormCours';
+import FormAffectation from './FormAffectation';
 
 export default function AdminDashboard() {
-  const [equides, setEquides] = useState([])
-  const [cavaliers, setCavaliers] = useState([])
-  const [moniteurs, setMoniteurs] = useState([])
+  const [equides, setEquides] = useState([]);
+  const [cavaliers, setCavaliers] = useState([]);
+  const [moniteurs, setMoniteurs] = useState([]);
+  const [cours, setCours] = useState([]);
+  const [affectations, setAffectations] = useState([]);
 
-  useEffect(() => {
-    fetchEquides()
-    fetchCavaliers()
-    fetchMoniteurs()
-  }, [])
+  const fetchData = async () => {
+    const { data: eq } = await supabase.from('equides').select('*').eq('app_key', APP_KEY);
+    const { data: cav } = await supabase.from('cavaliers').select('*').eq('app_key', APP_KEY);
+    const { data: mon } = await supabase.from('moniteurs').select('*').eq('app_key', APP_KEY);
+    const { data: co } = await supabase.from('cours_instances').select('*').eq('app_key', APP_KEY);
+    const { data: aff } = await supabase.from('affectations').select('*').eq('app_key', APP_KEY);
 
-  async function fetchEquides() {
-    const { data, error } = await supabase.from('equides').select('*')
-    if (!error) setEquides(data)
+    setEquides(eq || []);
+    setCavaliers(cav || []);
+    setMoniteurs(mon || []);
+    setCours(co || []);
+    setAffectations(aff || []);
   }
 
-  async function fetchCavaliers() {
-    const { data, error } = await supabase.from('cavaliers').select('*')
-    if (!error) setCavaliers(data)
-  }
+  useEffect(() => { fetchData() }, []);
 
-  async function fetchMoniteurs() {
-    const { data, error } = await supabase.from('moniteurs').select('*')
-    if (!error) setMoniteurs(data)
-  }
-
-    return (
+  return (
     <div>
-        <h2>Planning & Attributions</h2>
-        {equides.length === 0 && <p>Chargement des chevaux...</p>}
-        {cavaliers.length === 0 && <p>Chargement des cavaliers...</p>}
-        {moniteurs.length === 0 && <p>Chargement des moniteurs...</p>}
-        {equides.length && cavaliers.length && moniteurs.length && (
-        <Planning equides={equides} cavaliers={cavaliers} moniteurs={moniteurs} />
-        )}
+      <h2>Gestion Centre Équestre</h2>
+
+      <FormCavalier fetchData={fetchData}/>
+      <FormCheval fetchData={fetchData}/>
+      <FormCours moniteurs={moniteurs} fetchData={fetchData}/>
+      <FormAffectation cavaliers={cavaliers} equides={equides} moniteurs={moniteurs} cours={cours} fetchData={fetchData}/>
+
+      {!cours.length && <p>Chargement des cours...</p>}
+      {cours.length && (
+        <Planning 
+          equides={equides} 
+          cavaliers={cavaliers} 
+          moniteurs={moniteurs} 
+          cours={cours}
+          affectations={affectations}
+        />
+      )}
     </div>
-    )
+  );
 }
