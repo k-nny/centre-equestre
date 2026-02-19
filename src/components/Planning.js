@@ -1,37 +1,40 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
-import Planning from './Planning'
 
-export default function AdminDashboard() {
-  const [equides, setEquides] = useState([])
-  const [cavaliers, setCavaliers] = useState([])
-  const [moniteurs, setMoniteurs] = useState([])
+export default function Planning({ equides, cavaliers, moniteurs }) {
+    const [cours, setCours] = useState([])
+    const [affectations, setAffectations] = useState([])
 
-  useEffect(() => {
-    fetchEquides()
-    fetchCavaliers()
-    fetchMoniteurs()
-  }, [])
+    useEffect(() => {
+        fetchCours()
+        fetchAffectations()
+    }, [])
 
-  async function fetchEquides() {
-    const { data, error } = await supabase.from('equides').select('*')
-    if (!error) setEquides(data)
-  }
+    async function fetchCours() {
+        const { data, error } = await supabase.from('cours_instances').select('*')
+        if (!error) setCours(data)
+    }
 
-  async function fetchCavaliers() {
-    const { data, error } = await supabase.from('cavaliers').select('*')
-    if (!error) setCavaliers(data)
-  }
+    async function fetchAffectations() {
+        const { data, error } = await supabase.from('affectations').select('*')
+        if (!error) setAffectations(data)
+    }
 
-  async function fetchMoniteurs() {
-    const { data, error } = await supabase.from('moniteurs').select('*')
-    if (!error) setMoniteurs(data)
-  }
-
-  return (
-    <div>
-      <h2>Planning & Attributions</h2>
-      <Planning equides={equides} cavaliers={cavaliers} moniteurs={moniteurs} />
-    </div>
-  )
+    return (
+        <div>
+            {cours.length === 0 && <p>Chargement des cours...</p>}
+            {cours.map(c => (
+                <div key={c.id}>
+                    <strong>{c.date} - {c.heure} - {c.type_cours}</strong>
+                    <ul>
+                        {(affectations || []).filter(a => a.cours_instance_id === c.id).map(a => {
+                            const cavalier = cavaliers.find(cav => cav.id === a.cavalier_id)
+                            const cheval = equides.find(eq => eq.id === a.equide_id)
+                            return <li key={a.id}>{cavalier?.prenom || "?"} → {cheval?.nom || "?"}</li>
+                        })}
+                    </ul>
+                </div>
+            ))}
+        </div>
+    )
 }

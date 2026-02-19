@@ -28,10 +28,15 @@ export default function AdminDashboard() {
     if (!error) setMoniteurs(data)
   }
 
-  return (
+    return (
     <div>
-      <h2>Planning & Attributions</h2>
-      <Planning equides={equides} cavaliers={cavaliers} moniteurs={moniteurs} />
+        <h2>Planning & Attributions</h2>
+        {equides.length === 0 && <p>Chargement des chevaux...</p>}
+        {cavaliers.length === 0 && <p>Chargement des cavaliers...</p>}
+        {moniteurs.length === 0 && <p>Chargement des moniteurs...</p>}
+        {equides.length && cavaliers.length && moniteurs.length && (
+        <Planning equides={equides} cavaliers={cavaliers} moniteurs={moniteurs} />
+        )}
     </div>
-  )
+    )
 }
