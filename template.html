@@ -375,22 +375,68 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--surface2);}
 //  Ce fichier est 100% public, il ne contient aucun secret.
 // ═══════════════════════════════════════════════════════════════
 
-// ── Vacances scolaires Zone A (Académie de Lyon) 2024-2026 ──
-// Les cours en période de vacances n'apparaissent PAS dans la vue publique.
-// Les dates s'entendent du lundi au dimanche de la semaine concernée.
-const VACANCES = [
-  ['2024-10-19','2024-11-03'],
-  ['2024-12-21','2025-01-05'],
-  ['2025-02-08','2025-02-23'],
-  ['2025-04-05','2025-04-21'],
-  ['2025-07-05','2025-09-01'],
-  ['2025-10-18','2025-11-02'],
-  ['2025-12-20','2026-01-04'],
-  ['2026-02-07','2026-02-22'], // ← on est dedans (20/02/2026)
-  ['2026-04-04','2026-04-19'],
-  ['2026-07-04','2026-09-01'],
-];
+// ── Vacances scolaires automatiques Zone A ──
+// source : API officielle data.education.gouv.fr
+// début ajusté au lundi inclus, fin incluse
+
+let VACANCES = [];
+
+// décale samedi → lundi
+const decalageLundi = dateStr => {
+  const d = new Date(dateStr + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + 2);
+  return d.toISOString().slice(0,10);
+};
+
+// détecte année scolaire actuelle (ex: 2025-2026)
+const getAnneeScolaire = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  return month >= 9
+    ? `${year}-${year+1}`
+    : `${year-1}-${year}`;
+};
+
+async function chargerVacancesZoneA() {
+
+  const annee = getAnneeScolaire();
+
+  const url =
+    `https://data.education.gouv.fr/api/records/1.0/search/` +
+    `?dataset=fr-en-calendrier-scolaire` +
+    `&rows=100` +
+    `&refine.zone=Zone%20A` +
+    `&refine.annee_scolaire=${annee}`;
+
+  const res = await fetch(url);
+  const json = await res.json();
+
+  const records = json.records
+    .map(r => r.fields)
+    .filter(f => f.date_debut && f.date_fin)
+    .sort((a,b) => a.date_debut.localeCompare(b.date_debut));
+
+  VACANCES = records.map(v => {
+    const debut = decalageLundi(v.date_debut);
+    const fin   = v.date_fin;
+    return [debut, fin];
+  });
+
+  return VACANCES;
+}
+
+// fonction publique
 const estVac = d => VACANCES.some(([a,b]) => d >= a && d <= b);
+
+
+// ── initialisation ──
+await chargerVacancesZoneA();
+
+
+// ── debug ──
+console.log('VACANCES', VACANCES);
+console.log('aujourd’hui', estVac(new Date().toISOString().slice(0,10)));
 
 const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 const DISC  = ['Dressage','Saut d\'obstacle','Plat','Cross','Barres au sol','Jeu','Travail à pied','Autre'];
