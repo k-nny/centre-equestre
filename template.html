@@ -17,21 +17,21 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh;}
 
-/* ── BANNER ── */
+/* BANNER */
 #admin-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#7a3a0c,#c97a30,#7a3a0c);color:#fff;padding:10px 20px;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;gap:16px;box-shadow:0 2px 16px rgba(201,122,48,.5);}
 #admin-banner.show{display:flex;}
 .bwarn{font-size:11px;font-weight:400;opacity:.85;}
 .bbtn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:5px 14px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;white-space:nowrap;}
 .bbtn:hover{background:rgba(255,255,255,.28);}
 
-/* ── LOADING ── */
+/* LOADING */
 #ld{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:20px;}
 #ld .logo{font-size:48px;}
 #ld .sub{color:var(--muted);font-size:13px;}
 .spin{display:inline-block;width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
-/* ── LAYOUT ── */
+/* LAYOUT */
 #app{display:none;}
 .sb{width:230px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;}
 .sb-brand{padding:20px;border-bottom:1px solid var(--border);}
@@ -54,14 +54,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .ph h2{font-family:'Playfair Display',serif;font-size:24px;color:var(--cream);}
 .ph p{color:var(--muted);font-size:13px;margin-top:3px;}
 
-/* ── STATS ── */
+/* STATS */
 .sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;}
 .sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;}
 .sc .lb{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
 .sc .vl{font-family:'Playfair Display',serif;font-size:32px;color:var(--gold);margin-top:2px;}
-.sc .sm{font-size:11px;color:var(--muted);margin-top:2px;}
 
-/* ── TABLE ── */
+/* TABLE */
 .tc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px;}
 .tt{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
 .tt h3{font-family:'Playfair Display',serif;font-size:16px;color:var(--cream);}
@@ -72,7 +71,7 @@ tr:last-child td{border-bottom:none;}
 tr:hover td{background:var(--surface2);}
 .er td{text-align:center;color:var(--muted);padding:28px;}
 
-/* ── BADGES ── */
+/* BADGES */
 .b{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
 .bg{background:rgba(74,140,92,.15);color:#6bc98a;border:1px solid rgba(74,140,92,.3);}
 .br{background:rgba(196,75,58,.15);color:#e07060;border:1px solid rgba(196,75,58,.3);}
@@ -81,7 +80,7 @@ tr:hover td{background:var(--surface2);}
 .bo{background:rgba(201,122,48,.15);color:#e09a60;border:1px solid rgba(201,122,48,.3);}
 .bp{background:rgba(122,74,140,.15);color:#c490e0;border:1px solid rgba(122,74,140,.3);}
 
-/* ── BUTTONS ── */
+/* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;transition:all .15s;}
 .btn-p{background:var(--gold);color:#0f0e0c;}.btn-p:hover{background:var(--gold-light);}
 .btn-g{background:transparent;color:var(--muted);border:1px solid var(--border);}.btn-g:hover{border-color:var(--gold);color:var(--gold);}
@@ -90,7 +89,7 @@ tr:hover td{background:var(--surface2);}
 .btn-pu{background:rgba(122,74,140,.15);color:#c490e0;border:1px solid rgba(122,74,140,.3);}.btn-pu:hover{background:rgba(122,74,140,.3);}
 .sm{padding:5px 10px;font-size:12px;}
 
-/* ── MODALS ── */
+/* MODALS */
 .mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);}
 .mo.open{display:flex;}
 .md{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;width:100%;max-width:540px;max-height:92vh;overflow-y:auto;box-shadow:var(--sh);}
@@ -103,8 +102,11 @@ tr:hover td{background:var(--surface2);}
 .fg textarea{resize:vertical;min-height:60px;}
 .mf{display:flex;gap:8px;justify-content:flex-end;margin-top:24px;}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.flag-box{background:rgba(196,75,58,.06);border:1px solid rgba(196,75,58,.2);border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;}
+.flag-box .ftxt{font-size:12px;font-weight:600;color:#e07060;}
+.flag-box .fsub{font-size:11px;color:var(--muted);margin-top:2px;}
 
-/* ── MISC ── */
+/* MISC */
 .alert{background:rgba(196,75,58,.1);border:1px solid rgba(196,75,58,.3);border-radius:8px;padding:12px 15px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:13px;color:#e07060;}
 .ls{padding:36px;text-align:center;color:var(--muted);}
 .tog{position:relative;display:inline-block;width:36px;height:20px;}
@@ -119,13 +121,13 @@ tr:hover td{background:var(--surface2);}
 .pwg{position:relative;}.pwg input{padding-right:42px;}
 .pwe{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;}
 
-/* ── TOAST ── */
+/* TOAST */
 .toast{position:fixed;bottom:22px;right:22px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:13px 18px;font-size:13px;z-index:2000;box-shadow:var(--sh);animation:si .3s ease;max-width:280px;}
 .toast.ok{border-color:rgba(74,140,92,.5);color:#6bc98a;}
 .toast.err{border-color:rgba(196,75,58,.5);color:#e07060;}
-@keyframes si{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+@keyframes si{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:none;}}
 
-/* ── SÉANCES ── */
+/* SÉANCES ADMIN */
 .sk{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:14px;overflow:hidden;}
 .skh{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;}
 .skh:hover{background:var(--surface2);}
@@ -136,8 +138,10 @@ tr:hover td{background:var(--surface2);}
 .cn{min-width:120px;font-weight:500;}
 .cn.ab{color:var(--muted);text-decoration:line-through;}
 
-/* ── VUE PUBLIQUE ── */
-.pcc{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:18px;overflow:hidden;}
+/* VUE PUBLIQUE */
+.pcc{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:16px;overflow:hidden;}
+.pcc.statut-card{border-color:rgba(201,122,48,.4);}
+.pcc.stage-card{border-color:rgba(201,168,76,.4);}
 .pch{padding:16px 22px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);}
 .pheure{font-family:'Playfair Display',serif;font-size:26px;color:var(--gold);min-width:68px;}
 .pgn{font-family:'Playfair Display',serif;font-size:15px;color:var(--cream);}
@@ -150,19 +154,20 @@ tr:hover td{background:var(--surface2);}
 .pch2 strong{color:var(--text);}
 .rtag{font-size:10px;background:rgba(201,122,48,.15);color:#e09a60;border:1px solid rgba(201,122,48,.3);border-radius:20px;padding:2px 7px;margin-left:5px;}
 
-/* ── CHEVAUX STATUS ── */
-.cheval-status{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
-.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:3px;}
-.status-dispo{background:#4a8c5c;}
-.status-attache{background:#c97a30;}
-.status-soin{background:#c44b3a;}
+/* RÉCAP CHEVAUX */
+.recap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;padding:16px 22px;}
+.recap-chv{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;}
+.recap-chv.statut-sp{border-color:rgba(201,122,48,.35);}
+.recap-chv-name{font-weight:600;font-size:13px;}
+.recap-chv-detail{font-size:11px;color:var(--muted);margin-top:2px;}
+.recap-heure{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold);white-space:nowrap;}
 
-/* ── STAGES ── */
-.stage-card{background:var(--surface);border:1px solid var(--gold);border-radius:14px;margin-bottom:18px;overflow:hidden;}
-.stage-header{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
-.stage-title{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold);}
+/* STAGES */
+.stage-wrap{background:var(--surface);border:1px solid rgba(201,168,76,.3);border-radius:14px;margin-bottom:16px;overflow:hidden;}
+.stage-hdr{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+.stage-ttl{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold);}
 
-/* ── RESPONSIVE ── */
+/* RESPONSIVE */
 .hb{display:none;position:fixed;top:14px;left:14px;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px;cursor:pointer;flex-direction:column;gap:4px;}
 .hb span{width:16px;height:2px;background:var(--text);border-radius:2px;display:block;}
 .sbo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;}
@@ -174,6 +179,7 @@ tr:hover td{background:var(--surface2);}
   .main{margin-left:0;padding:14px;padding-top:54px;}
   .main.wb{padding-top:100px;}
   .fr{grid-template-columns:1fr;}
+  .recap-grid{grid-template-columns:1fr 1fr;}
 }
 </style>
 </head>
@@ -189,7 +195,6 @@ tr:hover td{background:var(--surface2);}
 
 <div class="hb" onclick="toggleSB()"><span></span><span></span><span></span></div>
 <div class="sbo" id="sbo" onclick="toggleSB()"></div>
-
 <div id="ld"><div class="logo">🐴</div><div class="spin"></div><div class="sub">Connexion…</div></div>
 
 <div id="app">
@@ -217,16 +222,24 @@ tr:hover td{background:var(--surface2);}
 
   <main class="main" id="mc">
 
-   <!-- VUE PUBLIQUE -->
+   <!-- ═══ VUE PUBLIQUE ═══ -->
    <div class="page active" id="page-vue">
-    <div class="ph"><h2>Cours du jour</h2><p id="pub-lbl"></p></div>
+    <div class="ph"><h2>Planning du jour</h2><p id="pub-lbl"></p></div>
     <div style="margin-bottom:20px">
      <input type="date" id="pub-date" onchange="loadVue()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none">
+    </div>
+    <!-- Récap chevaux du jour -->
+    <div class="pcc" id="recap-chevaux-wrap" style="display:none;margin-bottom:20px">
+     <div class="pch" style="border-bottom:1px solid var(--border)">
+      <div style="font-size:22px">🐎</div>
+      <div><div class="pgn">Chevaux mobilisés aujourd'hui</div><div class="pdi" id="recap-chevaux-count"></div></div>
+     </div>
+     <div class="recap-grid" id="recap-chevaux-content"></div>
     </div>
     <div id="vue-content"></div>
    </div>
 
-   <!-- DASHBOARD -->
+   <!-- ═══ DASHBOARD ═══ -->
    <div class="page" id="page-dash">
     <div class="ph"><h2>Tableau de bord</h2><p id="td-lbl"></p></div>
     <div id="alerts"></div>
@@ -237,12 +250,11 @@ tr:hover td{background:var(--surface2);}
      <div class="sc"><div class="lb">Séances aujourd'hui</div><div class="vl" id="s-sea">—</div></div>
     </div>
     <div class="tc"><div class="tt"><h3>Séances d'aujourd'hui</h3></div><div id="td-sea"></div></div>
-    <div class="tc"><div class="tt"><h3>Chevaux — statut & heures</h3></div><div id="td-chv"></div></div>
    </div>
 
-   <!-- GROUPES -->
+   <!-- ═══ GROUPES ═══ -->
    <div class="page" id="page-groupes">
-    <div class="ph"><h2>Groupes</h2><p>Créneaux hebdomadaires fixes</p></div>
+    <div class="ph"><h2>Groupes</h2><p>Créneaux fixes hebdomadaires</p></div>
     <div class="tc">
      <div class="tt"><h3>Liste</h3><button class="btn btn-p" onclick="newGrp()">+ Nouveau groupe</button></div>
      <table><thead><tr><th>Nom</th><th>Jour</th><th>Heure</th><th>Moniteur</th><th>Cavaliers</th><th>Actions</th></tr></thead>
@@ -250,7 +262,7 @@ tr:hover td{background:var(--surface2);}
     </div>
    </div>
 
-   <!-- SÉANCES -->
+   <!-- ═══ SÉANCES ═══ -->
    <div class="page" id="page-seances">
     <div class="ph"><h2>Séances</h2><p>Affectations, absences, rattrapages</p></div>
     <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:flex-end">
@@ -261,16 +273,14 @@ tr:hover td{background:var(--surface2);}
     <div id="sea-content"></div>
    </div>
 
-   <!-- STAGES -->
+   <!-- ═══ STAGES ═══ -->
    <div class="page" id="page-stages">
     <div class="ph"><h2>Stages</h2><p>Journées et demi-journées hors période scolaire</p></div>
-    <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap">
-     <button class="btn btn-p" onclick="newStage()">+ Nouveau stage</button>
-    </div>
+    <div style="margin-bottom:18px"><button class="btn btn-p" onclick="newStage()">+ Nouveau stage</button></div>
     <div id="stages-content"></div>
    </div>
 
-   <!-- CAVALIERS -->
+   <!-- ═══ CAVALIERS ═══ -->
    <div class="page" id="page-cavaliers">
     <div class="ph"><h2>Cavaliers</h2></div>
     <div class="tc">
@@ -280,22 +290,28 @@ tr:hover td{background:var(--surface2);}
     </div>
    </div>
 
-   <!-- CHEVAUX -->
+   <!-- ═══ CHEVAUX ═══ -->
    <div class="page" id="page-chevaux">
-    <div class="ph"><h2>Chevaux</h2><p>Suivi des heures et statut</p></div>
+    <div class="ph"><h2>Chevaux</h2><p>Suivi des heures, statuts et disponibilité</p></div>
     <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
      <span style="font-size:12px;color:var(--muted)">Seuil alerte :</span>
      <input type="number" id="seuil" value="20" min="1" max="60" onchange="renderChevaux()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;width:70px">
      <span style="font-size:12px;color:var(--muted)">h/semaine</span>
+     <button class="btn btn-o sm" style="margin-left:auto" onclick="newStatut(null)">+ Statut spécial</button>
     </div>
     <div class="tc">
      <div class="tt"><h3>Liste</h3><button class="btn btn-p" onclick="newChv()">+ Ajouter</button></div>
-     <table><thead><tr><th>Nom</th><th>Heures réelles</th><th>Prévisionnelles</th><th>Statut</th><th>Disponibilité</th><th>Actions</th></tr></thead>
+     <table><thead><tr><th>Nom</th><th>Heures réelles</th><th>Prévisionnelles</th><th>Type</th><th>Statuts à venir</th><th>Actions</th></tr></thead>
      <tbody id="tb-chv"><tr class="er"><td colspan="6"><div class="spin"></div></td></tr></tbody></table>
+    </div>
+    <div class="tc" id="statuts-section">
+     <div class="tt"><h3>Statuts spéciaux programmés</h3><button class="btn btn-o sm" onclick="newStatut(null)">+ Ajouter</button></div>
+     <table><thead><tr><th>Cheval</th><th>Type</th><th>Date</th><th>Heure début</th><th>Heure fin</th><th>Note</th><th>Actions</th></tr></thead>
+     <tbody id="tb-statuts"><tr class="er"><td colspan="7"><div class="spin"></div></td></tr></tbody></table>
     </div>
    </div>
 
-   <!-- MONITEURS -->
+   <!-- ═══ MONITEURS ═══ -->
    <div class="page" id="page-moniteurs">
     <div class="ph"><h2>Moniteurs</h2></div>
     <div class="tc">
@@ -309,14 +325,14 @@ tr:hover td{background:var(--surface2);}
  </div>
 </div>
 
-<!-- ════ MODALS ════ -->
+<!-- ════════════ MODALS ════════════ -->
 
 <!-- Admin PW -->
 <div class="mo" id="mo-pw">
  <div class="md" style="max-width:340px">
   <h3>🔑 Accès administrateur</h3>
   <div class="fg"><label>Mot de passe</label>
-   <div class="pwg"><input type="password" id="pw-in" placeholder="••••••••" onkeydown="if(event.key==='Enter')chkPw()">
+   <div class="pwg"><input type="password" id="pw-in" onkeydown="if(event.key==='Enter')chkPw()">
    <button class="pwe" onclick="togPw()" type="button">👁</button></div>
   </div>
   <div id="pw-err" style="color:#e07060;font-size:12px;margin-top:-8px;margin-bottom:10px;display:none">Mot de passe incorrect.</div>
@@ -346,8 +362,10 @@ tr:hover td{background:var(--surface2);}
  <div class="md">
   <h3 id="mo-cav-t">Nouveau cavalier</h3>
   <input type="hidden" id="cav-id">
-  <div class="fr"><div class="fg"><label>Prénom</label><input type="text" id="cav-prenom" placeholder="Jean"></div>
-  <div class="fg"><label>Téléphone <span style="color:var(--muted)">(admin only)</span></label><input type="tel" id="cav-tel" placeholder="06 12 34 56 78"></div></div>
+  <div class="fr">
+   <div class="fg"><label>Prénom</label><input type="text" id="cav-prenom"></div>
+   <div class="fg"><label>Téléphone <span style="color:var(--muted)">(admin)</span></label><input type="tel" id="cav-tel"></div>
+  </div>
   <div class="fg"><label>Groupe</label><select id="cav-grp"><option value="">— Sans groupe —</option></select></div>
   <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-cav')">Annuler</button><button class="btn btn-p" onclick="saveCavalier()">Enregistrer</button></div>
  </div>
@@ -358,22 +376,40 @@ tr:hover td{background:var(--surface2);}
  <div class="md">
   <h3 id="mo-chv-t">Nouveau cheval</h3>
   <input type="hidden" id="chv-id">
-  <div class="fg"><label>Nom</label><input type="text" id="chv-nom" placeholder="Tornado"></div>
+  <div class="fg"><label>Nom</label><input type="text" id="chv-nom"></div>
   <div class="fr">
    <div class="fg"><label>Heures réelles cette semaine</label><input type="number" id="chv-h-reel" value="0" min="0" step="0.5"></div>
    <div class="fg"><label>Heures prévisionnelles semaine</label><input type="number" id="chv-h-prev" value="0" min="0" step="0.5"></div>
   </div>
-  <div class="fg"><label>Disponibilité</label>
-   <select id="chv-status">
-    <option value="dispo">✅ Disponible</option>
-    <option value="attache">🔗 À l'attache / box (longe, tapis…)</option>
+  <div class="flag-box">
+   <div><div class="ftxt">🚫 Cheval hors cours</div><div class="fsub">N'apparaît jamais dans les affectations de séance. Réservé aux statuts spéciaux uniquement (longe, vétérinaire…)</div></div>
+   <label class="tog"><input type="checkbox" id="chv-hors-cours"><span class="ts"></span></label>
+  </div>
+  <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-chv')">Annuler</button><button class="btn btn-p" onclick="saveCheval()">Enregistrer</button></div>
+ </div>
+</div>
+
+<!-- Statut spécial cheval -->
+<div class="mo" id="mo-statut">
+ <div class="md" style="max-width:480px">
+  <h3 id="mo-statut-t">Nouveau statut spécial</h3>
+  <input type="hidden" id="stat-id">
+  <div class="fg"><label>Cheval</label><select id="stat-chv"><option value="">— Sélectionner —</option></select></div>
+  <div class="fg"><label>Type</label>
+   <select id="stat-type">
+    <option value="attache">🔗 Attache / Box (longe, tapis…)</option>
     <option value="veto">🩺 Vétérinaire</option>
     <option value="marechal">🔨 Maréchal-ferrant</option>
     <option value="repos">😴 Repos</option>
    </select>
   </div>
-  <div class="fg"><label>Note / motif <span style="color:var(--muted)">(optionnel)</span></label><input type="text" id="chv-note" placeholder="Ex : longe 20min, ferrure arrière gauche…"></div>
-  <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-chv')">Annuler</button><button class="btn btn-p" onclick="saveCheval()">Enregistrer</button></div>
+  <div class="fr">
+   <div class="fg"><label>Date</label><input type="date" id="stat-date"></div>
+   <div class="fg"><label>Heure début</label><input type="time" id="stat-heure-deb"></div>
+  </div>
+  <div class="fg"><label>Heure fin <span style="color:var(--muted)">(optionnel)</span></label><input type="time" id="stat-heure-fin"></div>
+  <div class="fg"><label>Note / motif</label><input type="text" id="stat-note" placeholder="Ex : ferrure arrière gauche, longe 20min…"></div>
+  <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-statut')">Annuler</button><button class="btn btn-p" onclick="saveStatut()">Enregistrer</button></div>
  </div>
 </div>
 
@@ -382,7 +418,7 @@ tr:hover td{background:var(--surface2);}
  <div class="md">
   <h3 id="mo-mon-t">Nouveau moniteur</h3>
   <input type="hidden" id="mon-id">
-  <div class="fg"><label>Prénom</label><input type="text" id="mon-prenom" placeholder="Claire"></div>
+  <div class="fg"><label>Prénom</label><input type="text" id="mon-prenom"></div>
   <div class="fg" style="display:flex;align-items:center;gap:10px"><label style="margin-bottom:0">Disponible</label><label class="tog"><input type="checkbox" id="mon-dispo" checked><span class="ts"></span></label></div>
   <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-mon')">Annuler</button><button class="btn btn-p" onclick="saveMoniteur()">Enregistrer</button></div>
  </div>
@@ -393,20 +429,12 @@ tr:hover td{background:var(--surface2);}
  <div class="md">
   <h3 id="mo-stage-t">Nouveau stage</h3>
   <input type="hidden" id="stage-id">
-  <div class="fg"><label>Titre du stage</label><input type="text" id="stage-titre" placeholder="Stage été — Dressage"></div>
+  <div class="fg"><label>Titre</label><input type="text" id="stage-titre" placeholder="Stage été — Dressage"></div>
   <div class="fr">
    <div class="fg"><label>Date début</label><input type="date" id="stage-deb"></div>
    <div class="fg"><label>Date fin</label><input type="date" id="stage-fin"></div>
   </div>
-  <div class="fr">
-   <div class="fg"><label>Demi-journée matin</label>
-    <select id="stage-matin"><option value="">Non</option><option value="matin">Oui — matin</option></select>
-   </div>
-   <div class="fg"><label>Demi-journée après-midi</label>
-    <select id="stage-aprem"><option value="">Non</option><option value="aprem">Oui — après-midi</option></select>
-   </div>
-  </div>
-  <div class="fg"><label>Notes</label><textarea id="stage-notes" placeholder="Infos, programme…"></textarea></div>
+  <div class="fg"><label>Notes</label><textarea id="stage-notes"></textarea></div>
   <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-stage')">Annuler</button><button class="btn btn-p" onclick="saveStage()">Enregistrer</button></div>
  </div>
 </div>
@@ -416,26 +444,25 @@ tr:hover td{background:var(--surface2);}
  <div class="md" style="max-width:460px">
   <h3>Ajouter un participant</h3>
   <input type="hidden" id="part-stage-id">
-  <p style="color:var(--muted);font-size:12px;margin-bottom:16px">Peut être un cavalier inscrit ou une personne extérieure</p>
-  <div class="fg"><label>Choisir un cavalier existant (optionnel)</label>
-   <select id="part-cav-existant" onchange="prefillPart()"><option value="">— Saisie libre —</option></select>
+  <div class="fg"><label>Cavalier existant (optionnel)</label>
+   <select id="part-cav-ex" onchange="prefillPart()"><option value="">— Saisie libre —</option></select>
   </div>
   <div class="fr">
-   <div class="fg"><label>Prénom *</label><input type="text" id="part-prenom" placeholder="Marie"></div>
-   <div class="fg"><label>Téléphone <span style="color:var(--muted)">(admin)</span></label><input type="tel" id="part-tel" placeholder="06…"></div>
+   <div class="fg"><label>Prénom *</label><input type="text" id="part-prenom"></div>
+   <div class="fg"><label>Téléphone <span style="color:var(--muted)">(admin)</span></label><input type="tel" id="part-tel"></div>
   </div>
   <div class="fg"><label>Demi-journée</label>
-   <select id="part-dj"><option value="journee">Journée complète</option><option value="matin">Matin uniquement</option><option value="aprem">Après-midi uniquement</option></select>
+   <select id="part-dj"><option value="journee">Journée complète</option><option value="matin">Matin</option><option value="aprem">Après-midi</option></select>
   </div>
   <div class="fg"><label>Note</label><input type="text" id="part-note" placeholder="Niveau, besoins…"></div>
   <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-part')">Annuler</button><button class="btn btn-p" onclick="savePart()">Ajouter</button></div>
  </div>
 </div>
 
-<!-- Cheval stage (sans cavalier) -->
+<!-- Cheval stage -->
 <div class="mo" id="mo-chv-stage">
  <div class="md" style="max-width:420px">
-  <h3>🐎 Chevaux mobilisés</h3>
+  <h3>🐎 Ajouter un cheval au stage</h3>
   <input type="hidden" id="chs-stage-id">
   <div class="fg"><label>Cheval</label><select id="chs-cheval"><option value="">— Sélectionner —</option></select></div>
   <div class="fg"><label>Demi-journée</label>
@@ -458,22 +485,22 @@ tr:hover td{background:var(--surface2);}
 </div>
 
 <script>
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════
 //  ⚙️  CONFIG — injectée par build.js
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════
 const SUPABASE_URL   = 'VOTRE_URL_SUPABASE';
 const SUPABASE_ANON  = 'VOTRE_CLE_ANON_SUPABASE';
 const APP_KEY        = 'VOTRE_APP_KEY_RLS';
 const ADMIN_PASSWORD = 'VOTRE_MOT_DE_PASSE_ADMIN';
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════
 
-const JOURS=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-const DISC=['Dressage','Saut d\'obstacle','Galop','Initiation','Cross','Endurance','Filet','Longues rênes','Liberté'];
-const STATUS_LABELS={dispo:'✅ Disponible',attache:'🔗 Attache / Box',veto:'🩺 Vétérinaire',marechal:'🔨 Maréchal',repos:'😴 Repos'};
-const STATUS_BADGE={dispo:'bg',attache:'bo',veto:'br',marechal:'bp',repos:'b'};
+const JOURS  = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const DISC   = ['Dressage','Saut d\'obstacle','Galop','Initiation','Cross','Endurance','Filet','Longues rênes','Liberté'];
+const STAT_LBL = {attache:'🔗 Attache / Box', veto:'🩺 Vétérinaire', marechal:'🔨 Maréchal', repos:'😴 Repos'};
+const STAT_BGD = {attache:'bo', veto:'br', marechal:'bp', repos:'b'};
 
 let db=null, isAdmin=false;
-let C={grp:[],cav:[],chv:[],mon:[],sea:[],aff:[],stages:[],parts:[],chvStages:[]};
+let C={grp:[],cav:[],chv:[],mon:[],sea:[],aff:[],statuts:[],stages:[],parts:[],chvStages:[]};
 
 // ── INIT ──
 window.onload=async()=>{
@@ -495,34 +522,10 @@ window.onload=async()=>{
 };
 
 // ── ADMIN ──
-function handleAdminToggle(){
-  if(isAdmin){logoutAdmin();return;}
-  document.getElementById('pw-in').value='';
-  document.getElementById('pw-err').style.display='none';
-  openMo('mo-pw');setTimeout(()=>document.getElementById('pw-in').focus(),80);
-}
-function chkPw(){
-  if(document.getElementById('pw-in').value===ADMIN_PASSWORD){closeMo('mo-pw');enableAdmin();}
-  else{document.getElementById('pw-err').style.display='block';document.getElementById('pw-in').value='';document.getElementById('pw-in').focus();}
-}
-function enableAdmin(){
-  isAdmin=true;
-  document.getElementById('admin-banner').classList.add('show');
-  document.getElementById('mc').classList.add('wb');
-  document.getElementById('anav').style.display='block';
-  document.getElementById('atbtn').textContent='🔒 Quitter admin';
-  document.getElementById('atbtn').classList.add('on');
-  go('dash');toast('Mode administrateur activé','ok');
-}
-function logoutAdmin(){
-  isAdmin=false;
-  document.getElementById('admin-banner').classList.remove('show');
-  document.getElementById('mc').classList.remove('wb');
-  document.getElementById('anav').style.display='none';
-  document.getElementById('atbtn').textContent='🔑 Mode administrateur';
-  document.getElementById('atbtn').classList.remove('on');
-  go('vue');toast('Déconnecté','ok');
-}
+function handleAdminToggle(){if(isAdmin){logoutAdmin();return;}document.getElementById('pw-in').value='';document.getElementById('pw-err').style.display='none';openMo('mo-pw');setTimeout(()=>document.getElementById('pw-in').focus(),80);}
+function chkPw(){if(document.getElementById('pw-in').value===ADMIN_PASSWORD){closeMo('mo-pw');enableAdmin();}else{document.getElementById('pw-err').style.display='block';document.getElementById('pw-in').value='';document.getElementById('pw-in').focus();}}
+function enableAdmin(){isAdmin=true;document.getElementById('admin-banner').classList.add('show');document.getElementById('mc').classList.add('wb');document.getElementById('anav').style.display='block';document.getElementById('atbtn').textContent='🔒 Quitter admin';document.getElementById('atbtn').classList.add('on');go('dash');toast('Mode admin activé','ok');}
+function logoutAdmin(){isAdmin=false;document.getElementById('admin-banner').classList.remove('show');document.getElementById('mc').classList.remove('wb');document.getElementById('anav').style.display='none';document.getElementById('atbtn').textContent='🔑 Mode administrateur';document.getElementById('atbtn').classList.remove('on');go('vue');toast('Déconnecté','ok');}
 function togPw(){const i=document.getElementById('pw-in');i.type=i.type==='password'?'text':'password';}
 
 // ── NAV ──
@@ -537,31 +540,27 @@ function go(p){
   if(p==='dash')renderDash();
   if(p==='seances')loadSeances();
   if(p==='stages')loadStages();
+  if(p==='chevaux'){loadStatuts();renderChevaux();}
   if(window.innerWidth<=768){document.getElementById('sb').classList.remove('open');document.getElementById('sbo').classList.remove('open');}
 }
 
-// ── LOAD ALL ──
-async function loadAll(){
-  await Promise.all([loadGrp(),loadCav(),loadChv(),loadMon()]);
-}
-async function q(t){
-  const{data,error}=await db.from(t).select('*').eq('app_key',APP_KEY).order('created_at',{ascending:true});
-  if(error){console.error(t,error);return[];}return data||[];
-}
+// ── LOAD ──
+async function loadAll(){await Promise.all([loadGrp(),loadCav(),loadChv(),loadMon()]);}
+async function q(t){const{data,error}=await db.from(t).select('*').eq('app_key',APP_KEY).order('created_at',{ascending:true});if(error){console.error(t,error);return[];}return data||[];}
 async function loadGrp(){C.grp=await q('groupes');renderGroupes();popSelects();}
 async function loadCav(){C.cav=await q('cavaliers');renderCavaliers();popSelects();}
 async function loadChv(){C.chv=await q('equides');renderChevaux();}
 async function loadMon(){C.mon=await q('moniteurs');renderMoniteurs();popSelects();}
-
+async function loadStatuts(){
+  const{data}=await db.from('equide_statuts').select('*,equides(nom)').eq('app_key',APP_KEY).order('date').order('heure_debut');
+  C.statuts=data||[];renderStatuts();
+}
 async function loadSeances(){
   const date=document.getElementById('sea-date')?.value;if(!date)return;
   const{data}=await db.from('seances').select('*,groupes(nom,heure,jour,moniteur_id),moniteurs(prenom)').eq('app_key',APP_KEY).eq('date',date).order('heure');
   C.sea=data||[];
-  if(C.sea.length){
-    const ids=C.sea.map(s=>s.id);
-    const{data:af}=await db.from('affectations_seance').select('*,cavaliers(prenom,groupe_id),equides(nom)').eq('app_key',APP_KEY).in('seance_id',ids);
-    C.aff=af||[];
-  }else C.aff=[];
+  if(C.sea.length){const ids=C.sea.map(s=>s.id);const{data:af}=await db.from('affectations_seance').select('*,cavaliers(prenom,groupe_id),equides(nom)').eq('app_key',APP_KEY).in('seance_id',ids);C.aff=af||[];}
+  else C.aff=[];
   renderSeances();
 }
 async function loadStages(){
@@ -569,75 +568,142 @@ async function loadStages(){
   C.stages=st||[];
   if(C.stages.length){
     const ids=C.stages.map(s=>s.id);
-    const[{data:pt},{data:cs}]=await Promise.all([
-      db.from('stage_participants').select('*').eq('app_key',APP_KEY).in('stage_id',ids),
-      db.from('stage_chevaux').select('*,equides(nom)').eq('app_key',APP_KEY).in('stage_id',ids)
-    ]);
+    const[{data:pt},{data:cs}]=await Promise.all([db.from('stage_participants').select('*').eq('app_key',APP_KEY).in('stage_id',ids),db.from('stage_chevaux').select('*,equides(nom)').eq('app_key',APP_KEY).in('stage_id',ids)]);
     C.parts=pt||[];C.chvStages=cs||[];
   }else{C.parts=[];C.chvStages=[];}
   renderStages();
 }
 
 // ══════════════════════════════════════
-//  VUE PUBLIQUE
+//  VUE PUBLIQUE — planning + récap
 // ══════════════════════════════════════
 async function loadVue(){
   const date=document.getElementById('pub-date').value;
   document.getElementById('pub-lbl').textContent=fmtL(date);
   const el=document.getElementById('vue-content');
   el.innerHTML='<div class="ls"><div class="spin"></div></div>';
-  const{data:seances}=await db.from('seances').select('*,groupes(nom,heure,moniteur_id),moniteurs(prenom)').eq('app_key',APP_KEY).eq('date',date).order('heure');
-  // Aussi charger les stages du jour
-  const{data:stagesJour}=await db.from('stages').select('*').eq('app_key',APP_KEY).lte('date_debut',date).gte('date_fin',date);
 
-  if(!seances?.length&&!stagesJour?.length){el.innerHTML='<div class="ls">Aucun cours ni stage ce jour</div>';return;}
+  // Charger en parallèle : séances, statuts spéciaux du jour, stages du jour
+  const[{data:seances},{data:statsDuJour},{data:stagesJour}]=await Promise.all([
+    db.from('seances').select('*,groupes(nom,heure,moniteur_id),moniteurs(prenom)').eq('app_key',APP_KEY).eq('date',date).order('heure'),
+    db.from('equide_statuts').select('*,equides(nom,hors_cours)').eq('app_key',APP_KEY).eq('date',date).order('heure_debut'),
+    db.from('stages').select('*').eq('app_key',APP_KEY).lte('date_debut',date).gte('date_fin',date)
+  ]);
 
-  let html='';
-
-  // Séances régulières
+  let affs=[];
   if(seances?.length){
     const ids=seances.map(s=>s.id);
-    const{data:affs}=await db.from('affectations_seance').select('*,cavaliers(prenom,groupe_id),equides(nom)').eq('app_key',APP_KEY).in('seance_id',ids);
-    for(const s of seances){
-      const g=s.groupes||{};
-      const sa=(affs||[]).filter(a=>a.seance_id===s.id);
-      const sorted=[...sa].sort((a,b)=>{
-        if(a.absent&&!b.absent)return 1;if(!a.absent&&b.absent)return -1;
-        return(a.cavaliers?.prenom||'').localeCompare(b.cavaliers?.prenom||'','fr');
-      });
-      html+=`<div class="pcc">
-        <div class="pch">
-          <div class="pheure">${(g.heure||s.heure||'?').slice(0,5)}</div>
-          <div><div class="pgn">${g.nom||'Groupe'}</div>
-          <div class="pdi">${s.discipline?`<span class="b bb" style="font-size:10px;margin-right:5px">${s.discipline}</span>`:''} 👤 ${s.moniteurs?.prenom||'—'}</div></div>
-        </div>
-        <div>${sorted.length===0?'<div style="padding:14px 22px;color:var(--muted);font-size:13px">Aucun cavalier affecté</div>':
-          sorted.map(a=>`<div class="pcr ${a.absent?'abr':''}">
-            <div class="pcn">${a.cavaliers?.prenom||'?'}${a.rattrapage?'<span class="rtag">rattrapage</span>':''}${a.absent?'<span class="b br" style="margin-left:5px;font-size:10px">absent</span>':''}</div>
-            <div class="pch2">${a.absent?'<span style="color:var(--muted)">—</span>':`🐎 <strong>${a.equides?.nom||'Non attribué'}</strong>`}</div>
-          </div>`).join('')}
-        </div>
-      </div>`;
-    }
+    const{data:af}=await db.from('affectations_seance').select('*,cavaliers(prenom,groupe_id),equides(nom)').eq('app_key',APP_KEY).in('seance_id',ids);
+    affs=af||[];
   }
 
-  // Stages du jour
+  // ── RÉCAP CHEVAUX DU JOUR ──
+  // Collecter tous les chevaux mobilisés : cours + statuts spéciaux
+  const chevauxDuJour=new Map(); // equide_id → {nom, events:[{heure, label, type}]}
+  // Depuis les affectations de cours (présents uniquement)
+  for(const a of affs.filter(a=>!a.absent&&a.equide_id)){
+    const sea=seances.find(s=>s.id===a.seance_id);
+    const heure=(sea?.groupes?.heure||sea?.heure||'').slice(0,5);
+    const g=sea?.groupes?.nom||'Cours';
+    if(!chevauxDuJour.has(a.equide_id))chevauxDuJour.set(a.equide_id,{nom:a.equides?.nom||'?',events:[]});
+    chevauxDuJour.get(a.equide_id).events.push({heure,label:g,type:'cours'});
+  }
+  // Depuis les statuts spéciaux du jour
+  for(const s of(statsDuJour||[])){
+    if(!chevauxDuJour.has(s.equide_id))chevauxDuJour.set(s.equide_id,{nom:s.equides?.nom||'?',events:[]});
+    const lbl=STAT_LBL[s.type]||s.type;
+    chevauxDuJour.get(s.equide_id).events.push({heure:(s.heure_debut||'').slice(0,5),heureFin:(s.heure_fin||'').slice(0,5),label:lbl,type:'statut'});
+  }
+
+  const recapWrap=document.getElementById('recap-chevaux-wrap');
+  const recapContent=document.getElementById('recap-chevaux-content');
+  if(chevauxDuJour.size>0){
+    recapWrap.style.display='block';
+    document.getElementById('recap-chevaux-count').textContent=`${chevauxDuJour.size} cheval${chevauxDuJour.size>1?'x':''} en activité`;
+    // Trier par premier horaire
+    const sorted=[...chevauxDuJour.entries()].sort((a,b)=>{
+      const ha=a[1].events[0]?.heure||'99';const hb=b[1].events[0]?.heure||'99';return ha.localeCompare(hb);
+    });
+    recapContent.innerHTML=sorted.map(([,chv])=>`
+      <div class="recap-chv ${chv.events.some(e=>e.type==='statut')?'statut-sp':''}">
+        <div style="flex:1">
+          <div class="recap-chv-name">🐎 ${chv.nom}</div>
+          ${chv.events.sort((a,b)=>(a.heure||'').localeCompare(b.heure||'')).map(ev=>`
+            <div class="recap-chv-detail" style="margin-top:4px">
+              <span style="color:${ev.type==='cours'?'var(--gold)':'#e09a60'};font-weight:600">${ev.heure||'—'}</span>
+              ${ev.heureFin?` → ${ev.heureFin}`:''}
+              &nbsp;${ev.label}
+            </div>`).join('')}
+        </div>
+      </div>`).join('');
+  }else{recapWrap.style.display='none';}
+
+  if(!seances?.length&&!statsDuJour?.length&&!stagesJour?.length){el.innerHTML='<div class="ls">Aucun cours, statut ni stage ce jour</div>';return;}
+
+  // ── ASSEMBLER LES BLOCS triés par heure ──
+  // Chaque bloc a {heure, html}
+  let blocs=[];
+
+  // Séances de cours
+  for(const s of(seances||[])){
+    const g=s.groupes||{};
+    const sa=affs.filter(a=>a.seance_id===s.id);
+    const sorted=[...sa].sort((a,b)=>{if(a.absent&&!b.absent)return 1;if(!a.absent&&b.absent)return -1;return(a.cavaliers?.prenom||'').localeCompare(b.cavaliers?.prenom||'','fr');});
+    const heure=(g.heure||s.heure||'').slice(0,5);
+    blocs.push({heure,html:`<div class="pcc">
+      <div class="pch">
+        <div class="pheure">${heure}</div>
+        <div><div class="pgn">${g.nom||'Groupe'}</div>
+        <div class="pdi">${s.discipline?`<span class="b bb" style="font-size:10px;margin-right:5px">${s.discipline}</span>`:''} 👤 ${s.moniteurs?.prenom||'—'}</div></div>
+      </div>
+      <div>${sorted.length===0?'<div style="padding:14px 22px;color:var(--muted)">Aucun cavalier affecté</div>':
+        sorted.map(a=>`<div class="pcr ${a.absent?'abr':''}">
+          <div class="pcn">${a.cavaliers?.prenom||'?'}${a.rattrapage?'<span class="rtag">rattrapage</span>':''}${a.absent?'<span class="b br" style="margin-left:5px;font-size:10px">absent</span>':''}</div>
+          <div class="pch2">${a.absent?'<span style="color:var(--muted)">—</span>':`🐎 <strong>${a.equides?.nom||'Non attribué'}</strong>`}</div>
+        </div>`).join('')}
+      </div>
+    </div>`});
+  }
+
+  // Statuts spéciaux
+  for(const s of(statsDuJour||[])){
+    const heure=(s.heure_debut||'').slice(0,5);
+    const heureFin=(s.heure_fin||'').slice(0,5);
+    blocs.push({heure,html:`<div class="pcc statut-card">
+      <div class="pch">
+        <div class="pheure" style="font-size:20px">${heure||'—'}</div>
+        <div style="flex:1">
+          <div class="pgn">🐎 ${s.equides?.nom||'?'}</div>
+          <div class="pdi">
+            <span class="b ${STAT_BGD[s.type]||'b'}" style="font-size:10px">${STAT_LBL[s.type]||s.type}</span>
+            ${heureFin?` <span style="margin-left:6px">→ ${heureFin}</span>`:''}
+          </div>
+        </div>
+      </div>
+      ${s.note?`<div style="padding:12px 22px;font-size:13px;color:var(--muted)">${s.note}</div>`:''}
+    </div>`});
+  }
+
+  // Stages
   for(const st of(stagesJour||[])){
     const parts=C.parts.filter(p=>p.stage_id===st.id);
-    const chevaux=C.chvStages.filter(c=>c.stage_id===st.id);
-    html+=`<div class="pcc" style="border-color:var(--gold)">
+    const chvs=C.chvStages.filter(c=>c.stage_id===st.id);
+    blocs.push({heure:'00',html:`<div class="pcc stage-card">
       <div class="pch">
         <div class="pheure" style="font-size:18px">🏕</div>
         <div><div class="pgn">${st.titre}</div>
         <div class="pdi">${fmtDate(st.date_debut)}${st.date_fin!==st.date_debut?' → '+fmtDate(st.date_fin):''}</div></div>
       </div>
-      ${parts.length?`<div>${parts.sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(p=>`
+      ${parts.length?`<div>${[...parts].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(p=>`
         <div class="pcr"><div class="pcn">${p.prenom}${p.demi_journee&&p.demi_journee!=='journee'?` <span class="b bo" style="font-size:10px">${p.demi_journee}</span>`:''}</div>
-        <div class="pch2" style="font-size:12px;color:var(--muted)">${p.note||''}</div></div>`).join('')}</div>`:''}
-      ${chevaux.length?`<div style="padding:10px 22px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)">🐎 ${chevaux.map(c=>c.equides?.nom||'?').join(', ')}</div>`:''}
-    </div>`;
+        <div class="pch2" style="font-size:12px">${p.note||''}</div></div>`).join('')}</div>`:''}
+      ${chvs.length?`<div style="padding:10px 22px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)">🐎 ${chvs.map(c=>c.equides?.nom||'?').join(', ')}</div>`:''}
+    </div>`});
   }
-  el.innerHTML=html;
+
+  // Trier tous les blocs par heure
+  blocs.sort((a,b)=>a.heure.localeCompare(b.heure));
+  el.innerHTML=blocs.map(b=>b.html).join('');
 }
 
 // ══════════════════════════════════════
@@ -650,25 +716,11 @@ function renderDash(){
   const today=new Date().toISOString().split('T')[0];
   document.getElementById('s-sea').textContent=C.sea.filter(s=>s.date===today).length;
   const seuil=+document.getElementById('seuil')?.value||20;
-  document.getElementById('alerts').innerHTML=
-    C.chv.filter(c=>(c.heures_reel||0)>=seuil)
-    .map(c=>`<div class="alert">⚠️ <strong>${c.nom}</strong> — ${c.heures_reel||0}h réelles cette semaine (seuil : ${seuil}h)</div>`).join('');
+  document.getElementById('alerts').innerHTML=C.chv.filter(c=>(c.heures_reel||0)>=seuil).map(c=>`<div class="alert">⚠️ <strong>${c.nom}</strong> — ${c.heures_reel||0}h réelles cette semaine (seuil : ${seuil}h)</div>`).join('');
   const el=document.getElementById('td-sea');
   const tc=C.sea.filter(s=>s.date===today);
   if(!tc.length){el.innerHTML='<div class="ls">Aucune séance aujourd\'hui</div>';}
-  else el.innerHTML=`<table><thead><tr><th>Groupe</th><th>Heure</th><th>Discipline</th><th>Moniteur</th></tr></thead><tbody>
-    ${tc.map(s=>{const g=C.grp.find(x=>x.id===s.groupe_id)||{};
-    return`<tr><td><strong>${g.nom||'?'}</strong></td><td>${(s.heure||g.heure||'').slice(0,5)}</td><td>${s.discipline||'—'}</td><td>${s.moniteurs?.prenom||'—'}</td></tr>`;}).join('')}
-  </tbody></table>`;
-  // Tableau chevaux résumé
-  const ec=document.getElementById('td-chv');
-  if(!C.chv.length){ec.innerHTML='<div class="ls">Aucun cheval</div>';return;}
-  ec.innerHTML=`<table><thead><tr><th>Cheval</th><th>Heures réelles</th><th>Prévisionnelles</th><th>Disponibilité</th></tr></thead><tbody>
-    ${C.chv.map(c=>`<tr>
-      <td><strong>${c.nom}</strong>${c.note?`<br><span style="font-size:11px;color:var(--muted)">${c.note}</span>`:''}</td>
-      <td>${c.heures_reel||0}h</td><td>${c.heures_prev||0}h</td>
-      <td><span class="b ${STATUS_BADGE[c.status]||'b'}">${STATUS_LABELS[c.status]||'—'}</span></td>
-    </tr>`).join('')}</tbody></table>`;
+  else el.innerHTML=`<table><thead><tr><th>Groupe</th><th>Heure</th><th>Discipline</th><th>Moniteur</th></tr></thead><tbody>${tc.map(s=>{const g=C.grp.find(x=>x.id===s.groupe_id)||{};return`<tr><td><strong>${g.nom||'?'}</strong></td><td>${(s.heure||g.heure||'').slice(0,5)}</td><td>${s.discipline||'—'}</td><td>${s.moniteurs?.prenom||'—'}</td></tr>`;}).join('')}</tbody></table>`;
 }
 
 // ══════════════════════════════════════
@@ -678,59 +730,26 @@ function renderGroupes(){
   const t=document.getElementById('tb-grp');
   if(!C.grp.length){t.innerHTML='<tr class="er"><td colspan="6">Aucun groupe</td></tr>';return;}
   t.innerHTML=C.grp.map(g=>{
-    const mon=C.mon.find(m=>m.id===g.moniteur_id);
-    const nb=C.cav.filter(c=>c.groupe_id===g.id).length;
-    return`<tr>
-      <td><strong>${g.nom}</strong></td><td>${JOURS[g.jour]}</td><td>${g.heure?.slice(0,5)}</td>
-      <td>${mon?.prenom||'—'}</td>
-      <td><span class="b bgo">${nb} cavalier${nb>1?'s':''}</span></td>
-      <td style="display:flex;gap:6px">
-        <button class="btn btn-g sm" onclick="editGrp('${g.id}')">✏️</button>
-        <button class="btn btn-d sm" onclick="delGrp('${g.id}')">🗑</button>
-      </td>
-    </tr>`;
+    const mon=C.mon.find(m=>m.id===g.moniteur_id);const nb=C.cav.filter(c=>c.groupe_id===g.id).length;
+    return`<tr><td><strong>${g.nom}</strong></td><td>${JOURS[g.jour]}</td><td>${g.heure?.slice(0,5)}</td><td>${mon?.prenom||'—'}</td>
+    <td><span class="b bgo">${nb} cavalier${nb>1?'s':''}</span></td>
+    <td style="display:flex;gap:6px"><button class="btn btn-g sm" onclick="editGrp('${g.id}')">✏️</button><button class="btn btn-d sm" onclick="delGrp('${g.id}')">🗑</button></td></tr>`;
   }).join('');
 }
-function newGrp(){document.getElementById("mo-grp-t").textContent="Nouveau groupe";document.getElementById("grp-id").value="";document.getElementById("grp-nom").value="";document.getElementById("grp-heure").value="";document.getElementById("grp-mon").value="";openMo("mo-grp");}
+function newGrp(){document.getElementById('mo-grp-t').textContent='Nouveau groupe';['grp-id','grp-nom','grp-heure'].forEach(i=>document.getElementById(i).value='');document.getElementById('grp-mon').value='';openMo('mo-grp');}
 async function saveGroupe(){
-  const nom=document.getElementById('grp-nom').value.trim();
-  const jour=+document.getElementById('grp-jour').value;
-  const heure=document.getElementById('grp-heure').value;
-  const moniteur_id=document.getElementById('grp-mon').value||null;
-  const id=document.getElementById('grp-id').value;
+  const nom=document.getElementById('grp-nom').value.trim(),jour=+document.getElementById('grp-jour').value,heure=document.getElementById('grp-heure').value,moniteur_id=document.getElementById('grp-mon').value||null,id=document.getElementById('grp-id').value;
   if(!nom||!heure){toast('Nom et heure requis','err');return;}
-  const p={nom,jour,heure,moniteur_id,app_key:APP_KEY};
-  const{error}=id?await db.from('groupes').update(p).eq('id',id):await db.from('groupes').insert(p);
+  const{error}=id?await db.from('groupes').update({nom,jour,heure,moniteur_id}).eq('id',id):await db.from('groupes').insert({nom,jour,heure,moniteur_id,app_key:APP_KEY});
   if(error){toast('Erreur : '+error.message,'err');return;}
   toast(id?'Groupe modifié':'Groupe créé','ok');closeMo('mo-grp');await loadGrp();
 }
-function editGrp(id){
-  const g=C.grp.find(x=>x.id===id);
-  document.getElementById('mo-grp-t').textContent='Modifier le groupe';
-  document.getElementById('grp-id').value=id;
-  document.getElementById('grp-nom').value=g.nom;
-  document.getElementById('grp-jour').value=g.jour;
-  document.getElementById('grp-heure').value=g.heure?.slice(0,5);
-  document.getElementById('grp-mon').value=g.moniteur_id||'';
-  openMo('mo-grp');
-}
+function editGrp(id){const g=C.grp.find(x=>x.id===id);document.getElementById('mo-grp-t').textContent='Modifier le groupe';document.getElementById('grp-id').value=id;document.getElementById('grp-nom').value=g.nom;document.getElementById('grp-jour').value=g.jour;document.getElementById('grp-heure').value=g.heure?.slice(0,5);document.getElementById('grp-mon').value=g.moniteur_id||'';openMo('mo-grp');}
 async function delGrp(id){
-  // Vérifier si des séances sont liées
-  const{data:seaLiees}=await db.from('seances').select('id').eq('groupe_id',id).eq('app_key',APP_KEY).limit(1);
-  const hasSea=seaLiees&&seaLiees.length>0;
-  const msg=hasSea
-    ?`⚠️ Ce groupe a des séances associées.\n\nSi vous continuez :\n• Les séances liées seront supprimées\n• Les affectations correspondantes seront supprimées\n• Les cavaliers seront désassociés du groupe\n\nConfirmer la suppression ?`
-    :`Supprimer ce groupe ? Les cavaliers seront désassociés.`;
-  if(!confirm(msg))return;
-  // Cascade : supprimer affectations → séances → désassocier cavaliers → supprimer groupe
-  if(hasSea){
-    const{data:toutes}=await db.from('seances').select('id').eq('groupe_id',id).eq('app_key',APP_KEY);
-    if(toutes?.length){
-      const seaIds=toutes.map(s=>s.id);
-      await db.from('affectations_seance').delete().in('seance_id',seaIds);
-      await db.from('seances').delete().eq('groupe_id',id).eq('app_key',APP_KEY);
-    }
-  }
+  const{data:sl}=await db.from('seances').select('id').eq('groupe_id',id).eq('app_key',APP_KEY).limit(1);
+  const has=sl?.length>0;
+  if(!confirm(has?'⚠️ Ce groupe a des séances associées.\n\nToutes les séances et affectations liées seront supprimées.\n\nConfirmer ?':'Supprimer ce groupe ?'))return;
+  if(has){const{data:all}=await db.from('seances').select('id').eq('groupe_id',id).eq('app_key',APP_KEY);if(all?.length){await db.from('affectations_seance').delete().in('seance_id',all.map(s=>s.id));await db.from('seances').delete().eq('groupe_id',id).eq('app_key',APP_KEY);}}
   await db.from('cavaliers').update({groupe_id:null}).eq('groupe_id',id);
   await db.from('groupes').delete().eq('id',id);
   toast('Groupe supprimé','ok');await loadGrp();await loadCav();
@@ -740,17 +759,13 @@ async function delGrp(id){
 //  SÉANCES
 // ══════════════════════════════════════
 async function genSeances(){
-  const date=document.getElementById('sea-date').value;
-  if(!date){toast('Choisissez une date','err');return;}
+  const date=document.getElementById('sea-date').value;if(!date){toast('Choisissez une date','err');return;}
   const jourNum=new Date(date+'T00:00:00').getDay();
-  const gjour=C.grp.filter(g=>+g.jour===jourNum);
-  if(!gjour.length){toast('Aucun groupe n\'a cours ce jour','err');return;}
+  const gjour=C.grp.filter(g=>+g.jour===jourNum);if(!gjour.length){toast('Aucun groupe n\'a cours ce jour','err');return;}
   let created=0;
   for(const g of gjour){
-    const exists=C.sea.find(s=>s.groupe_id===g.id&&s.date===date);if(exists)continue;
-    const{data:ns,error}=await db.from('seances').insert({
-      groupe_id:g.id,date,heure:g.heure,discipline:DISC[0],moniteur_id:g.moniteur_id||null,app_key:APP_KEY
-    }).select('id').single();
+    const ex=C.sea.find(s=>s.groupe_id===g.id&&s.date===date);if(ex)continue;
+    const{data:ns,error}=await db.from('seances').insert({groupe_id:g.id,date,heure:g.heure,discipline:DISC[0],moniteur_id:g.moniteur_id||null,app_key:APP_KEY}).select('id').single();
     if(error||!ns)continue;created++;
     const cavs=C.cav.filter(c=>c.groupe_id===g.id);
     if(cavs.length)await db.from('affectations_seance').insert(cavs.map(c=>({seance_id:ns.id,cavalier_id:c.id,equide_id:null,absent:false,rattrapage:false,app_key:APP_KEY})));
@@ -758,13 +773,11 @@ async function genSeances(){
   await loadSeances();
   toast(created>0?`${created} séance${created>1?'s':''} générée${created>1?'s':''}`:'Séances déjà existantes','ok');
 }
-
 function renderSeances(){
   const el=document.getElementById('sea-content');
-  if(!C.sea.length){
-    el.innerHTML=`<div class="ls">Aucune séance ce jour.<br><br><button class="btn btn-p" style="margin-top:10px" onclick="genSeances()">⚡ Générer les séances</button></div>`;
-    return;
-  }
+  if(!C.sea.length){el.innerHTML=`<div class="ls">Aucune séance ce jour.<br><br><button class="btn btn-p" style="margin-top:10px" onclick="genSeances()">⚡ Générer les séances</button></div>`;return;}
+  // Chevaux disponibles pour les séances = ceux qui ne sont pas hors_cours
+  const chvDispos=C.chv.filter(c=>!c.hors_cours);
   let html='';
   for(const s of C.sea){
     const g=s.groupes||C.grp.find(x=>x.id===s.groupe_id)||{};
@@ -776,7 +789,7 @@ function renderSeances(){
         <div style="flex:1;max-width:190px">${a.absent?'<span style="color:var(--muted);font-size:12px">Absent</span>':`
           <select onchange="updChv('${a.id}',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 9px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;outline:none">
             <option value="">— Cheval —</option>
-            ${C.chv.map(c=>`<option value="${c.id}"${a.equide_id===c.id?' selected':''}>${c.nom}${c.status!=='dispo'?' ⚠️':''}</option>`).join('')}
+            ${chvDispos.map(c=>`<option value="${c.id}"${a.equide_id===c.id?' selected':''}>${c.nom}</option>`).join('')}
           </select>`}
         </div>
         <div style="display:flex;gap:5px;margin-left:auto">
@@ -787,8 +800,7 @@ function renderSeances(){
     html+=`<div class="sk">
       <div class="skh" onclick="togSk('sk-${s.id}')">
         <div><div class="skt">${g.nom||'Groupe'}</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:3px">${(s.heure||g.heure||'').slice(0,5)} · ${pr} présent${pr>1?'s':''} · ${ab} absent${ab>1?'s':''}${rt?` · ${rt} rattrapage${rt>1?'s':''}`:''}
-        </div></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">${(s.heure||g.heure||'').slice(0,5)} · ${pr} présent${pr>1?'s':''} · ${ab} absent${ab>1?'s':''}${rt?` · ${rt} rattrapage${rt>1?'s':''}`:''}</div></div>
         <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
           <select onclick="event.stopPropagation()" onchange="updDisc('${s.id}',this.value)" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 9px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;outline:none">
             ${DISC.map(d=>`<option value="${d}"${s.discipline===d?' selected':''}>${d}</option>`).join('')}
@@ -798,46 +810,30 @@ function renderSeances(){
       </div>
       <div class="skb" id="sk-${s.id}" style="display:none">
         ${rows||'<div style="color:var(--muted);padding:6px 0">Aucun cavalier</div>'}
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-          <button class="btn btn-o sm" onclick="openRatt('${s.id}')">➕ Rattrapage</button>
-        </div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)"><button class="btn btn-o sm" onclick="openRatt('${s.id}')">➕ Rattrapage</button></div>
       </div>
     </div>`;
   }
   el.innerHTML=html;
 }
-
 function togSk(id){const e=document.getElementById(id);e.style.display=e.style.display==='block'?'none':'block';}
 async function updDisc(id,v){await db.from('seances').update({discipline:v}).eq('id',id);const s=C.sea.find(x=>x.id===id);if(s)s.discipline=v;toast('Discipline mise à jour','ok');}
 async function updChv(affId,cid){
   await db.from('affectations_seance').update({equide_id:cid||null}).eq('id',affId);
-  // Mettre à jour les heures réelles du cheval si on lui affecte un cours
-  if(cid){
-    const chv=C.chv.find(c=>c.id===cid);
-    if(chv){
-      const newH=(chv.heures_reel||0)+1; // +1h par défaut par séance
-      await db.from('equides').update({heures_reel:newH}).eq('id',cid);
-      chv.heures_reel=newH;renderChevaux();
-    }
-  }
+  if(cid){const chv=C.chv.find(c=>c.id===cid);if(chv){const h=(chv.heures_reel||0)+1;await db.from('equides').update({heures_reel:h}).eq('id',cid);chv.heures_reel=h;renderChevaux();}}
   toast('Cheval mis à jour','ok');
 }
 async function togAbs(id,v){await db.from('affectations_seance').update({absent:v,equide_id:v?null:undefined}).eq('id',id);toast(v?'Absent':'Présent','ok');await loadSeances();}
 async function delAff(id){if(!confirm('Supprimer ce rattrapage ?'))return;await db.from('affectations_seance').delete().eq('id',id);toast('Supprimé','ok');await loadSeances();}
-
 function openRatt(seaId){
   document.getElementById('ratt-sea-id').value=seaId;
   const ex=C.aff.filter(a=>a.seance_id===seaId).map(a=>a.cavalier_id);
-  document.getElementById('ratt-cav').innerHTML='<option value="">— Sélectionner —</option>'+
-    [...C.cav].filter(c=>!ex.includes(c.id)).sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr'))
-    .map(c=>{const g=C.grp.find(x=>x.id===c.groupe_id);return`<option value="${c.id}">${c.prenom}${g?' ('+g.nom+')':''}`;}).join('');
-  document.getElementById('ratt-chv').innerHTML='<option value="">— Sélectionner —</option>'+C.chv.map(c=>`<option value="${c.id}">${c.nom}</option>`).join('');
+  document.getElementById('ratt-cav').innerHTML='<option value="">— Sélectionner —</option>'+[...C.cav].filter(c=>!ex.includes(c.id)).sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>{const g=C.grp.find(x=>x.id===c.groupe_id);return`<option value="${c.id}">${c.prenom}${g?' ('+g.nom+')':''}`;}).join('');
+  document.getElementById('ratt-chv').innerHTML='<option value="">— Sélectionner —</option>'+C.chv.filter(c=>!c.hors_cours).map(c=>`<option value="${c.id}">${c.nom}</option>`).join('');
   openMo('mo-ratt');
 }
 async function saveRatt(){
-  const seaId=document.getElementById('ratt-sea-id').value;
-  const cavId=document.getElementById('ratt-cav').value;
-  const chvId=document.getElementById('ratt-chv').value;
+  const seaId=document.getElementById('ratt-sea-id').value,cavId=document.getElementById('ratt-cav').value,chvId=document.getElementById('ratt-chv').value;
   if(!cavId){toast('Choisissez un cavalier','err');return;}
   const{error}=await db.from('affectations_seance').insert({seance_id:seaId,cavalier_id:cavId,equide_id:chvId||null,absent:false,rattrapage:true,app_key:APP_KEY});
   if(error){toast('Erreur : '+error.message,'err');return;}
@@ -845,216 +841,109 @@ async function saveRatt(){
 }
 
 // ══════════════════════════════════════
-//  STAGES
+//  STATUTS SPÉCIAUX CHEVAUX
 // ══════════════════════════════════════
-function renderStages(){
-  const el=document.getElementById('stages-content');
-  if(!C.stages.length){el.innerHTML='<div class="ls">Aucun stage créé</div>';return;}
-  el.innerHTML=C.stages.map(st=>{
-    const parts=C.parts.filter(p=>p.stage_id===st.id);
-    const chevaux=C.chvStages.filter(c=>c.stage_id===st.id);
-    const partsSorted=[...parts].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr'));
-    return`<div class="stage-card">
-      <div class="stage-header">
-        <div>
-          <div class="stage-title">🏕 ${st.titre}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:3px">${fmtDate(st.date_debut)}${st.date_fin!==st.date_debut?' → '+fmtDate(st.date_fin):''} · ${parts.length} participant${parts.length>1?'s':''} · ${chevaux.length} cheval${chevaux.length>1?'x':''}</div>
-          ${st.notes?`<div style="font-size:12px;color:var(--muted);margin-top:4px">${st.notes}</div>`:''}
-        </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn btn-p sm" onclick="openPart('${st.id}')">➕ Participant</button>
-          <button class="btn btn-pu sm" onclick="openChvStage('${st.id}')">🐎 Cheval</button>
-          <button class="btn btn-g sm" onclick="editStage('${st.id}')">✏️</button>
-          <button class="btn btn-d sm" onclick="delStage('${st.id}')">🗑</button>
-        </div>
-      </div>
-      ${partsSorted.length?`
-      <table style="margin:0"><thead><tr><th>Prénom</th><th>Demi-journée</th>${isAdmin?'<th>Téléphone</th>':''}<th>Note</th><th></th></tr></thead><tbody>
-        ${partsSorted.map(p=>`<tr>
-          <td><strong>${p.prenom}</strong></td>
-          <td>${p.demi_journee==='matin'?'<span class="b bb">Matin</span>':p.demi_journee==='aprem'?'<span class="b bo">Après-midi</span>':'<span class="b bg">Journée</span>'}</td>
-          ${isAdmin?`<td>${p.telephone||'—'}</td>`:''}
-          <td style="color:var(--muted);font-size:12px">${p.note||''}</td>
-          <td><button class="btn btn-d sm" onclick="delPart('${p.id}')">🗑</button></td>
-        </tr>`).join('')}
-      </tbody></table>`:''}
-      ${chevaux.length?`<div style="padding:10px 18px;border-top:1px solid var(--border);font-size:13px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <span style="color:var(--muted)">Chevaux :</span>
-        ${chevaux.map(c=>`<span class="b bgo">${c.equides?.nom||'?'}${c.demi_journee&&c.demi_journee!=='journee'?' ('+c.demi_journee+')':''} <button onclick="delChvStage('${c.id}')" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:0 0 0 4px">×</button></span>`).join('')}
-      </div>`:''}
-    </div>`;
-  }).join('');
-}
-function newStage(){document.getElementById("mo-stage-t").textContent="Nouveau stage";["stage-id","stage-titre","stage-notes"].forEach(id=>document.getElementById(id).value="");document.getElementById("stage-deb").value="";document.getElementById("stage-fin").value="";openMo("mo-stage");}
-async function saveStage(){
-  const titre=document.getElementById('stage-titre').value.trim();
-  const deb=document.getElementById('stage-deb').value;
-  const fin=document.getElementById('stage-fin').value||deb;
-  const notes=document.getElementById('stage-notes').value;
-  const id=document.getElementById('stage-id').value;
-  if(!titre||!deb){toast('Titre et date requis','err');return;}
-  const p={titre,date_debut:deb,date_fin:fin,notes,app_key:APP_KEY};
-  const{error}=id?await db.from('stages').update(p).eq('id',id):await db.from('stages').insert(p);
-  if(error){toast('Erreur : '+error.message,'err');return;}
-  toast(id?'Stage modifié':'Stage créé','ok');closeMo('mo-stage');await loadStages();
-}
-function editStage(id){
-  const s=C.stages.find(x=>x.id===id);
-  document.getElementById('mo-stage-t').textContent='Modifier le stage';
-  document.getElementById('stage-id').value=id;
-  document.getElementById('stage-titre').value=s.titre;
-  document.getElementById('stage-deb').value=s.date_debut;
-  document.getElementById('stage-fin').value=s.date_fin;
-  document.getElementById('stage-notes').value=s.notes||'';
-  openMo('mo-stage');
-}
-async function delStage(id){
-  if(!confirm('Supprimer ce stage et tous ses participants / chevaux ?'))return;
-  await db.from('stage_participants').delete().eq('stage_id',id);
-  await db.from('stage_chevaux').delete().eq('stage_id',id);
-  await db.from('stages').delete().eq('id',id);
-  toast('Stage supprimé','ok');await loadStages();
-}
-
-function openPart(stageId){
-  document.getElementById('part-stage-id').value=stageId;
-  document.getElementById('part-prenom').value='';
-  document.getElementById('part-tel').value='';
-  document.getElementById('part-note').value='';
-  document.getElementById('part-dj').value='journee';
-  // Remplir select cavaliers existants
-  document.getElementById('part-cav-existant').innerHTML='<option value="">— Saisie libre —</option>'+
-    [...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>`<option value="${c.id}" data-tel="${c.telephone||''}">${c.prenom}</option>`).join('');
-  openMo('mo-part');
-}
-function prefillPart(){
-  const sel=document.getElementById('part-cav-existant');
-  const opt=sel.options[sel.selectedIndex];
-  if(sel.value){
-    const cav=C.cav.find(c=>c.id===sel.value);
-    if(cav){
-      document.getElementById('part-prenom').value=cav.prenom;
-      document.getElementById('part-tel').value=cav.telephone||'';
-    }
-  }else{
-    document.getElementById('part-prenom').value='';
-    document.getElementById('part-tel').value='';
-  }
-}
-async function savePart(){
-  const stageId=document.getElementById('part-stage-id').value;
-  const prenom=document.getElementById('part-prenom').value.trim();
-  const tel=document.getElementById('part-tel').value.trim();
-  const dj=document.getElementById('part-dj').value;
-  const note=document.getElementById('part-note').value;
-  if(!prenom){toast('Prénom requis','err');return;}
-  const{error}=await db.from('stage_participants').insert({stage_id:stageId,prenom,telephone:tel||null,demi_journee:dj,note:note||null,app_key:APP_KEY});
-  if(error){toast('Erreur : '+error.message,'err');return;}
-  toast('Participant ajouté','ok');closeMo('mo-part');await loadStages();
-}
-async function delPart(id){if(!confirm('Supprimer ce participant ?'))return;await db.from('stage_participants').delete().eq('id',id);toast('Supprimé','ok');await loadStages();}
-
-function openChvStage(stageId){
-  document.getElementById('chs-stage-id').value=stageId;
-  document.getElementById('chs-cheval').innerHTML='<option value="">— Sélectionner —</option>'+C.chv.map(c=>`<option value="${c.id}">${c.nom}</option>`).join('');
-  document.getElementById('chs-dj').value='journee';
-  document.getElementById('chs-note').value='';
-  openMo('mo-chv-stage');
-}
-async function saveChvStage(){
-  const stageId=document.getElementById('chs-stage-id').value;
-  const chvId=document.getElementById('chs-cheval').value;
-  const dj=document.getElementById('chs-dj').value;
-  const note=document.getElementById('chs-note').value;
-  if(!chvId){toast('Choisissez un cheval','err');return;}
-  const{error}=await db.from('stage_chevaux').insert({stage_id:stageId,equide_id:chvId,demi_journee:dj,note:note||null,app_key:APP_KEY});
-  if(error){toast('Erreur : '+error.message,'err');return;}
-  toast('Cheval ajouté','ok');closeMo('mo-chv-stage');await loadStages();
-}
-async function delChvStage(id){await db.from('stage_chevaux').delete().eq('id',id);toast('Supprimé','ok');await loadStages();}
-
-// ══════════════════════════════════════
-//  CAVALIERS
-// ══════════════════════════════════════
-function renderCavaliers(){
-  const t=document.getElementById('tb-cav');
-  if(!C.cav.length){t.innerHTML='<tr class="er"><td colspan="4">Aucun cavalier</td></tr>';return;}
-  const sorted=[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr'));
-  t.innerHTML=sorted.map(c=>{
-    const g=C.grp.find(x=>x.id===c.groupe_id);
-    return`<tr>
-      <td><strong>${c.prenom}</strong></td>
-      <td>${g?`<span class="b bb">${g.nom}</span>`:'<span class="b br">Sans groupe</span>'}</td>
-      <td>${isAdmin?(c.telephone||'—'):'<span style="color:var(--muted)">🔒</span>'}</td>
+function renderStatuts(){
+  const t=document.getElementById('tb-statuts');if(!t)return;
+  if(!C.statuts.length){t.innerHTML='<tr class="er"><td colspan="7">Aucun statut programmé</td></tr>';return;}
+  const today=new Date().toISOString().split('T')[0];
+  t.innerHTML=[...C.statuts].sort((a,b)=>(a.date+a.heure_debut).localeCompare(b.date+b.heure_debut)).map(s=>{
+    const isPast=s.date<today;
+    return`<tr style="${isPast?'opacity:.5':''}">
+      <td><strong>${s.equides?.nom||'?'}</strong></td>
+      <td><span class="b ${STAT_BGD[s.type]||'b'}">${STAT_LBL[s.type]||s.type}</span></td>
+      <td>${fmtDate(s.date)}${isPast?' <span style="font-size:10px;color:var(--muted)">(passé)</span>':''}</td>
+      <td>${s.heure_debut?.slice(0,5)||'—'}</td>
+      <td>${s.heure_fin?.slice(0,5)||'—'}</td>
+      <td style="color:var(--muted);font-size:12px">${s.note||''}</td>
       <td style="display:flex;gap:6px">
-        <button class="btn btn-g sm" onclick="editCav('${c.id}')">✏️</button>
-        <button class="btn btn-d sm" onclick="delCav('${c.id}')">🗑</button>
+        <button class="btn btn-g sm" onclick="editStatut('${s.id}')">✏️</button>
+        <button class="btn btn-d sm" onclick="delStatut('${s.id}')">🗑</button>
       </td>
     </tr>`;
   }).join('');
+  // Statuts à venir par cheval dans renderChevaux
 }
-function newCav(){document.getElementById("mo-cav-t").textContent="Nouveau cavalier";["cav-id","cav-prenom","cav-tel"].forEach(id=>document.getElementById(id).value="");document.getElementById("cav-grp").value="";openMo("mo-cav");}
-async function saveCavalier(){
-  const prenom=document.getElementById('cav-prenom').value.trim();
-  const telephone=document.getElementById('cav-tel').value.trim()||null;
-  const groupe_id=document.getElementById('cav-grp').value||null;
-  const id=document.getElementById('cav-id').value;
-  if(!prenom){toast('Prénom requis','err');return;}
-  const p={prenom,telephone,groupe_id,app_key:APP_KEY};
-  const{error}=id?await db.from('cavaliers').update(p).eq('id',id):await db.from('cavaliers').insert(p);
+function newStatut(chvId){
+  document.getElementById('mo-statut-t').textContent='Nouveau statut spécial';
+  ['stat-id','stat-note','stat-heure-deb','stat-heure-fin'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('stat-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('stat-type').value='attache';
+  // Remplir select chevaux (tous, y compris hors_cours)
+  document.getElementById('stat-chv').innerHTML='<option value="">— Sélectionner —</option>'+C.chv.map(c=>`<option value="${c.id}"${chvId===c.id?' selected':''}>${c.nom}${c.hors_cours?' 🚫':''}</option>`).join('');
+  if(chvId)document.getElementById('stat-chv').value=chvId;
+  openMo('mo-statut');
+}
+function editStatut(id){
+  const s=C.statuts.find(x=>x.id===id);if(!s)return;
+  document.getElementById('mo-statut-t').textContent='Modifier le statut';
+  document.getElementById('stat-id').value=id;
+  document.getElementById('stat-chv').innerHTML='<option value="">— Sélectionner —</option>'+C.chv.map(c=>`<option value="${c.id}">${c.nom}${c.hors_cours?' 🚫':''}</option>`).join('');
+  document.getElementById('stat-chv').value=s.equide_id;
+  document.getElementById('stat-type').value=s.type;
+  document.getElementById('stat-date').value=s.date;
+  document.getElementById('stat-heure-deb').value=s.heure_debut?.slice(0,5)||'';
+  document.getElementById('stat-heure-fin').value=s.heure_fin?.slice(0,5)||'';
+  document.getElementById('stat-note').value=s.note||'';
+  openMo('mo-statut');
+}
+async function saveStatut(){
+  const id=document.getElementById('stat-id').value;
+  const equide_id=document.getElementById('stat-chv').value;
+  const type=document.getElementById('stat-type').value;
+  const date=document.getElementById('stat-date').value;
+  const heure_debut=document.getElementById('stat-heure-deb').value||null;
+  const heure_fin=document.getElementById('stat-heure-fin').value||null;
+  const note=document.getElementById('stat-note').value||null;
+  if(!equide_id||!date){toast('Cheval et date requis','err');return;}
+  const p={equide_id,type,date,heure_debut,heure_fin,note,app_key:APP_KEY};
+  const{error}=id?await db.from('equide_statuts').update(p).eq('id',id):await db.from('equide_statuts').insert(p);
   if(error){toast('Erreur : '+error.message,'err');return;}
-  toast(id?'Modifié':'Ajouté','ok');closeMo('mo-cav');await loadCav();
+  toast(id?'Statut modifié':'Statut ajouté','ok');closeMo('mo-statut');await loadStatuts();
 }
-function editCav(id){
-  const c=C.cav.find(x=>x.id===id);
-  document.getElementById('mo-cav-t').textContent='Modifier le cavalier';
-  document.getElementById('cav-id').value=id;
-  document.getElementById('cav-prenom').value=c.prenom;
-  document.getElementById('cav-tel').value=c.telephone||'';
-  document.getElementById('cav-grp').value=c.groupe_id||'';
-  openMo('mo-cav');
-}
-async function delCav(id){if(!confirm('Supprimer ce cavalier ?'))return;await db.from('cavaliers').delete().eq('id',id);toast('Supprimé','ok');await loadCav();}
+async function delStatut(id){if(!confirm('Supprimer ce statut ?'))return;await db.from('equide_statuts').delete().eq('id',id);toast('Supprimé','ok');await loadStatuts();}
 
 // ══════════════════════════════════════
 //  CHEVAUX
 // ══════════════════════════════════════
 function renderChevaux(){
-  const t=document.getElementById('tb-chv');
+  const t=document.getElementById('tb-chv');if(!t)return;
   const seuil=+document.getElementById('seuil')?.value||20;
   if(!C.chv.length){t.innerHTML='<tr class="er"><td colspan="6">Aucun cheval</td></tr>';return;}
+  const today=new Date().toISOString().split('T')[0];
   t.innerHTML=C.chv.map(c=>{
-    const reel=c.heures_reel||0;
-    const prev=c.heures_prev||0;
+    const reel=c.heures_reel||0,prev=c.heures_prev||0;
     const pct=Math.min(100,(reel/seuil)*100);
     const cls=pct>=100?'d':pct>=75?'w':'';
     const[bs,bt]=pct>=100?['br','Dépassé']:pct>=75?['bgo','Attention']:['bg','OK'];
+    // Statuts à venir pour ce cheval
+    const prochains=C.statuts.filter(s=>s.equide_id===c.id&&s.date>=today).slice(0,2);
     return`<tr>
-      <td><strong>${c.nom}</strong>${c.note?`<br><span style="font-size:11px;color:var(--muted)">${c.note}</span>`:''}</td>
       <td>
-        <strong>${reel}h</strong> / ${seuil}h
-        <div class="hbb"><div class="hbf ${cls}" style="width:${pct}%"></div></div>
+        <strong>${c.nom}</strong>
+        ${c.hors_cours?'<span class="b br" style="margin-left:6px;font-size:10px">hors cours</span>':''}
       </td>
+      <td><strong>${reel}h</strong> / ${seuil}h<div class="hbb"><div class="hbf ${cls}" style="width:${pct}%"></div></div></td>
       <td><strong>${prev}h</strong><span style="color:var(--muted);font-size:12px"> prév.</span></td>
       <td><span class="b ${bs}">${bt}</span></td>
-      <td><span class="b ${STATUS_BADGE[c.status]||'b'}">${STATUS_LABELS[c.status]||'—'}</span></td>
-      <td style="display:flex;gap:6px">
+      <td style="font-size:12px">${prochains.length?prochains.map(s=>`<div style="color:var(--muted)">${fmtDate(s.date)} ${s.heure_debut?.slice(0,5)||''} — <span class="b ${STAT_BGD[s.type]||'b'}" style="font-size:10px">${STAT_LBL[s.type]||s.type}</span></div>`).join(''):'-'}</td>
+      <td style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="btn btn-o sm" onclick="newStatut('${c.id}')" title="Ajouter statut">+ Statut</button>
         <button class="btn btn-g sm" onclick="editChv('${c.id}')">✏️</button>
         <button class="btn btn-d sm" onclick="delChv('${c.id}')">🗑</button>
       </td>
     </tr>`;
   }).join('');
 }
-function newChv(){document.getElementById("mo-chv-t").textContent="Nouveau cheval";["chv-id","chv-nom","chv-note"].forEach(id=>document.getElementById(id).value="");document.getElementById("chv-h-reel").value="0";document.getElementById("chv-h-prev").value="0";document.getElementById("chv-status").value="dispo";openMo("mo-chv");}
+function newChv(){document.getElementById('mo-chv-t').textContent='Nouveau cheval';['chv-id','chv-nom'].forEach(i=>document.getElementById(i).value='');document.getElementById('chv-h-reel').value='0';document.getElementById('chv-h-prev').value='0';document.getElementById('chv-hors-cours').checked=false;openMo('mo-chv');}
 async function saveCheval(){
   const nom=document.getElementById('chv-nom').value.trim();
   const heures_reel=+document.getElementById('chv-h-reel').value||0;
   const heures_prev=+document.getElementById('chv-h-prev').value||0;
-  const status=document.getElementById('chv-status').value||'dispo';
-  const note=document.getElementById('chv-note').value||null;
+  const hors_cours=document.getElementById('chv-hors-cours').checked;
   const id=document.getElementById('chv-id').value;
   if(!nom){toast('Nom requis','err');return;}
-  const p={nom,heures_reel,heures_prev,status,note,app_key:APP_KEY};
+  const p={nom,heures_reel,heures_prev,hors_cours,app_key:APP_KEY};
   const{error}=id?await db.from('equides').update(p).eq('id',id):await db.from('equides').insert(p);
   if(error){toast('Erreur : '+error.message,'err');return;}
   toast(id?'Modifié':'Ajouté','ok');closeMo('mo-chv');await loadChv();
@@ -1066,47 +955,111 @@ function editChv(id){
   document.getElementById('chv-nom').value=c.nom;
   document.getElementById('chv-h-reel').value=c.heures_reel||0;
   document.getElementById('chv-h-prev').value=c.heures_prev||0;
-  document.getElementById('chv-status').value=c.status||'dispo';
-  document.getElementById('chv-note').value=c.note||'';
+  document.getElementById('chv-hors-cours').checked=!!c.hors_cours;
   openMo('mo-chv');
 }
 async function delChv(id){if(!confirm('Supprimer ?'))return;await db.from('equides').delete().eq('id',id);toast('Supprimé','ok');await loadChv();}
 
 // ══════════════════════════════════════
+//  CAVALIERS
+// ══════════════════════════════════════
+function renderCavaliers(){
+  const t=document.getElementById('tb-cav');if(!t)return;
+  if(!C.cav.length){t.innerHTML='<tr class="er"><td colspan="4">Aucun cavalier</td></tr>';return;}
+  t.innerHTML=[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>{
+    const g=C.grp.find(x=>x.id===c.groupe_id);
+    return`<tr><td><strong>${c.prenom}</strong></td>
+    <td>${g?`<span class="b bb">${g.nom}</span>`:'<span class="b br">Sans groupe</span>'}</td>
+    <td>${isAdmin?(c.telephone||'—'):'<span style="color:var(--muted)">🔒</span>'}</td>
+    <td style="display:flex;gap:6px"><button class="btn btn-g sm" onclick="editCav('${c.id}')">✏️</button><button class="btn btn-d sm" onclick="delCav('${c.id}')">🗑</button></td></tr>`;
+  }).join('');
+}
+function newCav(){document.getElementById('mo-cav-t').textContent='Nouveau cavalier';['cav-id','cav-prenom','cav-tel'].forEach(i=>document.getElementById(i).value='');document.getElementById('cav-grp').value='';openMo('mo-cav');}
+async function saveCavalier(){
+  const prenom=document.getElementById('cav-prenom').value.trim(),telephone=document.getElementById('cav-tel').value.trim()||null,groupe_id=document.getElementById('cav-grp').value||null,id=document.getElementById('cav-id').value;
+  if(!prenom){toast('Prénom requis','err');return;}
+  const{error}=id?await db.from('cavaliers').update({prenom,telephone,groupe_id}).eq('id',id):await db.from('cavaliers').insert({prenom,telephone,groupe_id,app_key:APP_KEY});
+  if(error){toast('Erreur : '+error.message,'err');return;}
+  toast(id?'Modifié':'Ajouté','ok');closeMo('mo-cav');await loadCav();
+}
+function editCav(id){const c=C.cav.find(x=>x.id===id);document.getElementById('mo-cav-t').textContent='Modifier';document.getElementById('cav-id').value=id;document.getElementById('cav-prenom').value=c.prenom;document.getElementById('cav-tel').value=c.telephone||'';document.getElementById('cav-grp').value=c.groupe_id||'';openMo('mo-cav');}
+async function delCav(id){if(!confirm('Supprimer ?'))return;await db.from('cavaliers').delete().eq('id',id);toast('Supprimé','ok');await loadCav();}
+
+// ══════════════════════════════════════
 //  MONITEURS
 // ══════════════════════════════════════
 function renderMoniteurs(){
-  const t=document.getElementById('tb-mon');
+  const t=document.getElementById('tb-mon');if(!t)return;
   if(!C.mon.length){t.innerHTML='<tr class="er"><td colspan="3">Aucun moniteur</td></tr>';return;}
-  t.innerHTML=C.mon.map(m=>`<tr>
-    <td><strong>${m.prenom}</strong></td>
-    <td><span class="b ${m.disponible?'bg':'br'}">${m.disponible?'Disponible':'Indisponible'}</span></td>
-    <td style="display:flex;gap:6px">
-      <button class="btn btn-g sm" onclick="editMon('${m.id}')">✏️</button>
-      <button class="btn btn-d sm" onclick="delMon('${m.id}')">🗑</button>
-    </td>
-  </tr>`).join('');
+  t.innerHTML=C.mon.map(m=>`<tr><td><strong>${m.prenom}</strong></td>
+  <td><span class="b ${m.disponible?'bg':'br'}">${m.disponible?'Disponible':'Indisponible'}</span></td>
+  <td style="display:flex;gap:6px"><button class="btn btn-g sm" onclick="editMon('${m.id}')">✏️</button><button class="btn btn-d sm" onclick="delMon('${m.id}')">🗑</button></td></tr>`).join('');
 }
-function newMon(){document.getElementById("mo-mon-t").textContent="Nouveau moniteur";document.getElementById("mon-id").value="";document.getElementById("mon-prenom").value="";document.getElementById("mon-dispo").checked=true;openMo("mo-mon");}
+function newMon(){document.getElementById('mo-mon-t').textContent='Nouveau moniteur';document.getElementById('mon-id').value='';document.getElementById('mon-prenom').value='';document.getElementById('mon-dispo').checked=true;openMo('mo-mon');}
 async function saveMoniteur(){
-  const prenom=document.getElementById('mon-prenom').value.trim();
-  const disponible=document.getElementById('mon-dispo').checked;
-  const id=document.getElementById('mon-id').value;
+  const prenom=document.getElementById('mon-prenom').value.trim(),disponible=document.getElementById('mon-dispo').checked,id=document.getElementById('mon-id').value;
   if(!prenom){toast('Prénom requis','err');return;}
-  const p={prenom,disponible,app_key:APP_KEY};
-  const{error}=id?await db.from('moniteurs').update(p).eq('id',id):await db.from('moniteurs').insert(p);
+  const{error}=id?await db.from('moniteurs').update({prenom,disponible}).eq('id',id):await db.from('moniteurs').insert({prenom,disponible,app_key:APP_KEY});
   if(error){toast('Erreur : '+error.message,'err');return;}
   toast(id?'Modifié':'Ajouté','ok');closeMo('mo-mon');await loadMon();
 }
-function editMon(id){
-  const m=C.mon.find(x=>x.id===id);
-  document.getElementById('mo-mon-t').textContent='Modifier';
-  document.getElementById('mon-id').value=id;
-  document.getElementById('mon-prenom').value=m.prenom;
-  document.getElementById('mon-dispo').checked=m.disponible;
-  openMo('mo-mon');
-}
+function editMon(id){const m=C.mon.find(x=>x.id===id);document.getElementById('mo-mon-t').textContent='Modifier';document.getElementById('mon-id').value=id;document.getElementById('mon-prenom').value=m.prenom;document.getElementById('mon-dispo').checked=m.disponible;openMo('mo-mon');}
 async function delMon(id){if(!confirm('Supprimer ?'))return;await db.from('moniteurs').delete().eq('id',id);toast('Supprimé','ok');await loadMon();}
+
+// ══════════════════════════════════════
+//  STAGES
+// ══════════════════════════════════════
+function renderStages(){
+  const el=document.getElementById('stages-content');if(!el)return;
+  if(!C.stages.length){el.innerHTML='<div class="ls">Aucun stage créé</div>';return;}
+  el.innerHTML=C.stages.map(st=>{
+    const parts=C.parts.filter(p=>p.stage_id===st.id);
+    const chvs=C.chvStages.filter(c=>c.stage_id===st.id);
+    const ps=[...parts].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr'));
+    return`<div class="stage-wrap">
+      <div class="stage-hdr">
+        <div><div class="stage-ttl">🏕 ${st.titre}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">${fmtDate(st.date_debut)}${st.date_fin!==st.date_debut?' → '+fmtDate(st.date_fin):''} · ${parts.length} participant${parts.length>1?'s':''} · ${chvs.length} cheval${chvs.length>1?'x':''}</div>
+        ${st.notes?`<div style="font-size:12px;color:var(--muted);margin-top:4px">${st.notes}</div>`:''}
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-p sm" onclick="openPart('${st.id}')">➕ Participant</button>
+          <button class="btn btn-pu sm" onclick="openChvStage('${st.id}')">🐎 Cheval</button>
+          <button class="btn btn-g sm" onclick="editStage('${st.id}')">✏️</button>
+          <button class="btn btn-d sm" onclick="delStage('${st.id}')">🗑</button>
+        </div>
+      </div>
+      ${ps.length?`<table><thead><tr><th>Prénom</th><th>Demi-journée</th>${isAdmin?'<th>Téléphone</th>':''}<th>Note</th><th></th></tr></thead><tbody>
+        ${ps.map(p=>`<tr><td><strong>${p.prenom}</strong></td>
+          <td>${p.demi_journee==='matin'?'<span class="b bb">Matin</span>':p.demi_journee==='aprem'?'<span class="b bo">Après-midi</span>':'<span class="b bg">Journée</span>'}</td>
+          ${isAdmin?`<td>${p.telephone||'—'}</td>`:''}
+          <td style="color:var(--muted);font-size:12px">${p.note||''}</td>
+          <td><button class="btn btn-d sm" onclick="delPart('${p.id}')">🗑</button></td></tr>`).join('')}
+      </tbody></table>`:''}
+      ${chvs.length?`<div style="padding:10px 18px;border-top:1px solid var(--border);font-size:13px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <span style="color:var(--muted)">Chevaux :</span>
+        ${chvs.map(c=>`<span class="b bgo">${c.equides?.nom||'?'}${c.demi_journee&&c.demi_journee!=='journee'?' ('+c.demi_journee+')':''} <button onclick="delChvStage('${c.id}')" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:0 0 0 4px">×</button></span>`).join('')}
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+function newStage(){document.getElementById('mo-stage-t').textContent='Nouveau stage';['stage-id','stage-titre','stage-notes'].forEach(i=>document.getElementById(i).value='');document.getElementById('stage-deb').value='';document.getElementById('stage-fin').value='';openMo('mo-stage');}
+async function saveStage(){
+  const titre=document.getElementById('stage-titre').value.trim(),deb=document.getElementById('stage-deb').value,fin=document.getElementById('stage-fin').value||deb,notes=document.getElementById('stage-notes').value,id=document.getElementById('stage-id').value;
+  if(!titre||!deb){toast('Titre et date requis','err');return;}
+  const{error}=id?await db.from('stages').update({titre,date_debut:deb,date_fin:fin,notes}).eq('id',id):await db.from('stages').insert({titre,date_debut:deb,date_fin:fin,notes,app_key:APP_KEY});
+  if(error){toast('Erreur : '+error.message,'err');return;}
+  toast(id?'Modifié':'Stage créé','ok');closeMo('mo-stage');await loadStages();
+}
+function editStage(id){const s=C.stages.find(x=>x.id===id);document.getElementById('mo-stage-t').textContent='Modifier';document.getElementById('stage-id').value=id;document.getElementById('stage-titre').value=s.titre;document.getElementById('stage-deb').value=s.date_debut;document.getElementById('stage-fin').value=s.date_fin;document.getElementById('stage-notes').value=s.notes||'';openMo('mo-stage');}
+async function delStage(id){if(!confirm('Supprimer ce stage et ses données ?'))return;await db.from('stage_participants').delete().eq('stage_id',id);await db.from('stage_chevaux').delete().eq('stage_id',id);await db.from('stages').delete().eq('id',id);toast('Supprimé','ok');await loadStages();}
+function openPart(sid){document.getElementById('part-stage-id').value=sid;['part-prenom','part-tel','part-note'].forEach(i=>document.getElementById(i).value='');document.getElementById('part-dj').value='journee';document.getElementById('part-cav-ex').innerHTML='<option value="">— Saisie libre —</option>'+[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>`<option value="${c.id}">${c.prenom}</option>`).join('');openMo('mo-part');}
+function prefillPart(){const sel=document.getElementById('part-cav-ex');const cav=C.cav.find(c=>c.id===sel.value);if(cav){document.getElementById('part-prenom').value=cav.prenom;document.getElementById('part-tel').value=cav.telephone||'';}else{document.getElementById('part-prenom').value='';document.getElementById('part-tel').value='';}}
+async function savePart(){const sid=document.getElementById('part-stage-id').value,prenom=document.getElementById('part-prenom').value.trim(),tel=document.getElementById('part-tel').value.trim(),dj=document.getElementById('part-dj').value,note=document.getElementById('part-note').value;if(!prenom){toast('Prénom requis','err');return;}const{error}=await db.from('stage_participants').insert({stage_id:sid,prenom,telephone:tel||null,demi_journee:dj,note:note||null,app_key:APP_KEY});if(error){toast('Erreur','err');return;}toast('Ajouté','ok');closeMo('mo-part');await loadStages();}
+async function delPart(id){if(!confirm('Supprimer ?'))return;await db.from('stage_participants').delete().eq('id',id);toast('Supprimé','ok');await loadStages();}
+function openChvStage(sid){document.getElementById('chs-stage-id').value=sid;document.getElementById('chs-cheval').innerHTML='<option value="">— Sélectionner —</option>'+C.chv.map(c=>`<option value="${c.id}">${c.nom}${c.hors_cours?' 🚫':''}</option>`).join('');document.getElementById('chs-dj').value='journee';document.getElementById('chs-note').value='';openMo('mo-chv-stage');}
+async function saveChvStage(){const sid=document.getElementById('chs-stage-id').value,chvId=document.getElementById('chs-cheval').value,dj=document.getElementById('chs-dj').value,note=document.getElementById('chs-note').value;if(!chvId){toast('Choisissez un cheval','err');return;}const{error}=await db.from('stage_chevaux').insert({stage_id:sid,equide_id:chvId,demi_journee:dj,note:note||null,app_key:APP_KEY});if(error){toast('Erreur','err');return;}toast('Cheval ajouté','ok');closeMo('mo-chv-stage');await loadStages();}
+async function delChvStage(id){await db.from('stage_chevaux').delete().eq('id',id);toast('Supprimé','ok');await loadStages();}
 
 // ══════════════════════════════════════
 //  SELECTS
