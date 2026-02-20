@@ -382,7 +382,7 @@ let VACANCES = [];
 // samedi → lundi
 const decalageLundi = iso => {
   const d = new Date(iso);
-  d.setUTCDate(d.getUTCDate() + 2);
+  d.setUTCDate(d.getUTCDate() + 3);
   return d.toISOString().slice(0,10);
 };
 
@@ -408,6 +408,7 @@ async function chargerVacancesZoneA() {
   // ✅ utiliser json.results
   const records = json.results
     .filter(v =>
+      v.description.includes("Vacances") &&
       v.population !== "Enseignants" && // évite doublon été
       v.start_date &&
       v.end_date
@@ -437,11 +438,6 @@ chargerVacancesZoneA().then(() => {
   console.log("estVac:", estVac(today));
 
 });
-
-
-// ── debug ──
-console.log('VACANCES', VACANCES);
-console.log('aujourd’hui', estVac(new Date().toISOString().slice(0,10)));
 
 const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 const DISC  = ['Dressage','Saut d\'obstacle','Plat','Cross','Barres au sol','Jeu','Travail à pied','Autre'];
