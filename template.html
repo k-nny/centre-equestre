@@ -403,11 +403,9 @@ async function chargerVacancesZoneA() {
   const annee = getAnneeScolaire();
 
   const url =
-    `https://data.education.gouv.fr/api/records/1.0/search/` +
-    `?dataset=fr-en-calendrier-scolaire` +
-    `&rows=100` +
-    `&refine.zone=Zone%20A` +
-    `&refine.annee_scolaire=${annee}`;
+    `https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-calendrier-scolaire/records` +
+    `?where=zones="Zone A"%20AND%20annee_scolaire="${annee}"` +
+    `&limit=20`;
 
   const res = await fetch(url);
   const json = await res.json();
