@@ -398,31 +398,40 @@ const getAnneeScolaire = () => {
     : `${year-1}-${year}`;
 };
 
-const annee = getAnneeScolaire();
+async function chargerVacancesZoneA() {
 
-const url =
-  `https://data.education.gouv.fr/api/records/1.0/search/` +
-  `?dataset=fr-en-calendrier-scolaire` +
-  `&rows=100` +
-  `&refine.zone=Zone%20A` +
-  `&refine.annee_scolaire=${annee}`;
+  const annee = getAnneeScolaire();
 
-const res = await fetch(url);
-const json = await res.json();
+  const url =
+    `https://data.education.gouv.fr/api/records/1.0/search/` +
+    `?dataset=fr-en-calendrier-scolaire` +
+    `&rows=100` +
+    `&refine.zone=Zone%20A` +
+    `&refine.annee_scolaire=${annee}`;
 
-const records = json.records
-  .map(r => r.fields)
-  .filter(f => f.date_debut && f.date_fin)
-  .sort((a,b) => a.date_debut.localeCompare(b.date_debut));
+  const res = await fetch(url);
+  const json = await res.json();
 
-VACANCES = records.map(v => {
-  const debut = decalageLundi(v.date_debut);
-  const fin   = v.date_fin;
-  return [debut, fin];
-});
+  const records = json.records
+    .map(r => r.fields)
+    .filter(f => f.date_debut && f.date_fin)
+    .sort((a,b) => a.date_debut.localeCompare(b.date_debut));
+
+  VACANCES = records.map(v => {
+    const debut = decalageLundi(v.date_debut);
+    const fin   = v.date_fin;
+    return [debut, fin];
+  });
+
+  return VACANCES;
+}
 
 // fonction publique
 const estVac = d => VACANCES.some(([a,b]) => d >= a && d <= b);
+
+
+// ── initialisation ──
+chargerVacancesZoneA();
 
 
 // ── debug ──
