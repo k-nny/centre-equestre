@@ -30,8 +30,17 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .sb-bot{padding:10px 8px;border-top:1px solid var(--border);}
 .atbtn{width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;}
 .atbtn:hover{border-color:#c97a30;color:#e09a60;}.atbtn.on{border-color:#c97a30;color:#e09a60;background:rgba(201,122,48,.08);}
-.main{margin-left:224px;padding:26px;min-height:100vh;}.main.wb{padding-top:54px;}
-.page{display:none;}.page.active{display:block;}
+.main{
+  margin-left:224px;
+  flex:1;
+  width:auto;
+  padding:26px;
+  min-height:100vh;
+}
+
+.main.wb{
+  padding-top:54px;
+}.page{display:none;}.page.active{display:block;}
 .ph{margin-bottom:22px;}.ph h2{font-family:'Playfair Display',serif;font-size:23px;color:var(--cream);}
 .ph p{color:var(--muted);font-size:13px;margin-top:3px;}
 .sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;}
