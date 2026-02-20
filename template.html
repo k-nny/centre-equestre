@@ -375,27 +375,22 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--surface2);}
 //  Ce fichier est 100% public, il ne contient aucun secret.
 // ═══════════════════════════════════════════════════════════════
 
-// ── Vacances scolaires automatiques Zone A ──
-// source : API officielle data.education.gouv.fr
-// début ajusté au lundi inclus, fin incluse
+// ── Vacances scolaires automatiques Zone A (Lyon) ──
 
 let VACANCES = [];
 
-// décale samedi → lundi
-const decalageLundi = dateStr => {
-  const d = new Date(dateStr + 'T00:00:00Z');
+// samedi → lundi
+const decalageLundi = iso => {
+  const d = new Date(iso);
   d.setUTCDate(d.getUTCDate() + 2);
   return d.toISOString().slice(0,10);
 };
 
-// détecte année scolaire actuelle (ex: 2025-2026)
+// année scolaire actuelle
 const getAnneeScolaire = () => {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  return month >= 9
-    ? `${year}-${year+1}`
-    : `${year-1}-${year}`;
+  const y = now.getFullYear();
+  return now.getMonth() >= 8 ? `${y}-${y+1}` : `${y-1}-${y}`;
 };
 
 async function chargerVacancesZoneA() {
@@ -404,22 +399,27 @@ async function chargerVacancesZoneA() {
 
   const url =
     `https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-calendrier-scolaire/records` +
-    `?where=zones="Zone A"%20AND%20annee_scolaire="${annee}"` +
+    `?where=zones="Zone A"%20AND%20annee_scolaire="${annee}"%20AND%20location="Lyon"` +
     `&limit=20`;
 
   const res = await fetch(url);
   const json = await res.json();
 
-  const records = json.records
-    .map(r => r.fields)
-    .filter(f => f.date_debut && f.date_fin)
-    .sort((a,b) => a.date_debut.localeCompare(b.date_debut));
+  // ✅ utiliser json.results
+  const records = json.results
+    .filter(v =>
+      v.population !== "Enseignants" && // évite doublon été
+      v.start_date &&
+      v.end_date
+    )
+    .sort((a,b) => a.start_date.localeCompare(b.start_date));
 
-  VACANCES = records.map(v => {
-    const debut = decalageLundi(v.date_debut);
-    const fin   = v.date_fin;
-    return [debut, fin];
-  });
+  VACANCES = records.map(v => [
+    decalageLundi(v.start_date),
+    new Date(v.end_date).toISOString().slice(0,10)
+  ]);
+
+  console.log("VACANCES =", VACANCES);
 
   return VACANCES;
 }
@@ -428,8 +428,15 @@ async function chargerVacancesZoneA() {
 const estVac = d => VACANCES.some(([a,b]) => d >= a && d <= b);
 
 
-// ── initialisation ──
-chargerVacancesZoneA();
+// init
+chargerVacancesZoneA().then(() => {
+
+  const today = new Date().toISOString().slice(0,10);
+
+  console.log("Aujourd'hui:", today);
+  console.log("estVac:", estVac(today));
+
+});
 
 
 // ── debug ──
