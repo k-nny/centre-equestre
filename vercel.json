@@ -1,5 +1,11 @@
 {
   "buildCommand": "node build.js",
   "outputDirectory": ".",
-  "installCommand": "echo 'no install needed'"
+  "installCommand": "echo 'no install needed'",
+  "functions": {
+    "api/db.js": {
+      "memory": 128,
+      "maxDuration": 10
+    }
+  }
 }
