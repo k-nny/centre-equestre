@@ -625,7 +625,7 @@ const SLBL={attache:'🔗 Attache/Box',veto:'🩺 Vétérinaire',marechal:'🔨 
 const SBDG={attache:'bo',veto:'br',marechal:'bp',repos:'b'};
 
 let isAdmin=false,sessionToken='',histTab='couples';
-let C={grp:[],cav:[],cavGrp:[],chv:[],mon:[],sea:[],aff:[],statuts:[],stages:[],parts:[],chvS:[]};
+let C={grp:[],cav:[],cavGrp:[],chv:[],mon:[],sea:[],aff:[],statuts:[],stages:[],parts:[],chvS:[],seaSem:[],affSem:[]};
 
 // ── Proxy ──
 async function dbReq(body){
@@ -733,7 +733,20 @@ function go(p){
 function toggleSB(){document.getElementById('sb').classList.toggle('open');document.getElementById('sbo').classList.toggle('open');}
 
 // ── Chargement ──
-async function loadAll(){await Promise.all([loadGrp(),loadCav(),loadChv(),loadMon()]);}
+async function loadAll(){await Promise.all([loadGrp(),loadCav(),loadChv(),loadMon(),loadStatuts(),loadSemaine()]);}
+
+// Charge les séances + affectations de la semaine courante pour calcul heures hebdo
+async function loadSemaine(){
+  const now=new Date();const day=now.getDay();const diff=day===0?-6:1-day;
+  const lundi=new Date(now);lundi.setDate(now.getDate()+diff);
+  const dimanche=new Date(lundi);dimanche.setDate(lundi.getDate()+6);
+  const lundiStr=lundi.toISOString().split('T')[0];const dimStr=dimanche.toISOString().split('T')[0];
+  C.seaSem=await dbSel('seances',{select:'id,date',filter:[{col:'date',op:'gte',val:lundiStr},{col:'date',op:'lte',val:dimStr}]});
+  if(C.seaSem.length){
+    const iv=`(${C.seaSem.map(s=>`"${s.id}"`).join(',')})`;
+    C.affSem=await dbSel('affectations_seance',{select:'id,seance_id,equide_id,absent,cours_exceptionnel',filter:[{col:'seance_id',op:'in',val:iv},{col:'absent',op:'eq',val:'false'}]});
+  }else C.affSem=[];
+}
 async function loadGrp(){C.grp=await dbSel('groupes',{order:[{col:'created_at'}]});renderGroupes();popSelects();}
 async function loadCav(){
   C.cav=await dbSel('cavaliers',{order:[{col:'prenom'}]});
@@ -820,7 +833,9 @@ async function loadVue(){
     const g=s.groupes||{};const h=(g.heure||s.heure||'').slice(0,5);
     const couleur=g.couleur||'#c9a84c';
     const sa=affs.filter(a=>a.seance_id===s.id);
-    const sorted=[...sa].sort((a,b)=>{if(a.absent&&!b.absent)return 1;if(!a.absent&&b.absent)return -1;return(a.cavaliers?.prenom||'').localeCompare(b.cavaliers?.prenom||'','fr');});
+    // Vue publique : n'afficher que les présents (pas les absents), pas les cours exceptionnels
+    const saVisibles=isAdmin?sa:sa.filter(a=>!a.absent&&!a.cours_exceptionnel);
+    const sorted=[...saVisibles].sort((a,b)=>{if(a.absent&&!b.absent)return 1;if(!a.absent&&b.absent)return -1;return(a.cavaliers?.prenom||'').localeCompare(b.cavaliers?.prenom||'','fr');});
     // élève moniteur
     const elMonId=g.eleve_moniteur_id;
     const elMon=elMonId?C.mon.find(m=>m.id===elMonId):null;
@@ -1115,23 +1130,25 @@ async function updChv(affId,cid,seaId,heure,date){
     const autresSea=C.sea.filter(s=>(s.heure||s.groupes?.heure||'').slice(0,5)===heure&&s.id!==seaId);
     const dejaPris=C.aff.some(a=>a.equide_id===cid&&!a.absent&&((a.seance_id===seaId&&a.id!==affId)||autresSea.some(s=>s.id===a.seance_id)));
     if(dejaPris){toast('⚠️ Ce cheval est déjà attribué pour ce créneau !','err');await loadSeances(date);return;}
-    const statut=C.statuts.find(x=>x.equide_id===cid&&x.date===date);
-    if(statut){const nom=C.chv.find(x=>x.id===cid)?.nom||'Ce cheval';toast(`⚠️ ${nom} a un statut spécial ce jour : ${SLBL[statut.type]}. Vérifiez.`,'warn');}
-    // Alerte heures hebdomadaires
+    // Alerte statut spécial — C.statuts toujours chargé depuis loadAll
+    const statut=C.statuts.find(x=>x.equide_id===cid&&(x.date===date||(x.date_fin&&x.date<=date&&x.date_fin>=date)));
+    if(statut){const nom=C.chv.find(x=>x.id===cid)?.nom||'Ce cheval';toast(`⚠️ ${nom} a un statut spécial : ${SLBL[statut.type]}. Vérifiez.`,'warn');}
+    // Alerte heures hebdomadaires — C.affSem toujours chargé depuis loadSemaine
     const chv=C.chv.find(c=>c.id===cid);
     if(chv&&chv.heures_prev>0){
-      const d=new Date();const day=d.getDay();const diff=day===0?-6:1-day;d.setDate(d.getDate()+diff);const lundiStr=d.toISOString().split('T')[0];const todayStr=new Date().toISOString().split('T')[0];
-      const hSem=C.aff.filter(a=>a.equide_id===cid&&!a.absent).filter(a=>{const s=C.sea.find(x=>x.id===a.seance_id);return s&&s.date>=lundiStr&&s.date<=todayStr;}).length;
-      if(hSem>=chv.heures_prev){toast(`⚠️ ${chv.nom} a déjà ${hSem}h cette semaine (max ${chv.heures_prev}h) !`,'warn');}
+      const hSem=C.affSem.filter(a=>a.equide_id===cid&&!a.cours_exceptionnel).length;
+      if(hSem>=chv.heures_prev){toast(`⚠️ ${chv.nom} : déjà ${hSem}h cette semaine (max ${chv.heures_prev}h) !`,'warn');}
     }
   }
-  // ancien cheval → décrémente
+  // ancien cheval → décrémente heures_reel
   const old=C.aff.find(a=>a.id===affId);
-  if(old?.equide_id){const oldChv=C.chv.find(c=>c.id===old.equide_id);if(oldChv){const h2=Math.max(0,(oldChv.heures_reel||0)-1);await dbUpd('equides',{heures_reel:h2},[{col:'id',op:'eq',val:old.equide_id}]);oldChv.heures_reel=h2;renderChevaux();}}
+  if(old?.equide_id){const oldChv=C.chv.find(c=>c.id===old.equide_id);if(oldChv){const h2=Math.max(0,(oldChv.heures_reel||0)-1);await dbUpd('equides',{heures_reel:h2},[{col:'id',op:'eq',val:old.equide_id}]);oldChv.heures_reel=h2;}}
   await dbUpd('affectations_seance',{equide_id:cid||null},[{col:'id',op:'eq',val:affId}]);
-  if(cid){const chv=C.chv.find(c=>c.id===cid);if(chv){const h2=(chv.heures_reel||0)+1;await dbUpd('equides',{heures_reel:h2},[{col:'id',op:'eq',val:cid}]);chv.heures_reel=h2;renderChevaux();}}
+  if(cid){const chv=C.chv.find(c=>c.id===cid);if(chv){const h2=(chv.heures_reel||0)+1;await dbUpd('equides',{heures_reel:h2},[{col:'id',op:'eq',val:cid}]);chv.heures_reel=h2;}}
   toast('Cheval mis à jour','ok');
+  await loadSemaine();
   await loadSeances(date);
+  renderChevaux();
 }
 
 // Absence modal
@@ -1272,19 +1289,14 @@ function renderChevaux(){
   const t=document.getElementById('tb-chv');if(!t)return;
   if(!C.chv.length){t.innerHTML='<tr class="er"><td colspan="8">Aucun cheval</td></tr>';return;}
   const today=new Date().toISOString().split('T')[0];
-  // Calcul début de semaine (lundi)
-  const d=new Date();const day=d.getDay();const diff=day===0?-6:1-day;
-  d.setDate(d.getDate()+diff);const lundiStr=d.toISOString().split('T')[0];
   const sorted=[...C.chv].sort((a,b)=>{
     const catA=(a.categorie||'').toLowerCase(),catB=(b.categorie||'').toLowerCase();
     if(catA!==catB)return catA.localeCompare(catB,'fr');
     return(a.annee_naissance||9999)-(b.annee_naissance||9999);
   });
   t.innerHTML=sorted.map(c=>{
-    // Heures réelles cette semaine: compter dans C.aff les affectations de séances >= lundi
-    const hSem=C.aff.filter(a=>a.equide_id===c.id&&!a.absent).filter(a=>{
-      const s=C.sea.find(x=>x.id===a.seance_id);return s&&s.date>=lundiStr&&s.date<=today;
-    }).length;
+    // Heures cette semaine : utilise C.affSem (cache hebdo chargé au démarrage)
+    const hSem=C.affSem.filter(a=>a.equide_id===c.id&&!a.cours_exceptionnel).length;
     const prev=+(c.heures_prev||0); // seuil hebdo
     const pct=prev>0?Math.min(100,(hSem/prev)*100):0;
     const cls=pct>=100?'d':pct>=75?'w':'';
