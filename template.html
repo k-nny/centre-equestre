@@ -822,7 +822,7 @@ async function loadVue(){
   const nowTime=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
   document.getElementById('vac-pub').style.display=estVac(base)&&!isAdmin?'flex':'none';
   const [seaAll,stgAll]=await Promise.all([
-    dbSel('seances',{select:'*,groupes(nom,heure,moniteur_id,eleve_moniteur_id,note,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom)',filter:[{col:'date',op:'eq',val:d}],order:[{col:'heure'}]}),
+    dbSel('seances',{select:'*,groupes(nom,heure,moniteur_id,eleve_moniteur_id,note,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)',filter:[{col:'date',op:'eq',val:d}],order:[{col:'heure'}]}),
     dbSel('stages',{filter:[{col:'date_debut',op:'lte',val:d},{col:'date_fin',op:'gte',val:d}]}),
   ]);
   let seances=isAdmin?seaAll:seaAll.filter(s=>!estVac(s.date));
@@ -853,9 +853,11 @@ async function loadVue(){
     // Vue publique : n'afficher que les présents (pas les absents), pas les cours exceptionnels
     const saVisibles=isAdmin?sa:sa.filter(a=>!a.absent);
     const sorted=[...saVisibles].sort((a,b)=>{if(a.absent&&!b.absent)return 1;if(!a.absent&&b.absent)return -1;return(a.cavaliers?.prenom||'').localeCompare(b.cavaliers?.prenom||'','fr');});
-    // élève moniteur
+    // élève moniteur + intervenant
     const elMonId=g.eleve_moniteur_id;
     const elMon=elMonId?C.mon.find(m=>m.id===elMonId):null;
+    const mon2prenom=s.moniteur2?.prenom;
+    const cheval2nom=s.cheval2?.nom;
     const rows=sorted.map((a,i)=>{
       const bg=i%2===0?'#fff':`${couleur}80`; // zèbre: blanc / couleur cours à 50%
       return`<div class="pcr ${a.absent?'abr':''}" style="background:${bg}">
@@ -870,6 +872,7 @@ async function loadVue(){
           ${s.discipline?`<span class="b bb" style="font-size:10px;margin-right:4px">${s.discipline}</span>`:''}
           👤 ${s.moniteur1?.prenom||'—'}
           ${elMon?`· <span class="b bp" style="font-size:10px">${elMon.prenom}</span>`:''}
+          ${mon2prenom?`· <span style="color:var(--muted)">👤 ${mon2prenom}${cheval2nom?' 🐎 '+cheval2nom:''}</span>`:''}
         </div></div>
       </div>
       ${sorted.length===0?'<div style="padding:12px 20px;color:var(--muted)">Aucun cavalier</div>':rows}
@@ -1096,8 +1099,14 @@ function renderSeances(){
             ${chvDispo.map(c=>{
               const pris=prisIci.has(c.id)&&aff.equide_id!==c.id;
               const st=statsDuJour.find(x=>x.equide_id===c.id);
+              const hSem=C.affSem.filter(a=>a.equide_id===c.id).length;
+              const maxH=+(c.heures_prev||0);
+              const depasse=maxH>0&&(hSem+1)>maxH;
               const sel=aff.equide_id===c.id;
-              return`<option value="${c.id}"${sel?' selected':''}${pris?' disabled':''}>${c.nom}${pris?' ✗ pris':st&&!pris?' ⚠️ statut':''}</option>`;
+              let suffix='';
+              if(pris)suffix=' ✗ pris';
+              else{if(st)suffix=` ⚠️ ${SLBL[st.type]||'statut'}`;if(depasse)suffix+=(suffix?' · ':' ')+'⏱ '+hSem+'h/'+maxH+'h';}
+              return`<option value="${c.id}"${sel?' selected':''}${pris?' disabled':''}>${c.nom}${suffix}</option>`;
             }).join('')}
           </select>`}
         </div>
@@ -1153,8 +1162,10 @@ async function updChv(affId,cid,seaId,heure,date){
     // Alerte heures hebdomadaires — C.affSem toujours chargé depuis loadSemaine
     const chv=C.chv.find(c=>c.id===cid);
     if(chv&&chv.heures_prev>0){
+      // hSem = nb h déjà attribuées cette semaine. On alerte si l'ajout dépasse le max
       const hSem=C.affSem.filter(a=>a.equide_id===cid).length;
-      if(hSem>=chv.heures_prev){toast(`⚠️ ${chv.nom} : déjà ${hSem}h cette semaine (max ${chv.heures_prev}h) !`,'warn');}
+      const apresAjout=hSem+1; // la séance qu'on est en train d'attribuer
+      if(apresAjout>chv.heures_prev){toast(`⚠️ ${chv.nom} : ${apresAjout}h cette semaine (max ${chv.heures_prev}h) !`,'warn');}
     }
   }
   // ancien cheval → décrémente heures_reel
