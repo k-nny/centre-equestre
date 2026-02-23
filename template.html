@@ -3,160 +3,188 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Centre Équestre</title>
+<title>Gestion - Les Écuries de l'Octroi</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#0f0e0c;--surface:#1a1815;--surface2:#231f1b;--border:#2e2924;
-  --gold:#c9a84c;--gold-light:#e8c97a;--cream:#f0e8d8;
-  --text:#d4c9b8;--muted:#7a6f62;
-  --red:#c44b3a;--green:#4a8c5c;--blue:#3a6b8c;--orange:#c97a30;--purple:#7a4a8c;
-  --r:10px;--sh:0 4px 24px rgba(0,0,0,.5);
-}
+:root{--bg:#0f0e0c;--surface:#1a1815;--surface2:#231f1b;--border:#2e2924;--gold:#c9a84c;--gold-light:#e8c97a;--cream:#f0e8d8;--text:#d4c9b8;--muted:#7a6f62;--r:10px;--sh:0 4px 24px rgba(0,0,0,.5);}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh;}
-#admin-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#7a3a0c,#c97a30,#7a3a0c);color:#fff;padding:10px 20px;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;gap:16px;box-shadow:0 2px 16px rgba(201,122,48,.5);}
+#admin-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(90deg,#7a3a0c,#c97a30,#7a3a0c);color:#fff;padding:8px 14px 8px 56px;align-items:center;justify-content:space-between;font-size:12px;font-weight:600;gap:8px;box-shadow:0 2px 12px rgba(201,122,48,.5);flex-wrap:wrap;}
 #admin-banner.show{display:flex;}
-.bwarn{font-size:11px;font-weight:400;opacity:.85;}
-.bbtn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;padding:5px 14px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;white-space:nowrap;}
-.bbtn:hover{background:rgba(255,255,255,.28);}
+.bwarn{font-size:10px;font-weight:400;opacity:.85;}
+.bbtn{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:6px;padding:4px 11px;cursor:pointer;font-size:11px;font-weight:600;}
 #ld{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:20px;}
 #ld .logo{font-size:48px;}#ld .sub{color:var(--muted);font-size:13px;}
-.spin{display:inline-block;width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;}
+.spin{display:inline-block;width:22px;height:22px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 #app{display:none;}
-.sb{width:230px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;}
-.sb-brand{padding:20px;border-bottom:1px solid var(--border);}
-.sb-brand .logo{font-family:'Playfair Display',serif;font-size:17px;color:var(--gold);}
+.sb{width:224px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;}
+.sb-brand{padding:18px;border-bottom:1px solid var(--border);}
+.sb-brand .logo{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold);}
 .sb-brand .sub{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
-.sb-nav{padding:12px 8px;flex:1;overflow-y:auto;}
-.nav-sec{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:8px 10px 4px;}
-.ni{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--muted);transition:all .15s;font-size:13px;font-weight:500;margin-bottom:2px;border:none;background:none;width:100%;text-align:left;}
+.sb-nav{padding:10px 8px;flex:1;overflow-y:auto;}
+.nav-sec{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:8px 10px 3px;}
+.ni{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--muted);transition:all .15s;font-size:13px;font-weight:500;margin-bottom:1px;border:none;background:none;width:100%;text-align:left;}
 .ni:hover{background:var(--surface2);color:var(--text);}.ni.active{background:rgba(201,168,76,.12);color:var(--gold);}
-.ni .ic{font-size:15px;width:18px;text-align:center;}
+.ni .ic{font-size:14px;width:17px;text-align:center;}
 .sb-bot{padding:10px 8px;border-top:1px solid var(--border);}
-.atbtn{width:100%;padding:9px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;}
-.atbtn:hover{border-color:var(--orange);color:var(--orange);}.atbtn.on{border-color:var(--orange);color:var(--orange);background:rgba(201,122,48,.1);}
-.main{margin-left:230px;flex:1;padding:28px;min-height:100vh;}.main.wb{padding-top:68px;}
-.page{display:none;}.page.active{display:block;}
-.ph{margin-bottom:24px;}.ph h2{font-family:'Playfair Display',serif;font-size:24px;color:var(--cream);}
+.atbtn{width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;}
+.atbtn:hover{border-color:#c97a30;color:#e09a60;}.atbtn.on{border-color:#c97a30;color:#e09a60;background:rgba(201,122,48,.08);}
+.main{
+  margin-left:224px;
+  flex:1;
+  width:auto;
+  padding:26px;
+  min-height:100vh;
+}
+
+.main.wb{
+  padding-top:54px;
+}.page{display:none;}.page.active{display:block;}
+.ph{margin-bottom:22px;}.ph h2{font-family:'Playfair Display',serif;font-size:23px;color:var(--cream);}
 .ph p{color:var(--muted);font-size:13px;margin-top:3px;}
 .sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;}
-.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;}
 .sc .lb{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
-.sc .vl{font-family:'Playfair Display',serif;font-size:32px;color:var(--gold);margin-top:2px;}
+.sc .vl{font-family:'Playfair Display',serif;font-size:30px;color:var(--gold);margin-top:2px;}
 .tc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px;}
 .tt{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
 .tt h3{font-family:'Playfair Display',serif;font-size:16px;color:var(--cream);}
 table{width:100%;border-collapse:collapse;}
-th{padding:10px 18px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border);font-weight:600;}
-td{padding:12px 18px;border-bottom:1px solid rgba(46,41,36,.5);vertical-align:middle;}
+th{padding:9px 16px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border);font-weight:600;}
+td{padding:10px 16px;border-bottom:1px solid rgba(46,41,36,.5);vertical-align:middle;}
 tr:last-child td{border-bottom:none;}tr:hover td{background:var(--surface2);}
-.er td{text-align:center;color:var(--muted);padding:28px;}
-.b{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.er td{text-align:center;color:var(--muted);padding:26px;}
+.b{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
 .bg{background:rgba(74,140,92,.15);color:#6bc98a;border:1px solid rgba(74,140,92,.3);}
 .br{background:rgba(196,75,58,.15);color:#e07060;border:1px solid rgba(196,75,58,.3);}
 .bgo{background:rgba(201,168,76,.15);color:var(--gold-light);border:1px solid rgba(201,168,76,.3);}
 .bb{background:rgba(58,107,140,.15);color:#70a8cc;border:1px solid rgba(58,107,140,.3);}
 .bo{background:rgba(201,122,48,.15);color:#e09a60;border:1px solid rgba(201,122,48,.3);}
 .bp{background:rgba(122,74,140,.15);color:#c490e0;border:1px solid rgba(122,74,140,.3);}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;transition:all .15s;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:8px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;transition:all .15s;}
 .btn-p{background:var(--gold);color:#0f0e0c;}.btn-p:hover{background:var(--gold-light);}
 .btn-g{background:transparent;color:var(--muted);border:1px solid var(--border);}.btn-g:hover{border-color:var(--gold);color:var(--gold);}
-.btn-d{background:rgba(196,75,58,.15);color:#e07060;border:1px solid rgba(196,75,58,.3);}.btn-d:hover{background:rgba(196,75,58,.3);}
-.btn-o{background:rgba(201,122,48,.15);color:#e09a60;border:1px solid rgba(201,122,48,.3);}.btn-o:hover{background:rgba(201,122,48,.3);}
-.btn-pu{background:rgba(122,74,140,.15);color:#c490e0;border:1px solid rgba(122,74,140,.3);}.btn-pu:hover{background:rgba(122,74,140,.3);}
-.sm{padding:5px 10px;font-size:12px;}
-.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);}
+.btn-d{background:rgba(196,75,58,.12);color:#e07060;border:1px solid rgba(196,75,58,.3);}.btn-d:hover{background:rgba(196,75,58,.25);}
+.btn-o{background:rgba(201,122,48,.12);color:#e09a60;border:1px solid rgba(201,122,48,.3);}.btn-o:hover{background:rgba(201,122,48,.25);}
+.btn-pu{background:rgba(122,74,140,.12);color:#c490e0;border:1px solid rgba(122,74,140,.3);}.btn-pu:hover{background:rgba(122,74,140,.25);}
+.sm{padding:4px 9px;font-size:12px;}
+.seg{display:flex;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px;}
+.seg button{border:none;background:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:4px 11px;border-radius:6px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.seg button.on{background:var(--gold);color:#0f0e0c;}
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(4px);}
 .mo.open{display:flex;}
-.md{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;width:100%;max-width:540px;max-height:92vh;overflow-y:auto;box-shadow:var(--sh);}
-.md h3{font-family:'Playfair Display',serif;font-size:19px;color:var(--cream);margin-bottom:20px;}
-.fg{margin-bottom:16px;}.fg label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;font-weight:600;}
-.fg input,.fg select,.fg textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+.md{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;box-shadow:var(--sh);}
+.md h3{font-family:'Playfair Display',serif;font-size:18px;color:var(--cream);margin-bottom:18px;}
+.fg{margin-bottom:14px;}
+.fg label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:5px;font-weight:600;}
+.fg input,.fg select,.fg textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
 .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--gold);}
-.fg select option{background:var(--surface);}.fg textarea{resize:vertical;min-height:60px;}
-.mf{display:flex;gap:8px;justify-content:flex-end;margin-top:24px;}
-.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.flag-box{background:rgba(196,75,58,.06);border:1px solid rgba(196,75,58,.2);border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;}
-.flag-box .ftxt{font-size:12px;font-weight:600;color:#e07060;}.flag-box .fsub{font-size:11px;color:var(--muted);margin-top:2px;}
-.alert{background:rgba(196,75,58,.1);border:1px solid rgba(196,75,58,.3);border-radius:8px;padding:12px 15px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:13px;color:#e07060;}
-.vac-banner{background:rgba(201,122,48,.08);border:1px solid rgba(201,122,48,.25);border-radius:10px;padding:13px 18px;margin-bottom:18px;font-size:13px;color:#e09a60;display:flex;align-items:center;gap:10px;}
-.ls{padding:36px;text-align:center;color:var(--muted);}
-.tog{position:relative;display:inline-block;width:36px;height:20px;}
+.fg select option{background:var(--surface);}.fg textarea{resize:vertical;min-height:56px;}
+.mf{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.flag-box{background:rgba(196,75,58,.06);border:1px solid rgba(196,75,58,.2);border-radius:8px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
+.flag-box .ftxt{font-size:12px;font-weight:600;color:#e07060;}
+.flag-box .fsub{font-size:11px;color:var(--muted);margin-top:2px;}
+.tog{position:relative;display:inline-block;width:34px;height:19px;}
 .tog input{opacity:0;width:0;height:0;}
 .ts{position:absolute;inset:0;background:var(--border);border-radius:20px;cursor:pointer;transition:.2s;}
-.ts:before{content:'';position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:var(--muted);border-radius:50%;transition:.2s;}
-.tog input:checked+.ts{background:var(--gold);}.tog input:checked+.ts:before{transform:translateX(16px);background:#0f0e0c;}
-.hbb{background:var(--bg);border-radius:4px;height:5px;margin-top:5px;overflow:hidden;}
-.hbf{height:100%;border-radius:4px;background:var(--green);}.hbf.w{background:var(--gold);}.hbf.d{background:var(--red);}
-.pwg{position:relative;}.pwg input{padding-right:42px;}
-.pwe{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;}
-.toast{position:fixed;bottom:22px;right:22px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:13px 18px;font-size:13px;z-index:2000;box-shadow:var(--sh);animation:si .3s ease;max-width:300px;}
-.toast.ok{border-color:rgba(74,140,92,.5);color:#6bc98a;}.toast.err{border-color:rgba(196,75,58,.5);color:#e07060;}
-@keyframes si{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
-/* séances */
-.sk{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:14px;overflow:hidden;}
-.skh{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;}
+.ts:before{content:'';position:absolute;height:13px;width:13px;left:3px;bottom:3px;background:var(--muted);border-radius:50%;transition:.2s;}
+.tog input:checked+.ts{background:var(--gold);}
+.tog input:checked+.ts:before{transform:translateX(15px);background:#0f0e0c;}
+.cav-checkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:5px;max-height:190px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px;}
+.cav-check{display:flex;align-items:center;gap:7px;padding:4px 6px;border-radius:6px;cursor:pointer;font-size:12px;transition:background .1s;user-select:none;}
+.cav-check:hover{background:var(--surface2);}
+.cav-check input{accent-color:var(--gold);width:14px;height:14px;cursor:pointer;flex-shrink:0;}
+.alert-box{background:rgba(196,75,58,.1);border:1px solid rgba(196,75,58,.3);border-radius:8px;padding:11px 14px;margin-bottom:12px;font-size:13px;color:#e07060;display:flex;align-items:flex-start;gap:8px;}
+.warn-box{background:rgba(201,122,48,.1);border:1px solid rgba(201,122,48,.3);border-radius:8px;padding:9px 12px;font-size:12px;color:#e09a60;margin-top:5px;}
+.vac-banner{background:rgba(201,122,48,.08);border:1px solid rgba(201,122,48,.25);border-radius:9px;padding:11px 15px;margin-bottom:14px;font-size:13px;color:#e09a60;display:flex;align-items:center;gap:9px;}
+.ls{padding:34px;text-align:center;color:var(--muted);}
+.hbb{background:var(--bg);border-radius:4px;height:4px;margin-top:4px;overflow:hidden;}
+.hbf{height:100%;border-radius:4px;background:#4a8c5c;}.hbf.w{background:var(--gold);}.hbf.d{background:#c44b3a;}
+.pwg{position:relative;}.pwg input{padding-right:40px;}
+.pwe{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 16px;font-size:13px;z-index:2000;box-shadow:var(--sh);animation:si .3s ease;max-width:300px;line-height:1.4;}
+.toast.ok{border-color:rgba(74,140,92,.5);color:#6bc98a;}
+.toast.err{border-color:rgba(196,75,58,.5);color:#e07060;}
+.toast.warn{border-color:rgba(201,122,48,.5);color:#e09a60;}
+@keyframes si{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+.sk{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:11px;overflow:hidden;}
+.skh{padding:12px 15px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;}
 .skh:hover{background:var(--surface2);}
-.skt{font-family:'Playfair Display',serif;font-size:15px;color:var(--cream);}
-.skb{padding:14px 18px 18px;border-top:1px solid var(--border);}
-.cr{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(46,41,36,.4);flex-wrap:wrap;}
+.skt{font-family:'Playfair Display',serif;font-size:14px;color:var(--cream);}
+.skb{padding:11px 15px 15px;border-top:1px solid var(--border);}
+.cr{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(46,41,36,.35);flex-wrap:wrap;}
 .cr:last-child{border-bottom:none;}
-.cn{min-width:120px;font-weight:500;}.cn.ab{color:var(--muted);text-decoration:line-through;}
-/* notes publiques */
-.note-pub{padding:9px 22px 11px;font-size:12px;color:var(--muted);font-style:italic;background:rgba(201,168,76,.04);border-top:1px solid rgba(201,168,76,.1);}
-/* vue publique */
-.pcc{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:16px;overflow:hidden;}
+.cn{min-width:105px;font-weight:500;font-size:13px;}.cn.ab{color:var(--muted);text-decoration:line-through;}
+/* Planning multi-jours */
+.plan-nav{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.plan-outer{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.plan-grid{display:grid;border-radius:var(--r);overflow:hidden;border:1px solid var(--border);min-width:320px;}
+.plan-head-row{display:contents;}
+.plan-col-head{padding:10px 12px;background:var(--surface);border-bottom:2px solid var(--border);text-align:center;font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted);position:sticky;top:0;}
+.plan-col-head.today{color:var(--gold);}
+.plan-col-head.vac{color:var(--muted);opacity:.55;}
+.plan-col{padding:8px;background:var(--surface);border-right:1px solid var(--border);min-height:60px;}
+.plan-col:last-child{border-right:none;}
+.plan-slot{border-radius:7px;padding:8px 10px;margin-bottom:5px;border-left:3px solid var(--gold);}
+.plan-slot.cours{background:rgba(201,168,76,.06);border-left-color:var(--gold);}
+.plan-slot.statut{background:rgba(201,122,48,.06);border-left-color:#c97a30;}
+.plan-slot.stage{background:rgba(122,74,140,.06);border-left-color:#7a4a8c;}
+.plan-heure{font-family:'Playfair Display',serif;font-size:13px;color:var(--gold);margin-bottom:1px;}
+.plan-titre{font-size:12px;font-weight:600;color:var(--cream);}
+.plan-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.plan-empty{text-align:center;padding:18px 8px;color:var(--muted);font-size:11px;}
+/* Vue publique 1 jour */
+.pcc{background:var(--surface);border:1px solid var(--border);border-radius:13px;margin-bottom:14px;overflow:hidden;}
 .pcc.sp-card{border-color:rgba(201,122,48,.4);}
-.pcc.st-card{border-color:rgba(201,168,76,.35);}
-.pch{padding:16px 22px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);}
-.pheure{font-family:'Playfair Display',serif;font-size:26px;color:var(--gold);min-width:68px;}
+.pcc.st-card{border-color:rgba(122,74,140,.35);}
+.pch{padding:14px 20px;display:flex;align-items:center;gap:13px;border-bottom:1px solid var(--border);}
+.pheure{font-family:'Playfair Display',serif;font-size:24px;color:var(--gold);min-width:62px;}
 .pgn{font-family:'Playfair Display',serif;font-size:15px;color:var(--cream);}
-.pdi{color:var(--muted);font-size:12px;margin-top:3px;}
-.pcr{display:flex;align-items:center;justify-content:space-between;padding:11px 22px;border-bottom:1px solid rgba(46,41,36,.4);}
-.pcr:last-child{border-bottom:none;}.pcr.abr{opacity:.38;}
-.pcn{font-weight:600;}.pch2{color:var(--muted);font-size:13px;}.pch2 strong{color:var(--text);}
-.rtag{font-size:10px;background:rgba(201,122,48,.15);color:#e09a60;border:1px solid rgba(201,122,48,.3);border-radius:20px;padding:2px 7px;margin-left:5px;}
-/* récap chevaux */
-.recap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:10px;padding:16px 22px;}
-.rc{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
+.pdi{color:var(--muted);font-size:12px;margin-top:2px;}
+.pcr{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid rgba(46,41,36,.4);}
+.pcr:last-child{border-bottom:none;}.pcr.abr{opacity:.37;}
+.pcn{font-weight:600;font-size:13px;}.pch2{color:var(--muted);font-size:12px;}.pch2 strong{color:var(--text);}
+.rtag{font-size:10px;background:rgba(201,122,48,.15);color:#e09a60;border:1px solid rgba(201,122,48,.3);border-radius:20px;padding:2px 6px;margin-left:4px;}
+.note-pub{padding:8px 20px 10px;font-size:12px;color:var(--muted);font-style:italic;background:rgba(201,168,76,.04);border-top:1px solid rgba(201,168,76,.08);}
+.recap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:9px;padding:13px 18px;}
+.rc{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px 12px;}
 .rc.sp{border-color:rgba(201,122,48,.35);}
-.rc-name{font-weight:600;font-size:13px;}.rc-det{font-size:11px;color:var(--muted);margin-top:3px;}
-/* stages */
-.stg-wrap{background:var(--surface);border:1px solid rgba(201,168,76,.3);border-radius:14px;margin-bottom:16px;overflow:hidden;}
-.stg-hdr{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
-.stg-ttl{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold);}
-/* hamburger */
-.hb{display:none;position:fixed;top:14px;left:14px;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px;cursor:pointer;flex-direction:column;gap:4px;}
-.hb span{width:16px;height:2px;background:var(--text);border-radius:2px;display:block;}
+.rc-name{font-weight:600;font-size:13px;}.rc-det{font-size:11px;color:var(--muted);margin-top:2px;}
+.stg-wrap{background:var(--surface);border:1px solid rgba(201,168,76,.3);border-radius:13px;margin-bottom:14px;overflow:hidden;}
+.stg-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;}
+.stg-ttl{font-family:'Playfair Display',serif;font-size:15px;color:var(--gold);}
+/* hamburger — toujours au-dessus de la bannière */
+.hb{display:none;position:fixed;top:0;left:0;z-index:10000;width:46px;height:44px;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px;background:rgba(15,14,12,.6);backdrop-filter:blur(4px);}
+.hb span{width:16px;height:2px;background:#fff;border-radius:2px;display:block;}
 .sbo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;}
 @media(max-width:768px){
-  .hb{display:flex;}.sb{transform:translateX(-100%);transition:transform .3s;}.sb.open{transform:none;}
-  .sbo.open{display:block;}.main{margin-left:0;padding:14px;padding-top:54px;}.main.wb{padding-top:100px;}
+  .hb{display:flex;}.sb{transform:translateX(-100%);transition:transform .3s;z-index:200;}.sb.open{transform:none;}
+  .sbo.open{display:block;}.main{margin-left:0;padding:14px;}.main.wb{padding-top:52px;}
   .fr{grid-template-columns:1fr;}.recap-grid{grid-template-columns:1fr 1fr;}
 }
 </style>
 </head>
 <body>
 <div id="admin-banner">
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-    <span>🔐 MODE ADMINISTRATEUR</span><span class="bwarn">⚠️ N'oubliez pas de vous déconnecter !</span>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <span>🔐 ADMIN</span><span class="bwarn">⚠️ Déconnectez-vous en partant</span>
   </div>
   <button class="bbtn" onclick="logoutAdmin()">Quitter →</button>
 </div>
-<div class="hb" onclick="toggleSB()"><span></span><span></span><span></span></div>
+<div class="hb" id="hb" onclick="toggleSB()"><span></span><span></span><span></span></div>
 <div class="sbo" id="sbo" onclick="toggleSB()"></div>
 <div id="ld"><div class="logo">🐴</div><div class="spin"></div><div class="sub" id="ld-sub">Chargement…</div></div>
-
 <div id="app">
  <div style="display:flex">
   <nav class="sb" id="sb">
    <div class="sb-brand"><div class="logo">🐴 Les Écuries de l'Octroi</div><div class="sub">Gestion</div></div>
    <div class="sb-nav">
     <div class="nav-sec">Planning</div>
-    <button class="ni active" data-p="vue" onclick="go('vue')"><span class="ic">📅</span>Planning du jour</button>
+    <button class="ni active" data-p="vue" onclick="go('vue')"><span class="ic">📅</span>Planning</button>
     <div id="anav" style="display:none">
-     <div class="nav-sec" style="margin-top:10px">Administration</div>
+     <div class="nav-sec" style="margin-top:8px">Administration</div>
      <button class="ni" data-p="dash"      onclick="go('dash')"><span class="ic">⬛</span>Tableau de bord</button>
      <button class="ni" data-p="groupes"   onclick="go('groupes')"><span class="ic">👥</span>Groupes</button>
      <button class="ni" data-p="seances"   onclick="go('seances')"><span class="ic">📋</span>Séances</button>
@@ -168,20 +196,26 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--surface2);}
    </div>
    <div class="sb-bot"><button class="atbtn" id="atbtn" onclick="handleAdminToggle()">🔑 Mode administrateur</button></div>
   </nav>
-
   <main class="main" id="mc">
-
+   <!-- VUE PLANNING -->
    <div class="page active" id="page-vue">
-    <div class="ph"><h2>Planning du jour</h2><p id="pub-lbl"></p></div>
-    <div style="margin-bottom:20px"><input type="date" id="pub-date" onchange="loadVue()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none"></div>
+    <div class="ph"><h2>Planning</h2><p id="pub-lbl"></p></div>
+    <div class="plan-nav">
+     <input type="date" id="pub-date" onchange="loadVue()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none">
+     <div class="seg">
+      <button onclick="setView(1)" id="v1" class="on">1 jour</button>
+      <button onclick="setView(3)" id="v3">3 jours</button>
+      <button onclick="setView(7)" id="v7">Semaine</button>
+     </div>
+    </div>
     <div id="vac-pub" class="vac-banner" style="display:none">🏖 <strong>Vacances scolaires</strong> — Aucun cours affiché (Académie de Lyon · Zone A)</div>
-    <div class="pcc" id="recap-wrap" style="display:none;margin-bottom:20px">
-     <div class="pch"><div style="font-size:22px">🐎</div><div><div class="pgn">Chevaux mobilisés</div><div class="pdi" id="recap-count"></div></div></div>
+    <div class="pcc" id="recap-wrap" style="display:none;margin-bottom:16px">
+     <div class="pch"><div style="font-size:19px">🐎</div><div><div class="pgn">Chevaux mobilisés</div><div class="pdi" id="recap-count"></div></div></div>
      <div class="recap-grid" id="recap-grid"></div>
     </div>
     <div id="vue-content"></div>
    </div>
-
+   <!-- DASHBOARD -->
    <div class="page" id="page-dash">
     <div class="ph"><h2>Tableau de bord</h2><p id="td-lbl"></p></div>
     <div id="alerts"></div>
@@ -189,57 +223,57 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--surface2);}
      <div class="sc"><div class="lb">Groupes</div><div class="vl" id="s-grp">—</div></div>
      <div class="sc"><div class="lb">Cavaliers</div><div class="vl" id="s-cav">—</div></div>
      <div class="sc"><div class="lb">Chevaux</div><div class="vl" id="s-chv">—</div></div>
-     <div class="sc"><div class="lb">Séances aujourd'hui</div><div class="vl" id="s-sea">—</div></div>
+     <div class="sc"><div class="lb">Séances auj.</div><div class="vl" id="s-sea">—</div></div>
     </div>
     <div class="tc"><div class="tt"><h3>Séances d'aujourd'hui</h3></div><div id="td-sea"></div></div>
    </div>
-
+   <!-- GROUPES -->
    <div class="page" id="page-groupes">
-    <div class="ph"><h2>Groupes</h2><p>Créneaux fixes hebdomadaires</p></div>
+    <div class="ph"><h2>Groupes</h2></div>
     <div class="tc">
      <div class="tt"><h3>Liste</h3><button class="btn btn-p" onclick="newGrp()">+ Nouveau groupe</button></div>
-     <table><thead><tr><th>Nom</th><th>Jour</th><th>Heure</th><th>Moniteur</th><th>Cavaliers</th><th>Note</th><th>Actions</th></tr></thead>
+     <table><thead><tr><th>Nom</th><th>Jour</th><th>Heure</th><th>Moniteur</th><th>Cavaliers</th><th>Note</th><th></th></tr></thead>
      <tbody id="tb-grp"><tr class="er"><td colspan="7"><div class="spin"></div></td></tr></tbody></table>
     </div>
    </div>
-
+   <!-- SÉANCES -->
    <div class="page" id="page-seances">
     <div class="ph"><h2>Séances</h2></div>
-    <div id="sea-vac" class="vac-banner" style="display:none">🏖 Ce jour est en vacances scolaires (Zone A) — les séances n'apparaîtront pas dans la vue publique.</div>
-    <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:flex-end">
-     <div><label style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:5px">Date</label>
-      <input type="date" id="sea-date" onchange="onSeaDate()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none"></div>
+    <div id="sea-vac" class="vac-banner" style="display:none">🏖 Vacances scolaires (Zone A) — séances invisibles dans la vue publique.</div>
+    <div style="display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;align-items:flex-end">
+     <div><label style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:4px">Date</label>
+      <input type="date" id="sea-date" onchange="onSeaDate()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none"></div>
      <button class="btn btn-p" onclick="genSeances()">⚡ Générer séances</button>
     </div>
     <div id="sea-content"></div>
    </div>
-
+   <!-- STAGES -->
    <div class="page" id="page-stages">
-    <div class="ph"><h2>Stages</h2><p>Journées hors période scolaire</p></div>
-    <div style="margin-bottom:18px"><button class="btn btn-p" onclick="newStage()">+ Nouveau stage</button></div>
+    <div class="ph"><h2>Stages</h2></div>
+    <div style="margin-bottom:14px"><button class="btn btn-p" onclick="newStage()">+ Nouveau stage</button></div>
     <div id="stages-content"></div>
    </div>
-
+   <!-- CAVALIERS -->
    <div class="page" id="page-cavaliers">
     <div class="ph"><h2>Cavaliers</h2></div>
     <div class="tc">
      <div class="tt"><h3>Liste</h3><button class="btn btn-p" onclick="newCav()">+ Ajouter</button></div>
-     <table><thead><tr><th>Prénom</th><th>Groupe</th><th>Téléphone</th><th>Actions</th></tr></thead>
+     <table><thead><tr><th>Prénom</th><th>Groupe</th><th>Téléphone</th><th></th></tr></thead>
      <tbody id="tb-cav"><tr class="er"><td colspan="4"><div class="spin"></div></td></tr></tbody></table>
     </div>
    </div>
-
+   <!-- CHEVAUX -->
    <div class="page" id="page-chevaux">
     <div class="ph"><h2>Chevaux</h2></div>
-    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
      <span style="font-size:12px;color:var(--muted)">Seuil alerte :</span>
-     <input type="number" id="seuil" value="20" min="1" max="60" onchange="renderChevaux()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;width:70px">
+     <input type="number" id="seuil" value="20" min="1" max="60" onchange="renderChevaux()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;width:62px">
      <span style="font-size:12px;color:var(--muted)">h/semaine</span>
      <button class="btn btn-o sm" style="margin-left:auto" onclick="newStatut(null)">+ Statut spécial</button>
     </div>
     <div class="tc">
      <div class="tt"><h3>Liste</h3><button class="btn btn-p" onclick="newChv()">+ Ajouter</button></div>
-     <table><thead><tr><th>Nom</th><th>H. réelles</th><th>H. prév.</th><th>Alerte</th><th>Statuts à venir</th><th>Note</th><th>Actions</th></tr></thead>
+     <table><thead><tr><th>Nom</th><th>H. réelles</th><th>H. prév.</th><th>Alerte</th><th>Statuts à venir</th><th>Note</th><th></th></tr></thead>
      <tbody id="tb-chv"><tr class="er"><td colspan="7"><div class="spin"></div></td></tr></tbody></table>
     </div>
     <div class="tc"><div class="tt"><h3>Statuts spéciaux</h3><button class="btn btn-o sm" onclick="newStatut(null)">+ Ajouter</button></div>
@@ -247,25 +281,23 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--surface2);}
      <tbody id="tb-statuts"><tr class="er"><td colspan="7">—</td></tr></tbody></table>
     </div>
    </div>
-
+   <!-- MONITEURS -->
    <div class="page" id="page-moniteurs">
     <div class="ph"><h2>Moniteurs</h2></div>
     <div class="tc">
      <div class="tt"><h3>Liste</h3><button class="btn btn-p" onclick="newMon()">+ Ajouter</button></div>
-     <table><thead><tr><th>Prénom</th><th>Disponible</th><th>Actions</th></tr></thead>
+     <table><thead><tr><th>Prénom</th><th>Disponible</th><th></th></tr></thead>
      <tbody id="tb-mon"><tr class="er"><td colspan="3"><div class="spin"></div></td></tr></tbody></table>
     </div>
    </div>
-
   </main>
  </div>
 </div>
-
 <!-- MODALS -->
-<div class="mo" id="mo-pw"><div class="md" style="max-width:340px">
+<div class="mo" id="mo-pw"><div class="md" style="max-width:330px">
  <h3>🔑 Accès administrateur</h3>
  <div class="fg"><label>Mot de passe</label><div class="pwg"><input type="password" id="pw-in" onkeydown="if(event.key==='Enter')chkPw()"><button class="pwe" onclick="togPw()" type="button">👁</button></div></div>
- <div id="pw-err" style="color:#e07060;font-size:12px;margin-top:-8px;margin-bottom:10px;display:none">Mot de passe incorrect.</div>
+ <div id="pw-err" style="color:#e07060;font-size:12px;margin-top:-6px;margin-bottom:8px;display:none">Mot de passe incorrect.</div>
  <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-pw')">Annuler</button><button class="btn btn-p" id="pw-btn" onclick="chkPw()">Connexion</button></div>
 </div></div>
 
@@ -277,7 +309,8 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--surface2);}
   <div class="fg"><label>Heure</label><input type="time" id="grp-heure"></div>
  </div>
  <div class="fg"><label>Moniteur par défaut</label><select id="grp-mon"><option value="">— Sélectionner —</option></select></div>
- <div class="fg"><label>Note visible par tous</label><textarea id="grp-note" placeholder="Informations sur le groupe, niveau requis…" rows="2"></textarea></div>
+ <div class="fg"><label>Note visible par tous</label><textarea id="grp-note" placeholder="Informations, niveau requis…" rows="2"></textarea></div>
+ <div class="fg"><label>Assigner des cavaliers (sélection multiple)</label><div class="cav-checkgrid" id="grp-cav-grid"><div style="color:var(--muted);font-size:12px;padding:4px">Chargement…</div></div></div>
  <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-grp')">Annuler</button><button class="btn btn-p" onclick="saveGroupe()">Enregistrer</button></div>
 </div></div>
 
@@ -285,7 +318,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--surface2);}
  <h3 id="mo-cav-t">Nouveau cavalier</h3><input type="hidden" id="cav-id">
  <div class="fr">
   <div class="fg"><label>Prénom</label><input type="text" id="cav-prenom" placeholder="Kenny"></div>
-  <div class="fg"><label>Téléphone <span style="color:var(--muted)">(admin)</span></label><input type="tel" id="cav-tel" placeholder="06 95 73 83 71"></div>
+  <div class="fg"><label>Téléphone <span style="color:var(--muted)">(admin)</span></label><input type="tel" id="cav-tel" placeholder="06 12 34 56 78"></div>
  </div>
  <div class="fg"><label>Groupe</label><select id="cav-grp"><option value="">— Sans groupe —</option></select></div>
  <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-cav')">Annuler</button><button class="btn btn-p" onclick="saveCavalier()">Enregistrer</button></div>
@@ -298,17 +331,18 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--surface2);}
   <div class="fg"><label>Heures réelles semaine</label><input type="number" id="chv-h-reel" value="0" min="0" step="0.5"></div>
   <div class="fg"><label>Heures prévisionnelles</label><input type="number" id="chv-h-prev" value="0" min="0" step="0.5"></div>
  </div>
- <div class="fg"><label>Note visible par tous</label><textarea id="chv-note" placeholder="Informations, particularités du cheval…" rows="2"></textarea></div>
+ <div class="fg"><label>Note visible par tous</label><textarea id="chv-note" placeholder="Informations, particularités…" rows="2"></textarea></div>
  <div class="flag-box">
-  <div><div class="ftxt">🚫 Cheval hors cours</div><div class="fsub">N'apparaît jamais dans les affectations de séance</div></div>
+  <div><div class="ftxt">🚫 Cheval hors cours</div><div class="fsub">Exclu des séances et des stages</div></div>
   <label class="tog"><input type="checkbox" id="chv-hors-cours"><span class="ts"></span></label>
  </div>
  <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-chv')">Annuler</button><button class="btn btn-p" onclick="saveCheval()">Enregistrer</button></div>
 </div></div>
 
-<div class="mo" id="mo-statut"><div class="md" style="max-width:480px">
+<div class="mo" id="mo-statut"><div class="md" style="max-width:470px">
  <h3 id="mo-statut-t">Nouveau statut spécial</h3><input type="hidden" id="stat-id">
- <div class="fg"><label>Cheval</label><select id="stat-chv"><option value="">— Sélectionner —</option></select></div>
+ <div class="fg"><label>Cheval</label><select id="stat-chv" onchange="chkStatutConflict()"><option value="">— Sélectionner —</option></select></div>
+ <div id="stat-cours-warn" style="display:none" class="warn-box"></div>
  <div class="fg"><label>Type</label><select id="stat-type">
   <option value="attache">🔗 Attache / Box (longe, tapis…)</option>
   <option value="veto">🩺 Vétérinaire</option>
@@ -316,11 +350,11 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--surface2);}
   <option value="repos">😴 Repos</option>
  </select></div>
  <div class="fr">
-  <div class="fg"><label>Date</label><input type="date" id="stat-date"></div>
+  <div class="fg"><label>Date</label><input type="date" id="stat-date" onchange="chkStatutConflict()"></div>
   <div class="fg"><label>Heure début</label><input type="time" id="stat-hd"></div>
  </div>
- <div class="fg"><label>Heure fin <span style="color:var(--muted)">(optionnel)</span></label><input type="time" id="stat-hf"></div>
- <div class="fg"><label>Note / motif</label><input type="text" id="stat-note" placeholder="Ex : ferrure arrière gauche, longe 20min…"></div>
+ <div class="fg"><label>Heure fin <span style="color:var(--muted)">(opt.)</span></label><input type="time" id="stat-hf"></div>
+ <div class="fg"><label>Note / motif</label><input type="text" id="stat-note" placeholder="Ex : ferrure arrière gauche…"></div>
  <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-statut')">Annuler</button><button class="btn btn-p" onclick="saveStatut()">Enregistrer</button></div>
 </div></div>
 
@@ -338,42 +372,44 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--surface2);}
   <div class="fg"><label>Date début</label><input type="date" id="stage-deb"></div>
   <div class="fg"><label>Date fin</label><input type="date" id="stage-fin"></div>
  </div>
- <div class="fg"><label>Notes visibles par tous</label><textarea id="stage-notes" placeholder="Programme, niveau requis, infos pratiques…"></textarea></div>
+ <div class="fg"><label>Notes visibles par tous</label><textarea id="stage-notes" placeholder="Programme, niveau requis…"></textarea></div>
  <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-stage')">Annuler</button><button class="btn btn-p" onclick="saveStage()">Enregistrer</button></div>
 </div></div>
 
-<div class="mo" id="mo-part"><div class="md" style="max-width:460px">
+<div class="mo" id="mo-part"><div class="md" style="max-width:480px">
  <h3>Ajouter un participant</h3><input type="hidden" id="part-stage-id">
  <div class="fg"><label>Cavalier existant (optionnel)</label><select id="part-cav-ex" onchange="prefillPart()"><option value="">— Saisie libre —</option></select></div>
  <div class="fr">
   <div class="fg"><label>Prénom *</label><input type="text" id="part-prenom" placeholder="Marie"></div>
   <div class="fg"><label>Téléphone <span style="color:var(--muted)">(admin)</span></label><input type="tel" id="part-tel" placeholder="06…"></div>
  </div>
- <div class="fg"><label>Demi-journée</label><select id="part-dj"><option value="journee">Journée complète</option><option value="matin">Matin</option><option value="aprem">Après-midi</option></select></div>
+ <div class="fr">
+  <div class="fg"><label>Demi-journée</label><select id="part-dj"><option value="journee">Journée complète</option><option value="matin">Matin</option><option value="aprem">Après-midi</option></select></div>
+  <div class="fg"><label>Cheval attribué <span style="color:var(--muted)">(opt.)</span></label><select id="part-chv"><option value="">— Non attribué —</option></select></div>
+ </div>
  <div class="fg"><label>Note</label><input type="text" id="part-note" placeholder="Niveau, besoins spécifiques…"></div>
  <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-part')">Annuler</button><button class="btn btn-p" onclick="savePart()">Ajouter</button></div>
 </div></div>
 
-<div class="mo" id="mo-chs"><div class="md" style="max-width:420px">
- <h3>🐎 Ajouter un cheval au stage</h3><input type="hidden" id="chs-sid">
+<div class="mo" id="mo-chs"><div class="md" style="max-width:400px">
+ <h3>🐎 Cheval sans cavalier</h3><input type="hidden" id="chs-sid">
  <div class="fg"><label>Cheval</label><select id="chs-chv"><option value="">— Sélectionner —</option></select></div>
  <div class="fg"><label>Demi-journée</label><select id="chs-dj"><option value="journee">Journée complète</option><option value="matin">Matin</option><option value="aprem">Après-midi</option></select></div>
- <div class="fg"><label>Note</label><input type="text" id="chs-note" placeholder="Ex : centre scolaire, initiation…"></div>
+ <div class="fg"><label>Note</label><input type="text" id="chs-note" placeholder="Ex : centre scolaire…"></div>
  <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-chs')">Annuler</button><button class="btn btn-p" onclick="saveChvStage()">Ajouter</button></div>
 </div></div>
 
-<div class="mo" id="mo-ratt"><div class="md" style="max-width:420px">
+<div class="mo" id="mo-ratt"><div class="md" style="max-width:400px">
  <h3>➕ Rattrapage</h3><input type="hidden" id="ratt-sid">
  <div class="fg"><label>Cavalier</label><select id="ratt-cav"><option value="">— Sélectionner —</option></select></div>
  <div class="fg"><label>Cheval</label><select id="ratt-chv"><option value="">— Sélectionner —</option></select></div>
  <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-ratt')">Annuler</button><button class="btn btn-p" onclick="saveRatt()">Ajouter</button></div>
 </div></div>
-
 <script>
-// ═══════════════════════════════════════════════════════════════
-//  AUCUNE CREDENTIAL ICI — tout passe par /api/db côté serveur
-//  Ce fichier est 100% public, il ne contient aucun secret.
-// ═══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+//  AUCUN SECRET ICI — tout passe par /api/db
+// ══════════════════════════════════════════════════════
+
 
 // ── Vacances scolaires automatiques Zone A (Lyon) ──
 
@@ -439,390 +475,376 @@ chargerVacancesZoneA().then(() => {
 
 });
 
-const JOURS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+
+const JOURS=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const JS=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
 const DISC  = [ 'BALADE', 'BALADE & MES OBS', 'DRESSAGE', 'EQUIFEEL+Cord', 'EQUIFUN', 'HORSEBALL', 'JEUX', 'LONGE', 'MISE EN ROUTE', 'PIED & JEUX', 'SOINS', 'THÉORIE', 'THÉORIE / SOINS', 'VOLTIGE','BaS','EQUIFEEL','MeS OBSTACLE','MeS PLAT','OBSTACLE','PAS COURS','PLAT','SPRING GARDEN'];
-const SLBL  = {attache:'🔗 Attache / Box', veto:'🩺 Vétérinaire', marechal:'🔨 Maréchal', repos:'😴 Repos'};
-const SBDG  = {attache:'bo', veto:'br', marechal:'bp', repos:'b'};
+const SLBL={attache:'🔗 Attache/Box',veto:'🩺 Vétérinaire',marechal:'🔨 Maréchal',repos:'😴 Repos'};
+const SBDG={attache:'bo',veto:'br',marechal:'bp',repos:'b'};
 
-let isAdmin = false;
-let sessionToken = ''; // token renvoyé par /api/db après auth — stocké en mémoire seulement
-let C = {grp:[],cav:[],chv:[],mon:[],sea:[],aff:[],statuts:[],stages:[],parts:[],chvS:[]};
+let isAdmin=false, sessionToken='', viewDays=1;
+let C={grp:[],cav:[],chv:[],mon:[],sea:[],aff:[],statuts:[],stages:[],parts:[],chvS:[]};
 
-// ── Proxy vers /api/db ─────────────────────────────────────────────
-async function dbReq(body) {
-  const r = await fetch('/api/db', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  const j = await r.json();
-  if (!r.ok) throw new Error(j.error || 'Erreur serveur');
-  return j;
+// ── Proxy ──────────────────────────────────────────────
+async function dbReq(body){
+  const r=await fetch('/api/db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j=await r.json();if(!r.ok)throw new Error(j.error||'Erreur serveur');return j;
 }
+async function dbSel(table,{select='*',filter=[],order=[]}={}){
+  const r=await dbReq({action:'query',method:'select',table,select,filter,order});return r.data||[];
+}
+async function dbIns(table,data){return dbReq({action:'query',method:'insert',table,data,token:sessionToken});}
+async function dbUpd(table,data,filter){return dbReq({action:'query',method:'update',table,data,filter,token:sessionToken});}
+async function dbDel(table,filter){return dbReq({action:'query',method:'delete',table,filter,token:sessionToken});}
 
-// SELECT
-async function dbSelect(table, { select='*', filter=[], order=[] } = {}) {
-  const r = await dbReq({ action:'query', method:'select', table, select, filter, order });
-  return r.data || [];
-}
-// INSERT
-async function dbInsert(table, data) {
-  return dbReq({ action:'query', method:'insert', table, data, token: sessionToken });
-}
-// UPDATE
-async function dbUpdate(table, data, filter) {
-  return dbReq({ action:'query', method:'update', table, data, filter, token: sessionToken });
-}
-// DELETE
-async function dbDelete(table, filter) {
-  return dbReq({ action:'query', method:'delete', table, filter, token: sessionToken });
-}
-
-// ── INIT ────────────────────────────────────────────────────────────
-window.onload = async () => {
-  const today = new Date().toISOString().split('T')[0];
-  ['pub-date','sea-date'].forEach(id => { const e = document.getElementById(id); if (e) e.value = today; });
-  document.getElementById('pub-lbl').textContent = fmtL(today);
-  document.getElementById('td-lbl').textContent  = fmtL(today);
-  try {
+// ── Init ───────────────────────────────────────────────
+window.onload=async()=>{
+  const today=new Date().toISOString().split('T')[0];
+  ['pub-date','sea-date'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=today;});
+  document.getElementById('pub-lbl').textContent=fmtL(today);
+  const tdl=document.getElementById('td-lbl');if(tdl)tdl.textContent=fmtL(today);
+  try{
     await loadAll();
-    document.getElementById('ld').style.display  = 'none';
-    document.getElementById('app').style.display = 'block';
+    document.getElementById('ld').style.display='none';
+    document.getElementById('app').style.display='block';
     go('vue');
-  } catch(e) {
-    const s = document.getElementById('ld-sub');
-    s.textContent = 'Erreur : ' + (e.message || e);
-    s.style.color = '#e07060';
-    document.querySelector('#ld .spin').style.display = 'none';
-    console.error(e);
+  }catch(e){
+    const s=document.getElementById('ld-sub');s.textContent='Erreur : '+(e.message||e);s.style.color='#e07060';
+    document.querySelector('#ld .spin').style.display='none';console.error(e);
   }
 };
 
-// ── ADMIN ────────────────────────────────────────────────────────────
-function handleAdminToggle() {
-  if (isAdmin) { logoutAdmin(); return; }
-  document.getElementById('pw-in').value = '';
-  document.getElementById('pw-err').style.display = 'none';
-  openMo('mo-pw');
-  setTimeout(() => document.getElementById('pw-in').focus(), 80);
+// ── Admin ──────────────────────────────────────────────
+function handleAdminToggle(){if(isAdmin){logoutAdmin();return;}document.getElementById('pw-in').value='';document.getElementById('pw-err').style.display='none';openMo('mo-pw');setTimeout(()=>document.getElementById('pw-in').focus(),80);}
+async function chkPw(){
+  const pw=document.getElementById('pw-in').value;
+  const btn=document.getElementById('pw-btn');btn.textContent='…';btn.disabled=true;
+  try{
+    const r=await dbReq({action:'auth',password:pw});
+    if(r.ok){sessionToken=r.token||'';closeMo('mo-pw');enableAdmin();}
+    else{document.getElementById('pw-err').style.display='block';document.getElementById('pw-in').value='';document.getElementById('pw-in').focus();}
+  }catch{document.getElementById('pw-err').style.display='block';}
+  btn.textContent='Connexion';btn.disabled=false;
 }
-async function chkPw() {
-  const pw  = document.getElementById('pw-in').value;
-  const btn = document.getElementById('pw-btn');
-  btn.textContent = '…'; btn.disabled = true;
-  try {
-    const r = await dbReq({ action: 'auth', password: pw });
-    if (r.ok) {
-      sessionToken = r.token || '';
-      closeMo('mo-pw');
-      enableAdmin();
-    } else {
-      document.getElementById('pw-err').style.display = 'block';
-      document.getElementById('pw-in').value = '';
-      document.getElementById('pw-in').focus();
-    }
-  } catch { document.getElementById('pw-err').style.display = 'block'; }
-  btn.textContent = 'Connexion'; btn.disabled = false;
+function enableAdmin(){
+  isAdmin=true;document.getElementById('admin-banner').classList.add('show');
+  document.getElementById('mc').classList.add('wb');document.getElementById('anav').style.display='block';
+  document.getElementById('atbtn').textContent='🔒 Quitter admin';document.getElementById('atbtn').classList.add('on');
+  renderCavaliers();go('dash');toast('Mode admin activé','ok');
 }
-function enableAdmin() {
-  isAdmin = true;
-  document.getElementById('admin-banner').classList.add('show');
-  document.getElementById('mc').classList.add('wb');
-  document.getElementById('anav').style.display = 'block';
-  document.getElementById('atbtn').textContent = '🔒 Quitter admin';
-  document.getElementById('atbtn').classList.add('on');
-  renderCavaliers(); // affiche les tels
-  go('dash'); toast('Mode admin activé', 'ok');
+function logoutAdmin(){
+  isAdmin=false;sessionToken='';document.getElementById('admin-banner').classList.remove('show');
+  document.getElementById('mc').classList.remove('wb');document.getElementById('anav').style.display='none';
+  document.getElementById('atbtn').textContent='🔑 Mode administrateur';document.getElementById('atbtn').classList.remove('on');
+  renderCavaliers();go('vue');toast('Déconnecté','ok');
 }
-function logoutAdmin() {
-  isAdmin = false; sessionToken = '';
-  document.getElementById('admin-banner').classList.remove('show');
-  document.getElementById('mc').classList.remove('wb');
-  document.getElementById('anav').style.display = 'none';
-  document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
-  document.getElementById('atbtn').classList.remove('on');
-  renderCavaliers();
-  go('vue'); toast('Déconnecté', 'ok');
-}
-function togPw() { const i = document.getElementById('pw-in'); i.type = i.type === 'password' ? 'text' : 'password'; }
+function togPw(){const i=document.getElementById('pw-in');i.type=i.type==='password'?'text':'password';}
 
-// ── NAV ─────────────────────────────────────────────────────────────
-function go(p) {
-  const adm = ['dash','groupes','seances','stages','cavaliers','chevaux','moniteurs'];
-  if (!isAdmin && adm.includes(p)) return;
-  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
-  document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
+// ── Nav ────────────────────────────────────────────────
+function go(p){
+  const adm=['dash','groupes','seances','stages','cavaliers','chevaux','moniteurs'];
+  if(!isAdmin&&adm.includes(p))return;
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
-  const b = document.querySelector(`[data-p="${p}"]`); if (b) b.classList.add('active');
-  if (p === 'vue')       loadVue();
-  if (p === 'dash')      renderDash();
-  if (p === 'seances')   { onSeaDate(); }
-  if (p === 'stages')    loadStages();
-  if (p === 'chevaux')   { loadStatuts(); renderChevaux(); }
-  if (window.innerWidth <= 768) { document.getElementById('sb').classList.remove('open'); document.getElementById('sbo').classList.remove('open'); }
+  const b=document.querySelector('[data-p="'+p+'"]');if(b)b.classList.add('active');
+  if(p==='vue')loadVue();
+  if(p==='dash')renderDash();
+  if(p==='seances')onSeaDate();
+  if(p==='stages')loadStages();
+  if(p==='chevaux'){loadStatuts();renderChevaux();}
+  if(window.innerWidth<=768){document.getElementById('sb').classList.remove('open');document.getElementById('sbo').classList.remove('open');}
 }
+function toggleSB(){document.getElementById('sb').classList.toggle('open');document.getElementById('sbo').classList.toggle('open');}
 
-// ── LOAD ─────────────────────────────────────────────────────────────
-async function loadAll() { await Promise.all([loadGrp(), loadCav(), loadChv(), loadMon()]); }
-async function loadGrp()  { C.grp = await dbSelect('groupes',  { order:[{col:'created_at'}] }); renderGroupes(); popSelects(); }
-async function loadCav()  { C.cav = await dbSelect('cavaliers',{ order:[{col:'prenom'}] }); renderCavaliers(); popSelects(); }
-async function loadChv()  { C.chv = await dbSelect('equides',  { order:[{col:'nom'}] }); renderChevaux(); }
-async function loadMon()  { C.mon = await dbSelect('moniteurs',{ order:[{col:'prenom'}] }); renderMoniteurs(); popSelects(); }
-async function loadStatuts() {
-  C.statuts = await dbSelect('equide_statuts', {
-    select: '*,equides(nom)',
-    order: [{col:'date'},{col:'heure_debut'}]
-  });
+// ── Chargement ─────────────────────────────────────────
+async function loadAll(){await Promise.all([loadGrp(),loadCav(),loadChv(),loadMon()]);}
+async function loadGrp(){C.grp=await dbSel('groupes',{order:[{col:'created_at'}]});renderGroupes();popSelects();}
+async function loadCav(){C.cav=await dbSel('cavaliers',{order:[{col:'prenom'}]});renderCavaliers();popSelects();}
+async function loadChv(){C.chv=await dbSel('equides',{order:[{col:'nom'}]});renderChevaux();}
+async function loadMon(){C.mon=await dbSel('moniteurs',{order:[{col:'prenom'}]});renderMoniteurs();popSelects();}
+async function loadStatuts(){
+  C.statuts=await dbSel('equide_statuts',{select:'*,equides(nom)',order:[{col:'date'},{col:'heure_debut'}]});
   renderStatuts();
 }
-async function loadSeances(date) {
-  if (!date) return;
-  C.sea = await dbSelect('seances', {
-    select: '*,groupes(nom,heure,jour,moniteur_id,note),moniteurs(prenom)',
-    filter: [{col:'date',op:'eq',val:date}],
-    order:  [{col:'heure'}]
-  });
-  if (C.sea.length) {
-    const seaIds = C.sea.map(s => s.id);
-    // On charge les affectations pour toutes ces séances
-    C.aff = await dbSelect('affectations_seance', {
-      select: '*,cavaliers(prenom,groupe_id),equides(nom)',
-      filter: [{col:'seance_id',op:'in',val:`(${seaIds.map(id=>`"${id}"`).join(',')})`}]
-    });
-  } else C.aff = [];
+async function loadSeances(date){
+  if(!date)return;
+  C.sea=await dbSel('seances',{select:'*,groupes(nom,heure,jour,moniteur_id,note),moniteurs(prenom)',filter:[{col:'date',op:'eq',val:date}],order:[{col:'heure'}]});
+  if(C.sea.length){
+    const iv=`(${C.sea.map(s=>`"${s.id}"`).join(',')})`;
+    C.aff=await dbSel('affectations_seance',{select:'*,cavaliers(prenom,groupe_id),equides(nom)',filter:[{col:'seance_id',op:'in',val:iv}]});
+  }else C.aff=[];
   renderSeances();
 }
-async function loadStages() {
-  C.stages = await dbSelect('stages', { order:[{col:'date_debut'}] });
-  if (C.stages.length) {
-    const ids = C.stages.map(s => s.id);
-    const inVal = `(${ids.map(id=>`"${id}"`).join(',')})`;
-    [C.parts, C.chvS] = await Promise.all([
-      dbSelect('stage_participants', { filter:[{col:'stage_id',op:'in',val:inVal}] }),
-      dbSelect('stage_chevaux',      { select:'*,equides(nom)', filter:[{col:'stage_id',op:'in',val:inVal}] }),
+async function loadStages(){
+  C.stages=await dbSel('stages',{order:[{col:'date_debut'}]});
+  if(C.stages.length){
+    const iv=`(${C.stages.map(s=>`"${s.id}"`).join(',')})`;
+    [C.parts,C.chvS]=await Promise.all([
+      dbSel('stage_participants',{select:'*,equides(nom)',filter:[{col:'stage_id',op:'in',val:iv}]}),
+      dbSel('stage_chevaux',{select:'*,equides(nom)',filter:[{col:'stage_id',op:'in',val:iv}]}),
     ]);
-  } else { C.parts = []; C.chvS = []; }
+  }else{C.parts=[];C.chvS=[];}
   renderStages();
 }
-
-function onSeaDate() {
-  const date = document.getElementById('sea-date').value;
-  document.getElementById('sea-vac').style.display = estVac(date) ? 'flex' : 'none';
+function onSeaDate(){
+  const date=v('sea-date');
+  document.getElementById('sea-vac').style.display=estVac(date)?'flex':'none';
   loadSeances(date);
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  VUE PUBLIQUE
-// ═══════════════════════════════════════════════════════════════
-async function loadVue() {
-  const date = document.getElementById('pub-date').value;
-  document.getElementById('pub-lbl').textContent = fmtL(date);
-  const el = document.getElementById('vue-content');
-  el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
-  const isV = estVac(date);
-  document.getElementById('vac-pub').style.display = isV ? 'flex' : 'none';
-
-  const [seances, statsDuJour, stagesJour] = await Promise.all([
-    isV ? [] : dbSelect('seances', {
-      select: '*,groupes(nom,heure,moniteur_id,note),moniteurs(prenom)',
-      filter: [{col:'date',op:'eq',val:date}], order:[{col:'heure'}]
-    }),
-    dbSelect('equide_statuts', {
-      select: '*,equides(nom,hors_cours)',
-      filter: [{col:'date',op:'eq',val:date}], order:[{col:'heure_debut'}]
-    }),
-    dbSelect('stages', { filter:[{col:'date_debut',op:'lte',val:date},{col:'date_fin',op:'gte',val:date}] }),
+// ══════════════════════════════════════════════════════
+//  PLANNING — 1j / 3j / 7j
+// ══════════════════════════════════════════════════════
+function setView(n){
+  viewDays=n;['1','3','7'].forEach(x=>document.getElementById('v'+x).classList.toggle('on',+x===n));loadVue();
+}
+async function loadVue(){
+  const base=v('pub-date');
+  document.getElementById('pub-lbl').textContent=fmtL(base);
+  const el=document.getElementById('vue-content');
+  el.innerHTML='<div class="ls"><div class="spin"></div></div>';
+  const dates=[];
+  for(let i=0;i<viewDays;i++){const d=new Date(base+'T00:00:00');d.setDate(d.getDate()+i);dates.push(d.toISOString().split('T')[0]);}
+  const dMin=dates[0],dMax=dates[dates.length-1];
+  const iv=`(${dates.map(d=>`"${d}"`).join(',')})`;
+  document.getElementById('vac-pub').style.display=viewDays===1&&estVac(base)&&!isAdmin?'flex':'none';
+  const [seaAll,statAll,stgAll]=await Promise.all([
+    dbSel('seances',{select:'*,groupes(nom,heure,moniteur_id,note),moniteurs(prenom)',filter:[{col:'date',op:'in',val:iv}],order:[{col:'date'},{col:'heure'}]}),
+    dbSel('equide_statuts',{select:'*,equides(nom)',filter:[{col:'date',op:'in',val:iv}],order:[{col:'date'},{col:'heure_debut'}]}),
+    dbSel('stages',{filter:[{col:'date_debut',op:'lte',val:dMax},{col:'date_fin',op:'gte',val:dMin}]}),
   ]);
-
-  let affs = [];
-  if (seances.length) {
-    const inVal = `(${seances.map(s=>`"${s.id}"`).join(',')})`;
-    affs = await dbSelect('affectations_seance', {
-      select: '*,cavaliers(prenom),equides(nom)',
-      filter: [{col:'seance_id',op:'in',val:inVal}]
-    });
+  // Filtrer vacances côté public
+  const seances=isAdmin?seaAll:seaAll.filter(s=>!estVac(s.date));
+  let affs=[];
+  if(seances.length){
+    const is=`(${seances.map(s=>`"${s.id}"`).join(',')})`;
+    affs=await dbSel('affectations_seance',{select:'*,cavaliers(prenom),equides(nom)',filter:[{col:'seance_id',op:'in',val:is}]});
   }
-
-  // Récap chevaux
-  const chvMap = new Map();
-  for (const a of affs.filter(a=>!a.absent&&a.equide_id)) {
-    const s = seances.find(x=>x.id===a.seance_id);
-    const h = (s?.groupes?.heure||s?.heure||'').slice(0,5);
-    if (!chvMap.has(a.equide_id)) chvMap.set(a.equide_id,{nom:a.equides?.nom||'?',evts:[]});
-    chvMap.get(a.equide_id).evts.push({h, label:s?.groupes?.nom||'Cours', type:'cours'});
+  let stParts=[],stChvs=[];
+  if(stgAll.length){
+    const is=`(${stgAll.map(s=>`"${s.id}"`).join(',')})`;
+    [stParts,stChvs]=await Promise.all([
+      dbSel('stage_participants',{select:'*,equides(nom)',filter:[{col:'stage_id',op:'in',val:is}]}),
+      dbSel('stage_chevaux',{select:'*,equides(nom)',filter:[{col:'stage_id',op:'in',val:is}]}),
+    ]);
   }
-  for (const s of statsDuJour) {
-    if (!chvMap.has(s.equide_id)) chvMap.set(s.equide_id,{nom:s.equides?.nom||'?',evts:[]});
-    chvMap.get(s.equide_id).evts.push({h:(s.heure_debut||'').slice(0,5), hf:(s.heure_fin||'').slice(0,5), label:SLBL[s.type]||s.type, type:'stat'});
-  }
+  // Récap chevaux — 1 jour uniquement
+  const rw=document.getElementById('recap-wrap');
+  if(viewDays===1){
+    const d=base,chvMap=new Map();
+    for(const a of affs.filter(a=>!a.absent&&a.equide_id)){
+      const s=seances.find(x=>x.id===a.seance_id);if(!s||s.date!==d)continue;
+      const h=(s.groupes?.heure||s.heure||'').slice(0,5);
+      if(!chvMap.has(a.equide_id))chvMap.set(a.equide_id,{nom:a.equides?.nom||'?',evts:[]});
+      chvMap.get(a.equide_id).evts.push({h,label:s.groupes?.nom||'Cours',type:'cours'});
+    }
+    for(const s of statAll.filter(x=>x.date===d)){
+      if(!chvMap.has(s.equide_id))chvMap.set(s.equide_id,{nom:s.equides?.nom||'?',evts:[]});
+      chvMap.get(s.equide_id).evts.push({h:(s.heure_debut||'').slice(0,5),hf:(s.heure_fin||'').slice(0,5),label:SLBL[s.type]||s.type,type:'stat'});
+    }
+    if(chvMap.size){
+      rw.style.display='block';
+      document.getElementById('recap-count').textContent=`${chvMap.size} cheval${chvMap.size>1?'x':''} en activité`;
+      document.getElementById('recap-grid').innerHTML=[...chvMap.values()].map(c=>`
+        <div class="rc ${c.evts.some(e=>e.type==='stat')?'sp':''}">
+          <div class="rc-name">🐎 ${c.nom}</div>
+          ${c.evts.sort((a,b)=>a.h.localeCompare(b.h)).map(e=>`<div class="rc-det"><span style="color:${e.type==='cours'?'var(--gold)':'#e09a60'};font-weight:600">${e.h||'—'}</span>${e.hf?' → '+e.hf:''} ${e.label}</div>`).join('')}
+        </div>`).join('');
+    }else rw.style.display='none';
+  }else rw.style.display='none';
 
-  const rw = document.getElementById('recap-wrap');
-  if (chvMap.size) {
-    rw.style.display = 'block';
-    document.getElementById('recap-count').textContent = `${chvMap.size} cheval${chvMap.size>1?'x':''} en activité`;
-    document.getElementById('recap-grid').innerHTML = [...chvMap.values()].sort((a,b)=>(a.evts[0]?.h||'').localeCompare(b.evts[0]?.h||'')).map(c=>`
-      <div class="rc ${c.evts.some(e=>e.type==='stat')?'sp':''}">
-        <div class="rc-name">🐎 ${c.nom}</div>
-        ${c.evts.sort((a,b)=>a.h.localeCompare(b.h)).map(e=>`<div class="rc-det"><span style="color:${e.type==='cours'?'var(--gold)':'#e09a60'};font-weight:600">${e.h||'—'}</span>${e.hf?' → '+e.hf:''} ${e.label}</div>`).join('')}
-      </div>`).join('');
-  } else rw.style.display = 'none';
-
-  if (!seances.length && !statsDuJour.length && !stagesJour.length) {
-    el.innerHTML = `<div class="ls">${isV?'🏖 Vacances scolaires — aucun cours':'Aucun cours ni stage ce jour'}</div>`;
+  if(viewDays===1){
+    // ── vue 1 jour ──
+    const d=base,isV=estVac(d)&&!isAdmin;
+    const seaD=seances.filter(s=>s.date===d);
+    const statD=statAll.filter(s=>s.date===d);
+    const stgD=stgAll.filter(st=>st.date_debut<=d&&st.date_fin>=d);
+    if(!seaD.length&&!statD.length&&!stgD.length){el.innerHTML=`<div class="ls">${isV?'🏖 Vacances scolaires — aucun cours':'Aucun cours ni stage ce jour'}</div>`;return;}
+    let blocs=[];
+    for(const s of seaD){
+      const g=s.groupes||{};const h=(g.heure||s.heure||'').slice(0,5);
+      const sa=affs.filter(a=>a.seance_id===s.id);
+      const sorted=[...sa].sort((a,b)=>{if(a.absent&&!b.absent)return 1;if(!a.absent&&b.absent)return -1;return(a.cavaliers?.prenom||'').localeCompare(b.cavaliers?.prenom||'','fr');});
+      blocs.push({h,html:`<div class="pcc">
+        <div class="pch"><div class="pheure">${h}</div>
+          <div><div class="pgn">${g.nom||'Groupe'}</div>
+          <div class="pdi">${s.discipline?`<span class="b bb" style="font-size:10px;margin-right:4px">${s.discipline}</span>`:''} 👤 ${s.moniteurs?.prenom||'—'}</div></div>
+        </div>
+        ${sorted.length===0?'<div style="padding:12px 20px;color:var(--muted)">Aucun cavalier</div>':
+          sorted.map(a=>`<div class="pcr ${a.absent?'abr':''}">
+            <div class="pcn">${a.cavaliers?.prenom||'?'}${a.rattrapage?'<span class="rtag">rattrapage</span>':''}${a.absent?'<span class="b br" style="margin-left:5px;font-size:10px">absent</span>':''}</div>
+            <div class="pch2">${a.absent?'<span style="color:var(--muted)">—</span>':`🐎 <strong>${a.equides?.nom||'Non attribué'}</strong>`}</div>
+          </div>`).join('')}
+        ${g.note?`<div class="note-pub">📝 ${g.note}</div>`:''}
+      </div>`});
+    }
+    for(const s of statD){
+      const h=(s.heure_debut||'').slice(0,5);
+      blocs.push({h,html:`<div class="pcc sp-card">
+        <div class="pch"><div class="pheure" style="font-size:18px">${h||'—'}</div>
+          <div style="flex:1"><div class="pgn">🐎 ${s.equides?.nom||'?'}</div>
+          <div class="pdi"><span class="b ${SBDG[s.type]||'b'}" style="font-size:10px">${SLBL[s.type]||s.type}</span>${(s.heure_fin||'').slice(0,5)?` → ${s.heure_fin.slice(0,5)}`:''}</div></div>
+        </div>
+        ${s.note?`<div class="note-pub">📝 ${s.note}</div>`:''}
+      </div>`});
+    }
+    for(const st of stgD){
+      const pts=stParts.filter(p=>p.stage_id===st.id),chvs=stChvs.filter(c=>c.stage_id===st.id);
+      blocs.push({h:'00',html:`<div class="pcc st-card">
+        <div class="pch"><div class="pheure" style="font-size:16px">🏕</div>
+          <div><div class="pgn">${st.titre}</div><div class="pdi">${fmtDate(st.date_debut)}${st.date_fin!==st.date_debut?' → '+fmtDate(st.date_fin):''}</div></div>
+        </div>
+        ${[...pts].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(p=>`
+          <div class="pcr"><div class="pcn">${p.prenom}${p.demi_journee&&p.demi_journee!=='journee'?` <span class="b bo" style="font-size:10px">${p.demi_journee}</span>`:''}</div>
+          <div class="pch2">🐎 ${p.equides?.nom||'Non attribué'}</div></div>`).join('')}
+        ${chvs.length?`<div style="padding:7px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)">🐎 sans cavalier : ${chvs.map(c=>c.equides?.nom||'?').join(', ')}</div>`:''}
+        ${st.notes?`<div class="note-pub">📝 ${st.notes}</div>`:''}
+      </div>`});
+    }
+    blocs.sort((a,b)=>a.h.localeCompare(b.h));
+    el.innerHTML=blocs.map(b=>b.html).join('');
     return;
   }
-
-  // Stages du jour — charger participants/chevaux si pas déjà fait
-  let stagesPartsMap = new Map(), stagesChvMap = new Map();
-  if (stagesJour.length) {
-    const inVal = `(${stagesJour.map(s=>`"${s.id}"`).join(',')})`;
-    const [pts, chvs] = await Promise.all([
-      dbSelect('stage_participants', { filter:[{col:'stage_id',op:'in',val:inVal}] }),
-      dbSelect('stage_chevaux', { select:'*,equides(nom)', filter:[{col:'stage_id',op:'in',val:inVal}] }),
-    ]);
-    pts.forEach(p => { if (!stagesPartsMap.has(p.stage_id)) stagesPartsMap.set(p.stage_id,[]); stagesPartsMap.get(p.stage_id).push(p); });
-    chvs.forEach(c => { if (!stagesChvMap.has(c.stage_id)) stagesChvMap.set(c.stage_id,[]); stagesChvMap.get(c.stage_id).push(c); });
+  // ── vue multi-jours ──
+  const today=new Date().toISOString().split('T')[0];
+  const cols=viewDays;
+  let headCells='',bodyCells='';
+  for(const d of dates){
+    const dt=new Date(d+'T00:00:00'),isT=d===today,isV=estVac(d);
+    headCells+=`<div class="plan-col-head ${isT?'today':''} ${isV&&!isAdmin?'vac':''}">
+      ${JS[dt.getDay()]} ${dt.getDate()}/${dt.getMonth()+1}
+      ${isV&&!isAdmin?'<div style="font-size:10px">Vacances</div>':''}
+    </div>`;
+    const seaD=(isAdmin?seaAll:seaAll.filter(s=>!estVac(s.date))).filter(s=>s.date===d);
+    const statD=statAll.filter(s=>s.date===d);
+    const stgD=stgAll.filter(st=>st.date_debut<=d&&st.date_fin>=d);
+    let slots=[];
+    for(const s of seaD){
+      const g=s.groupes||{},h=(g.heure||s.heure||'').slice(0,5);
+      const cnt=affs.filter(a=>a.seance_id===s.id&&!a.absent).length;
+      slots.push({h,html:`<div class="plan-slot cours"><div class="plan-heure">${h}</div><div class="plan-titre">${g.nom||'Groupe'}</div><div class="plan-sub">${cnt} cav. · ${s.discipline||'—'}</div></div>`});
+    }
+    for(const s of statD){
+      const h=(s.heure_debut||'').slice(0,5);
+      slots.push({h,html:`<div class="plan-slot statut"><div class="plan-heure">${h||'—'}</div><div class="plan-titre">🐎 ${s.equides?.nom||'?'}</div><div class="plan-sub">${SLBL[s.type]||s.type}</div></div>`});
+    }
+    for(const st of stgD){
+      const n=stParts.filter(p=>p.stage_id===st.id).length;
+      slots.push({h:'00',html:`<div class="plan-slot stage"><div class="plan-heure">🏕</div><div class="plan-titre">${st.titre}</div><div class="plan-sub">${n} participant${n>1?'s':''}</div></div>`});
+    }
+    slots.sort((a,b)=>a.h.localeCompare(b.h));
+    bodyCells+=`<div class="plan-col">${slots.map(s=>s.html).join('')||'<div class="plan-empty">'+(isV&&!isAdmin?'Vacances':'Vide')+'</div>'}</div>`;
   }
-
-  let blocs = [];
-
-  for (const s of seances) {
-    const g = s.groupes||{};
-    const sa = affs.filter(a=>a.seance_id===s.id);
-    const sorted = [...sa].sort((a,b)=>{if(a.absent&&!b.absent)return 1;if(!a.absent&&b.absent)return -1;return(a.cavaliers?.prenom||'').localeCompare(b.cavaliers?.prenom||'','fr');});
-    const h = (g.heure||s.heure||'').slice(0,5);
-    blocs.push({h, html:`<div class="pcc">
-      <div class="pch"><div class="pheure">${h}</div>
-        <div><div class="pgn">${g.nom||'Groupe'}</div>
-        <div class="pdi">${s.discipline?`<span class="b bb" style="font-size:10px;margin-right:5px">${s.discipline}</span>`:''} 👤 ${s.moniteurs?.prenom||'—'}</div></div>
-      </div>
-      ${sorted.length===0?'<div style="padding:14px 22px;color:var(--muted)">Aucun cavalier affecté</div>':
-        sorted.map(a=>`<div class="pcr ${a.absent?'abr':''}">
-          <div class="pcn">${a.cavaliers?.prenom||'?'}${a.rattrapage?'<span class="rtag">rattrapage</span>':''}${a.absent?'<span class="b br" style="margin-left:5px;font-size:10px">absent</span>':''}</div>
-          <div class="pch2">${a.absent?'<span style="color:var(--muted)">—</span>':`🐎 <strong>${a.equides?.nom||'Non attribué'}</strong>`}</div>
-        </div>`).join('')}
-      ${g.note?`<div class="note-pub">📝 ${g.note}</div>`:''}
-    </div>`});
-  }
-
-  for (const s of statsDuJour) {
-    const h = (s.heure_debut||'').slice(0,5);
-    blocs.push({h, html:`<div class="pcc sp-card">
-      <div class="pch"><div class="pheure" style="font-size:20px">${h||'—'}</div>
-        <div style="flex:1"><div class="pgn">🐎 ${s.equides?.nom||'?'}</div>
-        <div class="pdi"><span class="b ${SBDG[s.type]||'b'}" style="font-size:10px">${SLBL[s.type]||s.type}</span>${(s.heure_fin||'').slice(0,5)?` <span style="margin-left:8px">→ ${s.heure_fin.slice(0,5)}</span>`:''}</div></div>
-      </div>
-      ${s.note?`<div class="note-pub">📝 ${s.note}</div>`:''}
-    </div>`});
-  }
-
-  for (const st of stagesJour) {
-    const pts  = stagesPartsMap.get(st.id)||[];
-    const chvs = stagesChvMap.get(st.id)||[];
-    blocs.push({h:'00', html:`<div class="pcc st-card">
-      <div class="pch"><div class="pheure" style="font-size:18px">🏕</div>
-        <div><div class="pgn">${st.titre}</div>
-        <div class="pdi">${fmtDate(st.date_debut)}${st.date_fin!==st.date_debut?' → '+fmtDate(st.date_fin):''}</div></div>
-      </div>
-      ${[...pts].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(p=>`
-        <div class="pcr"><div class="pcn">${p.prenom}${p.demi_journee&&p.demi_journee!=='journee'?` <span class="b bo" style="font-size:10px">${p.demi_journee}</span>`:''}</div>
-        <div class="pch2" style="font-size:12px">${p.note||''}</div></div>`).join('')}
-      ${chvs.length?`<div style="padding:10px 22px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)">🐎 ${chvs.map(c=>c.equides?.nom||'?').join(', ')}</div>`:''}
-      ${st.notes?`<div class="note-pub">📝 ${st.notes}</div>`:''}
-    </div>`});
-  }
-
-  blocs.sort((a,b)=>a.h.localeCompare(b.h));
-  el.innerHTML = blocs.map(b=>b.html).join('');
+  el.innerHTML=`<div class="plan-outer"><div class="plan-grid" style="grid-template-columns:repeat(${cols},1fr)">
+    ${headCells}${bodyCells}
+  </div></div>`;
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 //  DASHBOARD
-// ═══════════════════════════════════════════════════════════════
-function renderDash() {
-  document.getElementById('s-grp').textContent = C.grp.length;
-  document.getElementById('s-cav').textContent = C.cav.length;
-  document.getElementById('s-chv').textContent = C.chv.length;
-  document.getElementById('s-sea').textContent = C.sea.filter(s=>s.date===new Date().toISOString().split('T')[0]).length;
-  const seuil = +document.getElementById('seuil')?.value||20;
-  document.getElementById('alerts').innerHTML = C.chv.filter(c=>(c.heures_reel||0)>=seuil).map(c=>`<div class="alert">⚠️ <strong>${c.nom}</strong> — ${c.heures_reel||0}h réelles (seuil ${seuil}h)</div>`).join('');
-  const today = new Date().toISOString().split('T')[0];
-  const tc = C.sea.filter(s=>s.date===today);
-  document.getElementById('td-sea').innerHTML = !tc.length ? '<div class="ls">Aucune séance aujourd\'hui</div>' :
+// ══════════════════════════════════════════════════════
+function renderDash(){
+  document.getElementById('s-grp').textContent=C.grp.length;
+  document.getElementById('s-cav').textContent=C.cav.length;
+  document.getElementById('s-chv').textContent=C.chv.length;
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('s-sea').textContent=C.sea.filter(s=>s.date===today).length;
+  const seuil=+document.getElementById('seuil')?.value||20;
+  document.getElementById('alerts').innerHTML=C.chv.filter(c=>(c.heures_reel||0)>=seuil).map(c=>`<div class="alert-box">⚠️ <div><strong>${c.nom}</strong> — ${c.heures_reel||0}h réelles (seuil ${seuil}h)</div></div>`).join('');
+  const tc=C.sea.filter(s=>s.date===today);
+  document.getElementById('td-sea').innerHTML=!tc.length?'<div class="ls">Aucune séance</div>':
     `<table><thead><tr><th>Groupe</th><th>Heure</th><th>Discipline</th><th>Moniteur</th></tr></thead><tbody>${tc.map(s=>{const g=C.grp.find(x=>x.id===s.groupe_id)||{};return`<tr><td><strong>${g.nom||'?'}</strong></td><td>${(s.heure||'').slice(0,5)}</td><td>${s.discipline||'—'}</td><td>${s.moniteurs?.prenom||'—'}</td></tr>`;}).join('')}</tbody></table>`;
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  GROUPES
-// ═══════════════════════════════════════════════════════════════
-function renderGroupes() {
-  const t = document.getElementById('tb-grp'); if (!t) return;
-  if (!C.grp.length) { t.innerHTML='<tr class="er"><td colspan="7">Aucun groupe</td></tr>'; return; }
-  t.innerHTML = C.grp.map(g => {
-    const mon = C.mon.find(m=>m.id===g.moniteur_id), nb = C.cav.filter(c=>c.groupe_id===g.id).length;
-    return `<tr><td><strong>${g.nom}</strong></td><td>${JOURS[g.jour]||'?'}</td><td>${(g.heure||'').slice(0,5)}</td><td>${mon?.prenom||'—'}</td>
+// ══════════════════════════════════════════════════════
+//  GROUPES — multi-cavaliers
+// ══════════════════════════════════════════════════════
+function renderGroupes(){
+  const t=document.getElementById('tb-grp');if(!t)return;
+  if(!C.grp.length){t.innerHTML='<tr class="er"><td colspan="7">Aucun groupe</td></tr>';return;}
+  t.innerHTML=C.grp.map(g=>{
+    const mon=C.mon.find(m=>m.id===g.moniteur_id),nb=C.cav.filter(c=>c.groupe_id===g.id).length;
+    return`<tr><td><strong>${g.nom}</strong></td><td>${JOURS[g.jour]||'?'}</td><td>${(g.heure||'').slice(0,5)}</td><td>${mon?.prenom||'—'}</td>
     <td><span class="b bgo">${nb} cavalier${nb>1?'s':''}</span></td>
-    <td style="font-size:12px;color:var(--muted);max-width:160px">${g.note||''}</td>
-    <td style="display:flex;gap:6px"><button class="btn btn-g sm" onclick="editGrp('${g.id}')">✏️</button><button class="btn btn-d sm" onclick="delGrp('${g.id}')">🗑</button></td></tr>`;
+    <td style="font-size:12px;color:var(--muted);max-width:130px">${g.note||''}</td>
+    <td style="display:flex;gap:5px"><button class="btn btn-g sm" onclick="editGrp('${g.id}')">✏️</button><button class="btn btn-d sm" onclick="delGrp('${g.id}')">🗑</button></td></tr>`;
   }).join('');
 }
-function newGrp(){document.getElementById('mo-grp-t').textContent='Nouveau groupe';['grp-id','grp-nom','grp-heure','grp-note'].forEach(i=>document.getElementById(i).value='');document.getElementById('grp-mon').value='';openMo('mo-grp');}
+function buildCavGrid(grpId){
+  const grid=document.getElementById('grp-cav-grid');if(!grid)return;
+  const cavs=[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).filter(c=>!c.groupe_id||c.groupe_id===grpId);
+  if(!cavs.length){grid.innerHTML='<div style="color:var(--muted);font-size:12px;padding:4px">Aucun cavalier disponible</div>';return;}
+  grid.innerHTML=cavs.map(c=>`
+    <label class="cav-check">
+      <input type="checkbox" value="${c.id}" ${c.groupe_id===grpId?'checked':''}>
+      <span>${c.prenom}</span>
+    </label>`).join('');
+}
+function newGrp(){
+  document.getElementById('mo-grp-t').textContent='Nouveau groupe';
+  ['grp-id','grp-nom','grp-heure','grp-note'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('grp-mon').value='';buildCavGrid(null);openMo('mo-grp');
+}
 async function saveGroupe(){
   const nom=v('grp-nom'),jour=+v('grp-jour'),heure=v('grp-heure'),moniteur_id=v('grp-mon')||null,note=v('grp-note')||null,id=v('grp-id');
   if(!nom||!heure){toast('Nom et heure requis','err');return;}
-  const data={nom,jour,heure,moniteur_id,note};
-  if(id) await dbUpdate('groupes',data,[{col:'id',op:'eq',val:id}]);
-  else   await dbInsert('groupes',data);
-  toast(id?'Groupe modifié':'Groupe créé','ok');closeMo('mo-grp');await loadGrp();
+  let grpId=id;
+  if(id)await dbUpd('groupes',{nom,jour,heure,moniteur_id,note},[{col:'id',op:'eq',val:id}]);
+  else{const r=await dbIns('groupes',{nom,jour,heure,moniteur_id,note});grpId=r.data?.[0]?.id;}
+  if(!grpId){toast('Erreur création groupe','err');return;}
+  const checked=[...document.querySelectorAll('#grp-cav-grid input:checked')].map(i=>i.value);
+  const unchecked=[...document.querySelectorAll('#grp-cav-grid input:not(:checked)')].map(i=>i.value);
+  if(checked.length){const ic=`(${checked.map(x=>`"${x}"`).join(',')})`;await dbUpd('cavaliers',{groupe_id:grpId},[{col:'id',op:'in',val:ic}]);}
+  for(const cid of unchecked){const c=C.cav.find(x=>x.id===cid);if(c&&c.groupe_id===grpId)await dbUpd('cavaliers',{groupe_id:null},[{col:'id',op:'eq',val:cid}]);}
+  toast(id?'Groupe modifié':'Groupe créé','ok');closeMo('mo-grp');await loadGrp();await loadCav();
 }
-function editGrp(id){const g=C.grp.find(x=>x.id===id);document.getElementById('mo-grp-t').textContent='Modifier le groupe';document.getElementById('grp-id').value=id;document.getElementById('grp-nom').value=g.nom;document.getElementById('grp-jour').value=g.jour;document.getElementById('grp-heure').value=(g.heure||'').slice(0,5);document.getElementById('grp-mon').value=g.moniteur_id||'';document.getElementById('grp-note').value=g.note||'';openMo('mo-grp');}
+function editGrp(id){
+  const g=C.grp.find(x=>x.id===id);
+  document.getElementById('mo-grp-t').textContent='Modifier le groupe';
+  document.getElementById('grp-id').value=id;document.getElementById('grp-nom').value=g.nom;
+  document.getElementById('grp-jour').value=g.jour;document.getElementById('grp-heure').value=(g.heure||'').slice(0,5);
+  document.getElementById('grp-mon').value=g.moniteur_id||'';document.getElementById('grp-note').value=g.note||'';
+  buildCavGrid(id);openMo('mo-grp');
+}
 async function delGrp(id){
-  const sl=await dbSelect('seances',{filter:[{col:'groupe_id',op:'eq',val:id}],select:'id'});
-  if(!confirm(sl.length?'⚠️ Ce groupe a des séances associées.\n\nElles seront supprimées avec leurs affectations.\n\nConfirmer ?':'Supprimer ce groupe ?'))return;
-  if(sl.length){
-    const inVal=`(${sl.map(s=>`"${s.id}"`).join(',')})`;
-    await dbDelete('affectations_seance',[{col:'seance_id',op:'in',val:inVal}]);
-    await dbDelete('seances',[{col:'groupe_id',op:'eq',val:id}]);
-  }
-  await dbUpdate('cavaliers',{groupe_id:null},[{col:'groupe_id',op:'eq',val:id}]);
-  await dbDelete('groupes',[{col:'id',op:'eq',val:id}]);
+  const sl=await dbSel('seances',{filter:[{col:'groupe_id',op:'eq',val:id}],select:'id'});
+  if(!confirm(sl.length?'Ce groupe a des séances associées qui seront supprimées. Confirmer ?':'Supprimer ce groupe ?'))return;
+  if(sl.length){const iv=`(${sl.map(s=>`"${s.id}"`).join(',')})`;await dbDel('affectations_seance',[{col:'seance_id',op:'in',val:iv}]);await dbDel('seances',[{col:'groupe_id',op:'eq',val:id}]);}
+  await dbUpd('cavaliers',{groupe_id:null},[{col:'groupe_id',op:'eq',val:id}]);
+  await dbDel('groupes',[{col:'id',op:'eq',val:id}]);
   toast('Groupe supprimé','ok');await loadGrp();await loadCav();
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 //  SÉANCES
-// ═══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 async function genSeances(){
   const date=v('sea-date');if(!date){toast('Choisissez une date','err');return;}
   const jn=new Date(date+'T00:00:00').getDay();
-  const gj=C.grp.filter(g=>+g.jour===jn);if(!gj.length){toast('Aucun groupe n\'a cours ce jour','err');return;}
+  const gj=C.grp.filter(g=>+g.jour===jn);if(!gj.length){toast('Aucun groupe ce jour','err');return;}
   let created=0;
   for(const g of gj){
     if(C.sea.find(s=>s.groupe_id===g.id&&s.date===date))continue;
-    const r=await dbInsert('seances',{groupe_id:g.id,date,heure:g.heure,discipline:DISC[0],moniteur_id:g.moniteur_id||null});
-    if(!r.data?.[0])continue;
-    created++;
-    const ns=r.data[0];
-    const cavs=C.cav.filter(c=>c.groupe_id===g.id);
-    if(cavs.length)await dbInsert('affectations_seance',cavs.map(c=>({seance_id:ns.id,cavalier_id:c.id,equide_id:null,absent:false,rattrapage:false})));
+    const r=await dbIns('seances',{groupe_id:g.id,date,heure:g.heure,discipline:DISC[0],moniteur_id:g.moniteur_id||null});
+    if(!r.data?.[0])continue;created++;
+    const ns=r.data[0],cavs=C.cav.filter(c=>c.groupe_id===g.id);
+    if(cavs.length)await dbIns('affectations_seance',cavs.map(c=>({seance_id:ns.id,cavalier_id:c.id,equide_id:null,absent:false,rattrapage:false})));
   }
   await loadSeances(date);
   toast(created>0?`${created} séance${created>1?'s':''} générée${created>1?'s':''}`:'Séances déjà existantes','ok');
 }
-
 function renderSeances(){
   const el=document.getElementById('sea-content');if(!el)return;
-  if(!C.sea.length){el.innerHTML=`<div class="ls">Aucune séance.<br><br><button class="btn btn-p" style="margin-top:10px" onclick="genSeances()">⚡ Générer les séances</button></div>`;return;}
+  if(!C.sea.length){el.innerHTML=`<div class="ls">Aucune séance.<br><br><button class="btn btn-p" style="margin-top:10px" onclick="genSeances()">⚡ Générer</button></div>`;return;}
   const chvDispo=C.chv.filter(c=>!c.hors_cours);
-
-  // Map heure → Set(equide_id) — tous chevaux pris à ce créneau
   const heurChv=new Map();
   for(const a of C.aff.filter(a=>a.equide_id&&!a.absent)){
     const s=C.sea.find(x=>x.id===a.seance_id);const h=(s?.heure||s?.groupes?.heure||'').slice(0,5);
-    if(!heurChv.has(h))heurChv.set(h,new Set());
-    heurChv.get(h).add(a.equide_id);
+    if(!heurChv.has(h))heurChv.set(h,new Set());heurChv.get(h).add(a.equide_id);
   }
-
+  const date=v('sea-date');
+  const statsDuJour=C.statuts.filter(x=>x.date===date);
   let html='';
   for(const s of C.sea){
     const g=s.groupes||C.grp.find(x=>x.id===s.groupe_id)||{};
@@ -830,106 +852,113 @@ function renderSeances(){
     const pr=sa.filter(a=>!a.absent).length,ab=sa.filter(a=>a.absent).length,rt=sa.filter(a=>a.rattrapage).length;
     const h=(s.heure||g.heure||'').slice(0,5);
     const prisIci=heurChv.get(h)||new Set();
-
     const rows=[...sa].sort((a,b)=>(a.cavaliers?.prenom||'').localeCompare(b.cavaliers?.prenom||'','fr')).map(aff=>`
       <div class="cr">
-        <div class="cn ${aff.absent?'ab':''}">${aff.cavaliers?.prenom||'?'}${aff.rattrapage?'<span class="b bo" style="margin-left:4px;font-size:10px">rattrapage</span>':''}</div>
+        <div class="cn ${aff.absent?'ab':''}">${aff.cavaliers?.prenom||'?'}${aff.rattrapage?'<span class="b bo" style="margin-left:3px;font-size:10px">rattrap.</span>':''}</div>
         <div style="flex:1;max-width:195px">${aff.absent?'<span style="color:var(--muted);font-size:12px">Absent</span>':`
-          <select onchange="updChv('${aff.id}',this.value,'${s.id}','${h}')" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 9px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;outline:none">
+          <select onchange="updChv('${aff.id}',this.value,'${s.id}','${h}','${date}')" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;outline:none">
             <option value="">— Cheval —</option>
             ${chvDispo.map(c=>{
               const pris=prisIci.has(c.id)&&aff.equide_id!==c.id;
-              return`<option value="${c.id}" ${aff.equide_id===c.id?'selected':''} ${pris?'disabled':''}>
-                ${c.nom}${pris?' ✗ déjà pris':''}
-              </option>`;
+              const st=statsDuJour.find(x=>x.equide_id===c.id);
+              const sel=aff.equide_id===c.id;
+              return`<option value="${c.id}"${sel?' selected':''}${pris?' disabled':''}>${c.nom}${pris?' ✗ pris':st&&!pris?' ⚠️ statut':''}</option>`;
             }).join('')}
           </select>`}
         </div>
-        <div style="display:flex;gap:5px;margin-left:auto">
+        <div style="display:flex;gap:4px;margin-left:auto">
           ${aff.absent?`<button class="btn btn-g sm" onclick="togAbs('${aff.id}',false)">✅</button>`:`<button class="btn btn-o sm" onclick="togAbs('${aff.id}',true)">❌</button>`}
           ${aff.rattrapage?`<button class="btn btn-d sm" onclick="delAff('${aff.id}')">🗑</button>`:''}
         </div>
       </div>`).join('');
-
     html+=`<div class="sk">
       <div class="skh" onclick="togSk('sk-${s.id}')">
         <div><div class="skt">${g.nom||'Groupe'}</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:3px">${h} · ${pr} présent${pr>1?'s':''} · ${ab} absent${ab>1?'s':''}${rt?` · ${rt} rattrapage${rt>1?'s':''}`:''}</div></div>
-        <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
-          <select onclick="event.stopPropagation()" onchange="updDisc('${s.id}',this.value)" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 9px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;outline:none">
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${h} · ${pr} prés. · ${ab} abs.${rt?` · ${rt} ratt.`:''}</div></div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <select onclick="event.stopPropagation()" onchange="updDisc('${s.id}',this.value)" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;outline:none">
             ${DISC.map(d=>`<option value="${d}"${s.discipline===d?' selected':''}>${d}</option>`).join('')}
-          </select>
-          <span style="color:var(--muted)">▸</span>
+          </select>▸
         </div>
       </div>
       <div class="skb" id="sk-${s.id}" style="display:none">
-        ${rows||'<div style="color:var(--muted);padding:6px 0">Aucun cavalier</div>'}
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)"><button class="btn btn-o sm" onclick="openRatt('${s.id}','${h}')">➕ Rattrapage</button></div>
+        ${rows||'<div style="color:var(--muted);padding:5px 0">Aucun cavalier</div>'}
+        <div style="margin-top:9px;padding-top:9px;border-top:1px solid var(--border)"><button class="btn btn-o sm" onclick="openRatt('${s.id}','${h}','${date}')">➕ Rattrapage</button></div>
       </div>
     </div>`;
   }
   el.innerHTML=html;
 }
-
 function togSk(id){const e=document.getElementById(id);e.style.display=e.style.display==='block'?'none':'block';}
-async function updDisc(id,val){await dbUpdate('seances',{discipline:val},[{col:'id',op:'eq',val:id}]);const s=C.sea.find(x=>x.id===id);if(s)s.discipline=val;toast('Discipline mise à jour','ok');}
-
-async function updChv(affId, cid, seaId, heure) {
-  // Vérification doublon côté client (sécurité UX, le serveur n'autorise pas non plus)
-  if (cid) {
-    const autresSea = C.sea.filter(s=>(s.heure||s.groupes?.heure||'').slice(0,5)===heure&&s.id!==seaId);
-    const dejaPris  = C.aff.some(a=>a.equide_id===cid&&!a.absent&&(seaId===a.seance_id&&a.id!==affId||autresSea.some(s=>s.id===a.seance_id)));
-    if (dejaPris) { toast('⚠️ Ce cheval est déjà pris pour ce créneau !','err'); await loadSeances(v('sea-date')); return; }
+async function updDisc(id,val){await dbUpd('seances',{discipline:val},[{col:'id',op:'eq',val:id}]);const s=C.sea.find(x=>x.id===id);if(s)s.discipline=val;toast('Discipline mise à jour','ok');}
+async function updChv(affId,cid,seaId,heure,date){
+  if(cid){
+    const autresSea=C.sea.filter(s=>(s.heure||s.groupes?.heure||'').slice(0,5)===heure&&s.id!==seaId);
+    const dejaPris=C.aff.some(a=>a.equide_id===cid&&!a.absent&&((a.seance_id===seaId&&a.id!==affId)||autresSea.some(s=>s.id===a.seance_id)));
+    if(dejaPris){toast('⚠️ Ce cheval est déjà attribué pour ce créneau !','err');await loadSeances(date);return;}
+    const statut=C.statuts.find(x=>x.equide_id===cid&&x.date===date);
+    if(statut){const nom=C.chv.find(x=>x.id===cid)?.nom||'Ce cheval';toast(`⚠️ ${nom} a un statut spécial ce jour : ${SLBL[statut.type]}${statut.heure_debut?' à '+(statut.heure_debut||'').slice(0,5):''}${statut.note?' ('+statut.note+')':''}. Vérifie si c'est compatible.`,'warn');}
   }
-  await dbUpdate('affectations_seance',{equide_id:cid||null},[{col:'id',op:'eq',val:affId}]);
-  if (cid) {
-    const chv=C.chv.find(c=>c.id===cid);
-    if(chv){const h=(chv.heures_reel||0)+1;await dbUpdate('equides',{heures_reel:h},[{col:'id',op:'eq',val:cid}]);chv.heures_reel=h;renderChevaux();}
-  }
-  toast('Cheval mis à jour','ok');
-  await loadSeances(v('sea-date'));
+  await dbUpd('affectations_seance',{equide_id:cid||null},[{col:'id',op:'eq',val:affId}]);
+  if(cid){const chv=C.chv.find(c=>c.id===cid);if(chv){const h=(chv.heures_reel||0)+1;await dbUpd('equides',{heures_reel:h},[{col:'id',op:'eq',val:cid}]);chv.heures_reel=h;renderChevaux();}}
+  toast('Cheval mis à jour','ok');await loadSeances(date);
 }
-async function togAbs(id,val){await dbUpdate('affectations_seance',{absent:val,equide_id:val?null:undefined},[{col:'id',op:'eq',val:id}]);toast(val?'Absent':'Présent','ok');await loadSeances(v('sea-date'));}
-async function delAff(id){if(!confirm('Supprimer ce rattrapage ?'))return;await dbDelete('affectations_seance',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadSeances(v('sea-date'));}
-
-function openRatt(seaId, heure) {
+async function togAbs(id,val){await dbUpd('affectations_seance',{absent:val,equide_id:val?null:undefined},[{col:'id',op:'eq',val:id}]);toast(val?'Absent':'Présent','ok');await loadSeances(v('sea-date'));}
+async function delAff(id){if(!confirm('Supprimer ce rattrapage ?'))return;await dbDel('affectations_seance',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadSeances(v('sea-date'));}
+function openRatt(seaId,heure,date){
   document.getElementById('ratt-sid').value=seaId;
   const ex=C.aff.filter(a=>a.seance_id===seaId).map(a=>a.cavalier_id);
-  document.getElementById('ratt-cav').innerHTML='<option value="">— Sélectionner —</option>'+[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>{const g=C.grp.find(x=>x.id===c.groupe_id);return`<option value="${c.id}"${ex.includes(c.id)?' disabled':''}>  ${c.prenom}${g?' ('+g.nom+')':''}`;}).join('');
-  const prisCreneau=new Set();
-  C.sea.filter(s=>(s.heure||s.groupes?.heure||'').slice(0,5)===heure).forEach(s=>C.aff.filter(a=>a.seance_id===s.id&&a.equide_id&&!a.absent).forEach(a=>prisCreneau.add(a.equide_id)));
-  document.getElementById('ratt-chv').innerHTML='<option value="">— Sélectionner —</option>'+C.chv.filter(c=>!c.hors_cours).map(c=>`<option value="${c.id}"${prisCreneau.has(c.id)?' disabled':''}>  ${c.nom}${prisCreneau.has(c.id)?' ✗ déjà pris':''}</option>`).join('');
+  document.getElementById('ratt-cav').innerHTML='<option value="">— Sélectionner —</option>'+[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>`<option value="${c.id}"${ex.includes(c.id)?' disabled':''}>  ${c.prenom}${C.grp.find(x=>x.id===c.groupe_id)?' ('+C.grp.find(x=>x.id===c.groupe_id).nom+')':''}</option>`).join('');
+  const pris=new Set();C.sea.filter(s=>(s.heure||s.groupes?.heure||'').slice(0,5)===heure).forEach(s=>C.aff.filter(a=>a.seance_id===s.id&&a.equide_id&&!a.absent).forEach(a=>pris.add(a.equide_id)));
+  const statsDuJour=C.statuts.filter(x=>x.date===date);
+  document.getElementById('ratt-chv').innerHTML='<option value="">— Non attribué —</option>'+C.chv.filter(c=>!c.hors_cours).map(c=>{const p=pris.has(c.id);const st=statsDuJour.find(x=>x.equide_id===c.id);return`<option value="${c.id}"${p?' disabled':''}>${c.nom}${p?' ✗ pris':st?' ⚠️ statut':''}`;}).join('');
   openMo('mo-ratt');
 }
 async function saveRatt(){
   const seaId=v('ratt-sid'),cavId=v('ratt-cav'),chvId=v('ratt-chv');
   if(!cavId){toast('Choisissez un cavalier','err');return;}
-  await dbInsert('affectations_seance',{seance_id:seaId,cavalier_id:cavId,equide_id:chvId||null,absent:false,rattrapage:true});
+  await dbIns('affectations_seance',{seance_id:seaId,cavalier_id:cavId,equide_id:chvId||null,absent:false,rattrapage:true});
   toast('Rattrapage ajouté','ok');closeMo('mo-ratt');await loadSeances(v('sea-date'));
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 //  STATUTS SPÉCIAUX
-// ═══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 function renderStatuts(){
   const t=document.getElementById('tb-statuts');if(!t)return;
-  if(!C.statuts.length){t.innerHTML='<tr class="er"><td colspan="7">Aucun statut programmé</td></tr>';return;}
+  if(!C.statuts.length){t.innerHTML='<tr class="er"><td colspan="7">Aucun statut</td></tr>';return;}
   const today=new Date().toISOString().split('T')[0];
-  t.innerHTML=[...C.statuts].map(s=>`<tr style="${s.date<today?'opacity:.45':''}">
+  t.innerHTML=C.statuts.map(s=>`<tr style="${s.date<today?'opacity:.45':''}">
     <td><strong>${s.equides?.nom||'?'}</strong></td>
     <td><span class="b ${SBDG[s.type]||'b'}">${SLBL[s.type]||s.type}</span></td>
     <td>${fmtDate(s.date)}${s.date<today?' <span style="font-size:10px;color:var(--muted)">(passé)</span>':''}</td>
-    <td>${(s.heure_debut||'').slice(0,5)||'—'}</td>
-    <td>${(s.heure_fin||'').slice(0,5)||'—'}</td>
+    <td>${(s.heure_debut||'').slice(0,5)||'—'}</td><td>${(s.heure_fin||'').slice(0,5)||'—'}</td>
     <td style="color:var(--muted);font-size:12px">${s.note||''}</td>
-    <td style="display:flex;gap:6px"><button class="btn btn-g sm" onclick="editStatut('${s.id}')">✏️</button><button class="btn btn-d sm" onclick="delStatut('${s.id}')">🗑</button></td>
+    <td style="display:flex;gap:5px"><button class="btn btn-g sm" onclick="editStatut('${s.id}')">✏️</button><button class="btn btn-d sm" onclick="delStatut('${s.id}')">🗑</button></td>
   </tr>`).join('');
 }
+async function chkStatutConflict(){
+  const chvId=v('stat-chv'),date=v('stat-date');
+  const w=document.getElementById('stat-cours-warn');w.style.display='none';
+  if(!chvId||!date)return;
+  const seaD=await dbSel('seances',{select:'id,heure,groupes(nom,heure)',filter:[{col:'date',op:'eq',val:date}]});
+  if(!seaD.length)return;
+  const iv=`(${seaD.map(s=>`"${s.id}"`).join(',')})`;
+  const aff=await dbSel('affectations_seance',{filter:[{col:'seance_id',op:'in',val:iv},{col:'equide_id',op:'eq',val:chvId},{col:'absent',op:'eq',val:'false'}]});
+  if(aff.length){
+    const heures=aff.map(a=>{const s=seaD.find(x=>x.id===a.seance_id);return(s?.groupes?.heure||s?.heure||'').slice(0,5);}).filter(Boolean).join(', ');
+    const nom=C.chv.find(c=>c.id===chvId)?.nom||'Ce cheval';
+    w.innerHTML=`⚠️ ${nom} a cours ce jour${heures?' à '+heures:''} — le statut sera quand même enregistré et visible.`;
+    w.style.display='block';
+  }
+}
 function newStatut(chvId){
+  document.getElementById('mo-statut-t').textContent='Nouveau statut spécial';
   ['stat-id','stat-note','stat-hd','stat-hf'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('stat-date').value=new Date().toISOString().split('T')[0];
-  document.getElementById('stat-type').value='attache';
+  document.getElementById('stat-type').value='attache';document.getElementById('stat-cours-warn').style.display='none';
   document.getElementById('stat-chv').innerHTML='<option value="">— Sélectionner —</option>'+C.chv.map(c=>`<option value="${c.id}"${chvId===c.id?' selected':''}>${c.nom}${c.hors_cours?' 🚫':''}</option>`).join('');
+  if(chvId){document.getElementById('stat-chv').value=chvId;chkStatutConflict();}
   openMo('mo-statut');
 }
 function editStatut(id){
@@ -937,46 +966,43 @@ function editStatut(id){
   document.getElementById('mo-statut-t').textContent='Modifier le statut';
   document.getElementById('stat-id').value=id;
   document.getElementById('stat-chv').innerHTML='<option value="">— Sélectionner —</option>'+C.chv.map(c=>`<option value="${c.id}">${c.nom}${c.hors_cours?' 🚫':''}</option>`).join('');
-  document.getElementById('stat-chv').value=s.equide_id;
-  document.getElementById('stat-type').value=s.type;
-  document.getElementById('stat-date').value=s.date;
-  document.getElementById('stat-hd').value=(s.heure_debut||'').slice(0,5);
-  document.getElementById('stat-hf').value=(s.heure_fin||'').slice(0,5);
-  document.getElementById('stat-note').value=s.note||'';
-  openMo('mo-statut');
+  document.getElementById('stat-chv').value=s.equide_id;document.getElementById('stat-type').value=s.type;
+  document.getElementById('stat-date').value=s.date;document.getElementById('stat-hd').value=(s.heure_debut||'').slice(0,5);
+  document.getElementById('stat-hf').value=(s.heure_fin||'').slice(0,5);document.getElementById('stat-note').value=s.note||'';
+  document.getElementById('stat-cours-warn').style.display='none';openMo('mo-statut');chkStatutConflict();
 }
 async function saveStatut(){
-  const id=v('stat-id'),equide_id=v('stat-chv'),type=v('stat-type'),date=v('stat-date'),heure_debut=v('stat-hd')||null,heure_fin=v('stat-hf')||null,note=v('stat-note')||null;
+  const id=v('stat-id'),equide_id=v('stat-chv'),type=v('stat-type'),date=v('stat-date'),hd=v('stat-hd')||null,hf=v('stat-hf')||null,note=v('stat-note')||null;
   if(!equide_id||!date){toast('Cheval et date requis','err');return;}
-  const data={equide_id,type,date,heure_debut,heure_fin,note};
-  if(id) await dbUpdate('equide_statuts',data,[{col:'id',op:'eq',val:id}]);
-  else   await dbInsert('equide_statuts',data);
+  const data={equide_id,type,date,heure_debut:hd,heure_fin:hf,note};
+  if(id)await dbUpd('equide_statuts',data,[{col:'id',op:'eq',val:id}]);
+  else await dbIns('equide_statuts',data);
   toast(id?'Statut modifié':'Statut ajouté','ok');closeMo('mo-statut');await loadStatuts();
 }
-async function delStatut(id){if(!confirm('Supprimer ce statut ?'))return;await dbDelete('equide_statuts',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadStatuts();}
+async function delStatut(id){if(!confirm('Supprimer ?'))return;await dbDel('equide_statuts',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadStatuts();}
 
-// ═══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 //  CHEVAUX
-// ═══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 function renderChevaux(){
   const t=document.getElementById('tb-chv');if(!t)return;
   const seuil=+document.getElementById('seuil')?.value||20;
   if(!C.chv.length){t.innerHTML='<tr class="er"><td colspan="7">Aucun cheval</td></tr>';return;}
   const today=new Date().toISOString().split('T')[0];
   t.innerHTML=C.chv.map(c=>{
-    const reel=c.heures_reel||0,prev=c.heures_prev||0;
+    const reel=+(c.heures_reel||0),prev=+(c.heures_prev||0);
     const pct=Math.min(100,(reel/seuil)*100);
     const cls=pct>=100?'d':pct>=75?'w':'';
     const[bs,bt]=pct>=100?['br','Dépassé']:pct>=75?['bgo','Attention']:['bg','OK'];
     const prochains=C.statuts.filter(s=>s.equide_id===c.id&&s.date>=today).slice(0,2);
     return`<tr>
-      <td><strong>${c.nom}</strong>${c.hors_cours?'<span class="b br" style="margin-left:5px;font-size:10px">hors cours</span>':''}</td>
+      <td><strong>${c.nom}</strong>${c.hors_cours?'<span class="b br" style="margin-left:4px;font-size:10px">hors cours</span>':''}</td>
       <td><strong>${reel}h</strong> / ${seuil}h<div class="hbb"><div class="hbf ${cls}" style="width:${pct}%"></div></div></td>
-      <td><strong>${prev}h</strong><span style="color:var(--muted);font-size:12px"> prév.</span></td>
+      <td><strong>${prev}h</strong></td>
       <td><span class="b ${bs}">${bt}</span></td>
-      <td style="font-size:12px">${prochains.length?prochains.map(s=>`<div style="color:var(--muted)">${fmtDate(s.date)} ${(s.heure_debut||'').slice(0,5)} <span class="b ${SBDG[s.type]||'b'}" style="font-size:10px">${SLBL[s.type]||''}</span></div>`).join(''):'-'}</td>
-      <td style="font-size:12px;color:var(--muted);max-width:160px">${c.note||''}</td>
-      <td style="display:flex;gap:5px;flex-wrap:wrap">
+      <td style="font-size:11px">${prochains.length?prochains.map(s=>`<div style="color:var(--muted)">${fmtDate(s.date)} ${(s.heure_debut||'').slice(0,5)} <span class="b ${SBDG[s.type]||'b'}" style="font-size:10px">${SLBL[s.type]||''}</span></div>`).join(''):'-'}</td>
+      <td style="font-size:11px;color:var(--muted);max-width:130px">${c.note||''}</td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
         <button class="btn btn-o sm" onclick="newStatut('${c.id}')">+Statut</button>
         <button class="btn btn-g sm" onclick="editChv('${c.id}')">✏️</button>
         <button class="btn btn-d sm" onclick="delChv('${c.id}')">🗑</button>
@@ -986,19 +1012,19 @@ function renderChevaux(){
 }
 function newChv(){document.getElementById('mo-chv-t').textContent='Nouveau cheval';['chv-id','chv-nom','chv-note'].forEach(i=>document.getElementById(i).value='');document.getElementById('chv-h-reel').value='0';document.getElementById('chv-h-prev').value='0';document.getElementById('chv-hors-cours').checked=false;openMo('mo-chv');}
 async function saveCheval(){
-  const nom=v('chv-nom').trim(),heures_reel=+v('chv-h-reel')||0,heures_prev=+v('chv-h-prev')||0,hors_cours=document.getElementById('chv-hors-cours').checked,note=v('chv-note')||null,id=v('chv-id');
+  const nom=v('chv-nom').trim(),heures_reel=parseFloat(v('chv-h-reel'))||0,heures_prev=parseFloat(v('chv-h-prev'))||0,hors_cours=document.getElementById('chv-hors-cours').checked,note=v('chv-note')||null,id=v('chv-id');
   if(!nom){toast('Nom requis','err');return;}
   const data={nom,heures_reel,heures_prev,hors_cours,note};
-  if(id) await dbUpdate('equides',data,[{col:'id',op:'eq',val:id}]);
-  else   await dbInsert('equides',data);
+  if(id)await dbUpd('equides',data,[{col:'id',op:'eq',val:id}]);
+  else await dbIns('equides',data);
   toast(id?'Modifié':'Ajouté','ok');closeMo('mo-chv');await loadChv();
 }
-function editChv(id){const c=C.chv.find(x=>x.id===id);document.getElementById('mo-chv-t').textContent='Modifier le cheval';document.getElementById('chv-id').value=id;document.getElementById('chv-nom').value=c.nom;document.getElementById('chv-h-reel').value=c.heures_reel||0;document.getElementById('chv-h-prev').value=c.heures_prev||0;document.getElementById('chv-hors-cours').checked=!!c.hors_cours;document.getElementById('chv-note').value=c.note||'';openMo('mo-chv');}
-async function delChv(id){if(!confirm('Supprimer ?'))return;await dbDelete('equides',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadChv();}
+function editChv(id){const c=C.chv.find(x=>x.id===id);document.getElementById('mo-chv-t').textContent='Modifier';document.getElementById('chv-id').value=id;document.getElementById('chv-nom').value=c.nom;document.getElementById('chv-h-reel').value=c.heures_reel||0;document.getElementById('chv-h-prev').value=c.heures_prev||0;document.getElementById('chv-hors-cours').checked=!!c.hors_cours;document.getElementById('chv-note').value=c.note||'';openMo('mo-chv');}
+async function delChv(id){if(!confirm('Supprimer ?'))return;await dbDel('equides',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadChv();}
 
-// ═══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 //  CAVALIERS
-// ═══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 function renderCavaliers(){
   const t=document.getElementById('tb-cav');if(!t)return;
   if(!C.cav.length){t.innerHTML='<tr class="er"><td colspan="4">Aucun cavalier</td></tr>';return;}
@@ -1006,72 +1032,77 @@ function renderCavaliers(){
     <td><strong>${c.prenom}</strong></td>
     <td>${g?`<span class="b bb">${g.nom}</span>`:'<span class="b br">Sans groupe</span>'}</td>
     <td>${isAdmin?(c.telephone||'—'):'<span style="color:var(--muted)">🔒</span>'}</td>
-    <td style="display:flex;gap:6px"><button class="btn btn-g sm" onclick="editCav('${c.id}')">✏️</button><button class="btn btn-d sm" onclick="delCav('${c.id}')">🗑</button></td>
+    <td style="display:flex;gap:5px"><button class="btn btn-g sm" onclick="editCav('${c.id}')">✏️</button><button class="btn btn-d sm" onclick="delCav('${c.id}')">🗑</button></td>
   </tr>`;}).join('');
 }
 function newCav(){document.getElementById('mo-cav-t').textContent='Nouveau cavalier';['cav-id','cav-prenom','cav-tel'].forEach(i=>document.getElementById(i).value='');document.getElementById('cav-grp').value='';openMo('mo-cav');}
 async function saveCavalier(){
   const prenom=v('cav-prenom').trim(),telephone=v('cav-tel')||null,groupe_id=v('cav-grp')||null,id=v('cav-id');
   if(!prenom){toast('Prénom requis','err');return;}
-  if(id) await dbUpdate('cavaliers',{prenom,telephone,groupe_id},[{col:'id',op:'eq',val:id}]);
-  else   await dbInsert('cavaliers',{prenom,telephone,groupe_id});
+  if(id)await dbUpd('cavaliers',{prenom,telephone,groupe_id},[{col:'id',op:'eq',val:id}]);
+  else await dbIns('cavaliers',{prenom,telephone,groupe_id});
   toast(id?'Modifié':'Ajouté','ok');closeMo('mo-cav');await loadCav();
 }
 function editCav(id){const c=C.cav.find(x=>x.id===id);document.getElementById('mo-cav-t').textContent='Modifier';document.getElementById('cav-id').value=id;document.getElementById('cav-prenom').value=c.prenom;document.getElementById('cav-tel').value=c.telephone||'';document.getElementById('cav-grp').value=c.groupe_id||'';openMo('mo-cav');}
-async function delCav(id){if(!confirm('Supprimer ?'))return;await dbDelete('cavaliers',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadCav();}
+async function delCav(id){if(!confirm('Supprimer ?'))return;await dbDel('cavaliers',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadCav();}
 
-// ═══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 //  MONITEURS
-// ═══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 function renderMoniteurs(){
   const t=document.getElementById('tb-mon');if(!t)return;
   if(!C.mon.length){t.innerHTML='<tr class="er"><td colspan="3">Aucun moniteur</td></tr>';return;}
   t.innerHTML=C.mon.map(m=>`<tr><td><strong>${m.prenom}</strong></td>
   <td><span class="b ${m.disponible?'bg':'br'}">${m.disponible?'Disponible':'Indisponible'}</span></td>
-  <td style="display:flex;gap:6px"><button class="btn btn-g sm" onclick="editMon('${m.id}')">✏️</button><button class="btn btn-d sm" onclick="delMon('${m.id}')">🗑</button></td></tr>`).join('');
+  <td style="display:flex;gap:5px"><button class="btn btn-g sm" onclick="editMon('${m.id}')">✏️</button><button class="btn btn-d sm" onclick="delMon('${m.id}')">🗑</button></td></tr>`).join('');
 }
 function newMon(){document.getElementById('mo-mon-t').textContent='Nouveau moniteur';document.getElementById('mon-id').value='';document.getElementById('mon-prenom').value='';document.getElementById('mon-dispo').checked=true;openMo('mo-mon');}
 async function saveMoniteur(){
   const prenom=v('mon-prenom').trim(),disponible=document.getElementById('mon-dispo').checked,id=v('mon-id');
   if(!prenom){toast('Prénom requis','err');return;}
-  if(id) await dbUpdate('moniteurs',{prenom,disponible},[{col:'id',op:'eq',val:id}]);
-  else   await dbInsert('moniteurs',{prenom,disponible});
+  if(id)await dbUpd('moniteurs',{prenom,disponible},[{col:'id',op:'eq',val:id}]);
+  else await dbIns('moniteurs',{prenom,disponible});
   toast(id?'Modifié':'Ajouté','ok');closeMo('mo-mon');await loadMon();
 }
 function editMon(id){const m=C.mon.find(x=>x.id===id);document.getElementById('mo-mon-t').textContent='Modifier';document.getElementById('mon-id').value=id;document.getElementById('mon-prenom').value=m.prenom;document.getElementById('mon-dispo').checked=m.disponible;openMo('mo-mon');}
-async function delMon(id){if(!confirm('Supprimer ?'))return;await dbDelete('moniteurs',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadMon();}
+async function delMon(id){if(!confirm('Supprimer ?'))return;await dbDel('moniteurs',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadMon();}
 
-// ═══════════════════════════════════════════════════════════════
-//  STAGES
-// ═══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+//  STAGES — participants avec cheval attribué
+// ══════════════════════════════════════════════════════
 function renderStages(){
   const el=document.getElementById('stages-content');if(!el)return;
-  if(!C.stages.length){el.innerHTML='<div class="ls">Aucun stage créé</div>';return;}
+  if(!C.stages.length){el.innerHTML='<div class="ls">Aucun stage</div>';return;}
   el.innerHTML=C.stages.map(st=>{
-    const pts=C.parts.filter(p=>p.stage_id===st.id),chvs=C.chvS.filter(c=>c.stage_id===st.id);
+    const pts=C.parts.filter(p=>p.stage_id===st.id);
+    const chvs=C.chvS.filter(c=>c.stage_id===st.id);
     return`<div class="stg-wrap">
       <div class="stg-hdr">
-        <div><div class="stg-ttl">🏕 ${st.titre}</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:3px">${fmtDate(st.date_debut)}${st.date_fin!==st.date_debut?' → '+fmtDate(st.date_fin):''} · ${pts.length} participant${pts.length>1?'s':''}</div>
-        ${st.notes?`<div style="font-size:12px;color:var(--muted);margin-top:4px;font-style:italic">${st.notes}</div>`:''}
+        <div>
+          <div class="stg-ttl">🏕 ${st.titre}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${fmtDate(st.date_debut)}${st.date_fin!==st.date_debut?' → '+fmtDate(st.date_fin):''} · ${pts.length} participant${pts.length>1?'s':''} · ${chvs.length} ch. libre${chvs.length>1?'s':''}</div>
+          ${st.notes?`<div style="font-size:12px;color:var(--muted);margin-top:3px;font-style:italic">${st.notes}</div>`:''}
         </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
           <button class="btn btn-p sm" onclick="openPart('${st.id}')">➕ Participant</button>
-          <button class="btn btn-pu sm" onclick="openChvStage('${st.id}')">🐎 Cheval</button>
+          <button class="btn btn-pu sm" onclick="openChvStage('${st.id}')">🐎 Libre</button>
           <button class="btn btn-g sm" onclick="editStage('${st.id}')">✏️</button>
           <button class="btn btn-d sm" onclick="delStage('${st.id}')">🗑</button>
         </div>
       </div>
-      ${[...pts].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(p=>`<div class="pcr">
-        <div class="pcn">${p.prenom}${p.demi_journee&&p.demi_journee!=='journee'?` <span class="b bo" style="font-size:10px">${p.demi_journee}</span>`:''}</div>
-        <div style="display:flex;gap:10px;align-items:center">
-          <span class="pch2" style="font-size:12px">${isAdmin&&p.telephone?`📞 ${p.telephone} · `:''} ${p.note||''}</span>
-          <button class="btn btn-d sm" onclick="delPart('${p.id}')">🗑</button>
-        </div>
-      </div>`).join('')}
-      ${chvs.length?`<div style="padding:10px 18px;border-top:1px solid var(--border);font-size:13px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <span style="color:var(--muted)">Chevaux :</span>
-        ${chvs.map(c=>`<span class="b bgo">${c.equides?.nom||'?'}${c.demi_journee&&c.demi_journee!=='journee'?' ('+c.demi_journee+')':''}<button onclick="delChvStage('${c.id}')" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:0 0 0 4px">×</button></span>`).join('')}
+      ${[...pts].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(p=>`
+        <div class="pcr">
+          <div class="pcn">${p.prenom}${p.demi_journee&&p.demi_journee!=='journee'?` <span class="b bo" style="font-size:10px">${p.demi_journee}</span>`:''}</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="pch2">${p.equides?.nom?`🐎 <strong>${p.equides.nom}</strong>`:'<span style="color:var(--muted)">Pas de cheval</span>'}</span>
+            ${isAdmin&&p.telephone?`<span style="font-size:11px;color:var(--muted)">📞 ${p.telephone}</span>`:''}
+            ${p.note?`<span style="font-size:11px;color:var(--muted)">${p.note}</span>`:''}
+            <button class="btn btn-d sm" onclick="delPart('${p.id}')">🗑</button>
+          </div>
+        </div>`).join('')}
+      ${chvs.length?`<div style="padding:7px 16px;border-top:1px solid var(--border);font-size:12px;display:flex;gap:7px;flex-wrap:wrap;align-items:center">
+        <span style="color:var(--muted)">Sans cavalier :</span>
+        ${chvs.map(c=>`<span class="b bgo">${c.equides?.nom||'?'}${c.demi_journee&&c.demi_journee!=='journee'?' ('+c.demi_journee+')':''}<button onclick="delChvStage('${c.id}')" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:0 0 0 3px">×</button></span>`).join('')}
       </div>`:''}
     </div>`;
   }).join('');
@@ -1080,36 +1111,66 @@ function newStage(){document.getElementById('mo-stage-t').textContent='Nouveau s
 async function saveStage(){
   const titre=v('stage-titre').trim(),deb=v('stage-deb'),fin=v('stage-fin')||deb,notes=v('stage-notes'),id=v('stage-id');
   if(!titre||!deb){toast('Titre et date requis','err');return;}
-  if(id) await dbUpdate('stages',{titre,date_debut:deb,date_fin:fin,notes},[{col:'id',op:'eq',val:id}]);
-  else   await dbInsert('stages',{titre,date_debut:deb,date_fin:fin,notes});
-  toast(id?'Modifié':'Stage créé','ok');closeMo('mo-stage');await loadStages();
+  if(id)await dbUpd('stages',{titre,date_debut:deb,date_fin:fin,notes},[{col:'id',op:'eq',val:id}]);
+  else await dbIns('stages',{titre,date_debut:deb,date_fin:fin,notes});
+  toast(id?'Modifié':'Créé','ok');closeMo('mo-stage');await loadStages();
 }
 function editStage(id){const s=C.stages.find(x=>x.id===id);document.getElementById('mo-stage-t').textContent='Modifier';document.getElementById('stage-id').value=id;document.getElementById('stage-titre').value=s.titre;document.getElementById('stage-deb').value=s.date_debut;document.getElementById('stage-fin').value=s.date_fin;document.getElementById('stage-notes').value=s.notes||'';openMo('mo-stage');}
-async function delStage(id){if(!confirm('Supprimer ce stage ?'))return;await dbDelete('stage_participants',[{col:'stage_id',op:'eq',val:id}]);await dbDelete('stage_chevaux',[{col:'stage_id',op:'eq',val:id}]);await dbDelete('stages',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadStages();}
-function openPart(sid){document.getElementById('part-stage-id').value=sid;['part-prenom','part-tel','part-note'].forEach(i=>document.getElementById(i).value='');document.getElementById('part-dj').value='journee';document.getElementById('part-cav-ex').innerHTML='<option value="">— Saisie libre —</option>'+[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>`<option value="${c.id}">${c.prenom}</option>`).join('');openMo('mo-part');}
+async function delStage(id){if(!confirm('Supprimer ce stage ?'))return;await dbDel('stage_participants',[{col:'stage_id',op:'eq',val:id}]);await dbDel('stage_chevaux',[{col:'stage_id',op:'eq',val:id}]);await dbDel('stages',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadStages();}
+function openPart(sid){
+  document.getElementById('part-stage-id').value=sid;
+  ['part-prenom','part-tel','part-note'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('part-dj').value='journee';
+  document.getElementById('part-cav-ex').innerHTML='<option value="">— Saisie libre —</option>'+[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>`<option value="${c.id}">${c.prenom}</option>`).join('');
+  // Chevaux dispo pour stage : exclu hors_cours
+  const chvDispo=C.chv.filter(c=>!c.hors_cours);
+  const stage=C.stages.find(s=>s.id===sid);
+  document.getElementById('part-chv').innerHTML='<option value="">— Non attribué —</option>'+chvDispo.map(c=>{
+    const st=stage?C.statuts.filter(x=>x.equide_id===c.id&&x.date>=stage.date_debut&&x.date<=stage.date_fin):[];
+    return`<option value="${c.id}">${c.nom}${st.length?' ⚠️ statut planifié':''}`;
+  }).join('');
+  openMo('mo-part');
+}
 function prefillPart(){const cav=C.cav.find(c=>c.id===v('part-cav-ex'));if(cav){document.getElementById('part-prenom').value=cav.prenom;document.getElementById('part-tel').value=cav.telephone||'';}else{document.getElementById('part-prenom').value='';document.getElementById('part-tel').value='';}}
-async function savePart(){const sid=v('part-stage-id'),prenom=v('part-prenom').trim(),tel=v('part-tel')||null,dj=v('part-dj'),note=v('part-note')||null;if(!prenom){toast('Prénom requis','err');return;}await dbInsert('stage_participants',{stage_id:sid,prenom,telephone:tel,demi_journee:dj,note});toast('Ajouté','ok');closeMo('mo-part');await loadStages();}
-async function delPart(id){if(!confirm('Supprimer ?'))return;await dbDelete('stage_participants',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadStages();}
-function openChvStage(sid){document.getElementById('chs-sid').value=sid;document.getElementById('chs-chv').innerHTML='<option value="">— Sélectionner —</option>'+C.chv.map(c=>`<option value="${c.id}">${c.nom}${c.hors_cours?' 🚫':''}</option>`).join('');document.getElementById('chs-dj').value='journee';document.getElementById('chs-note').value='';openMo('mo-chs');}
-async function saveChvStage(){const sid=v('chs-sid'),chvId=v('chs-chv'),dj=v('chs-dj'),note=v('chs-note')||null;if(!chvId){toast('Choisissez un cheval','err');return;}await dbInsert('stage_chevaux',{stage_id:sid,equide_id:chvId,demi_journee:dj,note});toast('Ajouté','ok');closeMo('mo-chs');await loadStages();}
-async function delChvStage(id){await dbDelete('stage_chevaux',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadStages();}
+async function savePart(){
+  const sid=v('part-stage-id'),prenom=v('part-prenom').trim(),tel=v('part-tel')||null,dj=v('part-dj'),chvId=v('part-chv')||null,note=v('part-note')||null;
+  if(!prenom){toast('Prénom requis','err');return;}
+  if(chvId){
+    const stage=C.stages.find(s=>s.id===sid);
+    if(stage){const st=C.statuts.find(x=>x.equide_id===chvId&&x.date>=stage.date_debut&&x.date<=stage.date_fin);if(st){const nom=C.chv.find(c=>c.id===chvId)?.nom||'Ce cheval';toast(`⚠️ ${nom} a un statut spécial durant ce stage : ${SLBL[st.type]} le ${fmtDate(st.date)}. Ajouté quand même.`,'warn');}}
+  }
+  await dbIns('stage_participants',{stage_id:sid,prenom,telephone:tel,demi_journee:dj,equide_id:chvId,note});
+  toast('Participant ajouté','ok');closeMo('mo-part');await loadStages();
+}
+async function delPart(id){if(!confirm('Supprimer ?'))return;await dbDel('stage_participants',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadStages();}
+function openChvStage(sid){
+  document.getElementById('chs-sid').value=sid;
+  const chvDispo=C.chv.filter(c=>!c.hors_cours);
+  document.getElementById('chs-chv').innerHTML='<option value="">— Sélectionner —</option>'+chvDispo.map(c=>`<option value="${c.id}">${c.nom}</option>`).join('');
+  document.getElementById('chs-dj').value='journee';document.getElementById('chs-note').value='';openMo('mo-chs');
+}
+async function saveChvStage(){
+  const sid=v('chs-sid'),chvId=v('chs-chv'),dj=v('chs-dj'),note=v('chs-note')||null;
+  if(!chvId){toast('Choisissez un cheval','err');return;}
+  await dbIns('stage_chevaux',{stage_id:sid,equide_id:chvId,demi_journee:dj,note});
+  toast('Cheval ajouté','ok');closeMo('mo-chs');await loadStages();
+}
+async function delChvStage(id){await dbDel('stage_chevaux',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadStages();}
 
-// ── SELECTS ────────────────────────────────────────────────────────
+// ── Selects ────────────────────────────────────────────
 function popSelects(){
   const s=(id,h)=>{const e=document.getElementById(id);if(e)e.innerHTML=h;};
   s('grp-mon','<option value="">— Sélectionner —</option>'+C.mon.map(m=>`<option value="${m.id}">${m.prenom}</option>`).join(''));
   s('cav-grp','<option value="">— Sans groupe —</option>'+C.grp.map(g=>`<option value="${g.id}">${g.nom}</option>`).join(''));
 }
-
-// ── HELPERS ────────────────────────────────────────────────────────
-const v    = id => document.getElementById(id)?.value || '';
-const openMo  = id => document.getElementById(id).classList.add('open');
-const closeMo = id => document.getElementById(id).classList.remove('open');
+// ── Helpers ────────────────────────────────────────────
+const v=id=>document.getElementById(id)?.value||'';
+const openMo=id=>document.getElementById(id).classList.add('open');
+const closeMo=id=>document.getElementById(id).classList.remove('open');
 document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
-const fmtL    = d => d ? new Date(d+'T00:00:00').toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'}) : '';
-const fmtDate = d => d ? new Date(d+'T00:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}) : '';
-function toast(msg,type='ok'){const t=document.createElement('div');t.className=`toast ${type}`;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3200);}
-function toggleSB(){document.getElementById('sb').classList.toggle('open');document.getElementById('sbo').classList.toggle('open');}
+const fmtL=d=>d?new Date(d+'T00:00:00').toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'}):'';
+const fmtDate=d=>d?new Date(d+'T00:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}):'';
+function toast(msg,type='ok'){const t=document.createElement('div');t.className=`toast ${type}`;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),type==='warn'?5000:3200);}
 </script>
 </body>
 </html>
