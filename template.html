@@ -864,7 +864,7 @@ async function loadVue(){
     const rows=sorted.map((a,i)=>{
       const bg=i%2===0?'#fff':`${couleur}80`; // zèbre: blanc / couleur cours à 50%
       return`<div class="pcr ${a.absent?'abr':''}" style="background:${bg}">
-        <div class="pcn">${a.cavaliers?.prenom||'?'}${a.rattrapage?'<span class="rtag">rattrapage</span>':''}${a.absent?'<span class="b br" style="margin-left:5px;font-size:10px">absent</span>':''}</div>
+        <div class="pcn">${a.cavaliers?.prenom||a.nom_exceptionnel||'?'}${a.cours_exceptionnel?'<span class="rtag" style="background:var(--gold);color:#fff">excep.</span>':''}${a.rattrapage?'<span class="rtag">rattrapage</span>':''}${a.absent?'<span class="b br" style="margin-left:5px;font-size:10px">absent</span>':''}</div>
         <div class="pch2">${a.absent?'<span style="color:var(--muted)">—</span>':`🐎 <strong>${a.equides?.nom||'Non attribué'}</strong>`}</div>
       </div>`;
     }).join('');
@@ -1338,10 +1338,10 @@ function renderChevaux(){
       <td><strong>${c.nom}</strong>${c.hors_cours?'<span class="b br" style="margin-left:4px;font-size:10px">hors cours</span>':''}</td>
       <td><span style="color:var(--muted)">${c.categorie||'—'}</span></td>
       <td>${c.annee_naissance||'—'}</td>
-      <td><strong>${hSem}h / sem.</strong>${prev>0?` (max ${prev}h)`:''}
+      <td><strong>${hSem}h / sem.</strong>${prev>0?` — max ${prev}h`:''}
         ${prev>0?`<div class="hbb"><div class="hbf ${cls}" style="width:${pct}%"></div></div>`:''}
       </td>
-      <td><span class="b ${bs}">${bt}</span></td>
+      ${prev>0?`<td><span class="b ${bs}">${bt}</span></td>`:'<td>—</td>'}
       <td style="font-size:11px">${prochains.length?prochains.map(s=>`<div style="color:var(--muted)">${fmtDate(s.date)}${s.date_fin?' → '+fmtDate(s.date_fin):''} <span class="b ${SBDG[s.type]||'b'}" style="font-size:10px">${SLBL[s.type]||''}</span></div>`).join(''):'-'}</td>
       <td style="display:flex;gap:4px;flex-wrap:wrap">
         <button class="btn btn-o sm" onclick="newStatut('${c.id}')">+Statut</button>
@@ -1572,7 +1572,7 @@ function openExc(seaId,heure,date){
   openMo('mo-exc');
 }
 function editExc(affId,seaId,heure,date){
-  const aff=C.aff.find(a=>a.id===affId);if(!aff)return;
+  const aff=C.aff.find(a=>a.id===affId);if(!aff){toast('Données non trouvées, rechargez','err');return;}
   document.getElementById('exc-title').textContent='✏️ Modifier cours exceptionnel';
   document.getElementById('exc-btn').textContent='Enregistrer';
   document.getElementById('exc-sea-id').value=seaId;
@@ -1580,7 +1580,7 @@ function editExc(affId,seaId,heure,date){
   document.getElementById('exc-date').value=date;
   document.getElementById('exc-aff-id').value=affId;
   document.getElementById('exc-nom').value=aff.nom_exceptionnel||'';
-  document.getElementById('exc-montant').value=aff.montant_exceptionnel||'';
+  document.getElementById('exc-montant').value=aff.montant_exceptionnel!=null?aff.montant_exceptionnel:'';
   document.getElementById('exc-date-reg').value=aff.date_reglement_exc||'';
   document.getElementById('exc-methode').value=aff.methode_paiement_exc||'';
   document.getElementById('exc-chv').innerHTML=_buildExcChvList(heure,date,aff.equide_id);
