@@ -910,7 +910,7 @@ function renderDash(){
   const today=new Date().toISOString().split('T')[0];
   document.getElementById('s-sea').textContent=C.sea.filter(s=>s.date===today).length;
   const seuil=+document.getElementById('seuil')?.value||20;
-  document.getElementById('alerts').innerHTML=C.chv.filter(c=>(c.heures_reel||0)>=seuil).map(c=>`<div class="alert-box">⚠️ <div><strong>${c.nom}</strong> — ${c.heures_reel||0}h réelles (seuil ${seuil}h)</div></div>`).join('');
+  document.getElementById('alerts').innerHTML=C.chv.filter(c=>(c.affSem.filter(a=>a.equide_id===c.id).length||0)>=seuil).map(c=>`<div class="alert-box">⚠️ <div><strong>${c.nom}</strong> — ${c.affSem.filter(a=>a.equide_id===c.id).length||0}h réelles (seuil ${seuil}h)</div></div>`).join('');
   const tc=C.sea.filter(s=>s.date===today);
   document.getElementById('td-sea').innerHTML=!tc.length?'<div class="ls">Aucune séance</div>':
     `<table><thead><tr><th>Groupe</th><th>Heure</th><th>Discipline</th><th>Moniteur</th></tr></thead><tbody>${tc.map(s=>{const g=C.grp.find(x=>x.id===s.groupe_id)||{};return`<tr><td><strong>${g.nom||'?'}</strong></td><td>${(s.heure||'').slice(0,5)}</td><td>${s.discipline||'—'}</td><td>${s.moniteur1?.prenom||'—'}</td></tr>`;}).join('')}</tbody></table>`;
