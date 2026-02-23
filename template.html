@@ -715,7 +715,7 @@ async function loadStatuts(){
 }
 async function loadSeances(date){
   if(!date)return;
-  C.sea=await dbSel('seances',{select:'*,groupes(nom,heure,jour,moniteur_id,note,couleur),moniteurs(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)',filter:[{col:'date',op:'eq',val:date}],order:[{col:'heure'}]});
+  C.sea=await dbSel('seances',{select:'*,groupes(nom,heure,jour,moniteur_id,note,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)',filter:[{col:'date',op:'eq',val:date}],order:[{col:'heure'}]});
   if(C.sea.length){
     const iv=`(${C.sea.map(s=>`"${s.id}"`).join(',')})`;
     C.aff=await dbSel('affectations_seance',{select:'*,cavaliers(prenom),equides(nom)',filter:[{col:'seance_id',op:'in',val:iv}]});
@@ -754,7 +754,7 @@ async function loadVue(){
   const iv=`("${d}")`;
   document.getElementById('vac-pub').style.display=estVac(base)&&!isAdmin?'flex':'none';
   const [seaAll,statAll,stgAll]=await Promise.all([
-    dbSel('seances',{select:'*,groupes(nom,heure,moniteur_id,note,couleur),moniteurs(prenom)',filter:[{col:'date',op:'eq',val:d}],order:[{col:'heure'}]}),
+    dbSel('seances',{select:'*,groupes(nom,heure,moniteur_id,note,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom)',filter:[{col:'date',op:'eq',val:d}],order:[{col:'heure'}]}),
     dbSel('equide_statuts',{select:'*,equides(nom)',filter:[{col:'date',op:'eq',val:d}],order:[{col:'heure_debut'}]}),
     dbSel('stages',{filter:[{col:'date_debut',op:'lte',val:d},{col:'date_fin',op:'gte',val:d}]}),
   ]);
@@ -807,7 +807,7 @@ async function loadVue(){
     blocs.push({h,html:`<div class="pcc" style="border-left:4px solid ${couleur}">
       <div class="pch"><div class="pheure">${h}</div>
         <div><div class="pgn" style="color:${couleur}">${g.nom||'Groupe'}</div>
-        <div class="pdi">${s.discipline?`<span class="b bb" style="font-size:10px;margin-right:4px">${s.discipline}</span>`:''} 👤 ${s.moniteurs?.prenom||'—'}</div></div>
+        <div class="pdi">${s.discipline?`<span class="b bb" style="font-size:10px;margin-right:4px">${s.discipline}</span>`:''} 👤 ${s.moniteur1?.prenom||'—'}</div></div>
       </div>
       ${sorted.length===0?'<div style="padding:12px 20px;color:var(--muted)">Aucun cavalier</div>':
         sorted.map(a=>`<div class="pcr ${a.absent?'abr':''}">
@@ -854,7 +854,7 @@ function renderDash(){
   document.getElementById('alerts').innerHTML=C.chv.filter(c=>(c.heures_reel||0)>=seuil).map(c=>`<div class="alert-box">⚠️ <div><strong>${c.nom}</strong> — ${c.heures_reel||0}h réelles (seuil ${seuil}h)</div></div>`).join('');
   const tc=C.sea.filter(s=>s.date===today);
   document.getElementById('td-sea').innerHTML=!tc.length?'<div class="ls">Aucune séance</div>':
-    `<table><thead><tr><th>Groupe</th><th>Heure</th><th>Discipline</th><th>Moniteur</th></tr></thead><tbody>${tc.map(s=>{const g=C.grp.find(x=>x.id===s.groupe_id)||{};return`<tr><td><strong>${g.nom||'?'}</strong></td><td>${(s.heure||'').slice(0,5)}</td><td>${s.discipline||'—'}</td><td>${s.moniteurs?.prenom||'—'}</td></tr>`;}).join('')}</tbody></table>`;
+    `<table><thead><tr><th>Groupe</th><th>Heure</th><th>Discipline</th><th>Moniteur</th></tr></thead><tbody>${tc.map(s=>{const g=C.grp.find(x=>x.id===s.groupe_id)||{};return`<tr><td><strong>${g.nom||'?'}</strong></td><td>${(s.heure||'').slice(0,5)}</td><td>${s.discipline||'—'}</td><td>${s.moniteur1?.prenom||'—'}</td></tr>`;}).join('')}</tbody></table>`;
 }
 
 // ══════════════════════════════════════════════════
