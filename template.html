@@ -343,7 +343,7 @@ tr:hover td{background:rgba(201,168,76,.12);}
     </div>
     <div class="tc">
      <div class="tt"><h3>Liste</h3><button class="btn btn-p" onclick="newChv()">+ Ajouter</button></div>
-     <table><thead><tr><th>Nom</th><th>Catégorie</th><th>Année naiss.</th><th>H. cette semaine</th><th>H. total</th><th>Alerte</th><th>Statuts</th><th></th></tr></thead>
+     <table><thead><tr><th>Nom</th><th>Catégorie</th><th>Année naiss.</th><th>H. cette semaine</th><th>Alerte</th><th>Statuts</th><th></th></tr></thead>
      <tbody id="tb-chv"><tr class="er"><td colspan="8"><div class="spin"></div></td></tr></tbody></table>
     </div>
     <div class="tc"><div class="tt"><h3>Statuts spéciaux</h3><button class="btn btn-o sm" onclick="newStatut(null)">+ Ajouter</button></div>
@@ -507,7 +507,7 @@ tr:hover td{background:rgba(201,168,76,.12);}
 </div></div>
 
 <!-- Participant stage -->
-<div class="mo" id="mo-part"><div class="md" style="max-width:480px">
+<div class="mo" id="mo-part"><div class="md" style="max-width:500px">
  <h3>Ajouter un participant</h3><input type="hidden" id="part-stage-id">
  <div class="fg"><label>Cavalier existant (optionnel)</label><select id="part-cav-ex" onchange="prefillPart()"><option value="">— Saisie libre —</option></select></div>
  <div class="fr">
@@ -519,6 +519,20 @@ tr:hover td{background:rgba(201,168,76,.12);}
   <div class="fg"><label>Cheval attribué <span style="color:var(--muted)">(opt.)</span></label><select id="part-chv"><option value="">— Non attribué —</option></select></div>
  </div>
  <div class="fg"><label>Note</label><input type="text" id="part-note" placeholder="Niveau, besoins spécifiques…"></div>
+ <div style="border-top:1px solid var(--border);margin:10px 0;padding-top:12px">
+  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">💳 Règlement</div>
+  <div class="fr">
+   <div class="fg"><label>Montant (€)</label><input type="number" id="part-montant" min="0" step="0.5" placeholder="0"></div>
+   <div class="fg"><label>Date règlement</label><input type="date" id="part-date-reg"></div>
+  </div>
+  <div class="fg"><label>Moyen de paiement</label><select id="part-methode">
+   <option value="">— Non réglé —</option>
+   <option value="Espèces">Espèces</option>
+   <option value="Chèque">Chèque</option>
+   <option value="Virement">Virement</option>
+   <option value="CB">Carte bancaire</option>
+  </select></div>
+ </div>
  <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-part')">Annuler</button><button class="btn btn-p" onclick="savePart()">Ajouter</button></div>
 </div></div>
 
@@ -744,7 +758,10 @@ async function loadSemaine(){
   C.seaSem=await dbSel('seances',{select:'id,date',filter:[{col:'date',op:'gte',val:lundiStr},{col:'date',op:'lte',val:dimStr}]});
   if(C.seaSem.length){
     const iv=`(${C.seaSem.map(s=>`"${s.id}"`).join(',')})`;
-    C.affSem=await dbSel('affectations_seance',{select:'id,seance_id,equide_id,absent,cours_exceptionnel',filter:[{col:'seance_id',op:'in',val:iv},{col:'absent',op:'eq',val:'false'}]});
+    // On prend tout sans filtre bool (évite les problèmes de type Supabase)
+    const all=await dbSel('affectations_seance',{select:'id,seance_id,equide_id,absent',filter:[{col:'seance_id',op:'in',val:iv}]});
+    // Filtre en JS : uniquement présents, et qui ont un cheval
+    C.affSem=all.filter(a=>!a.absent&&a.equide_id);
   }else C.affSem=[];
 }
 async function loadGrp(){C.grp=await dbSel('groupes',{order:[{col:'created_at'}]});renderGroupes();popSelects();}
@@ -834,7 +851,7 @@ async function loadVue(){
     const couleur=g.couleur||'#c9a84c';
     const sa=affs.filter(a=>a.seance_id===s.id);
     // Vue publique : n'afficher que les présents (pas les absents), pas les cours exceptionnels
-    const saVisibles=isAdmin?sa:sa.filter(a=>!a.absent&&!a.cours_exceptionnel);
+    const saVisibles=isAdmin?sa:sa.filter(a=>!a.absent);
     const sorted=[...saVisibles].sort((a,b)=>{if(a.absent&&!b.absent)return 1;if(!a.absent&&b.absent)return -1;return(a.cavaliers?.prenom||'').localeCompare(b.cavaliers?.prenom||'','fr');});
     // élève moniteur
     const elMonId=g.eleve_moniteur_id;
@@ -1136,7 +1153,7 @@ async function updChv(affId,cid,seaId,heure,date){
     // Alerte heures hebdomadaires — C.affSem toujours chargé depuis loadSemaine
     const chv=C.chv.find(c=>c.id===cid);
     if(chv&&chv.heures_prev>0){
-      const hSem=C.affSem.filter(a=>a.equide_id===cid&&!a.cours_exceptionnel).length;
+      const hSem=C.affSem.filter(a=>a.equide_id===cid).length;
       if(hSem>=chv.heures_prev){toast(`⚠️ ${chv.nom} : déjà ${hSem}h cette semaine (max ${chv.heures_prev}h) !`,'warn');}
     }
   }
@@ -1296,8 +1313,8 @@ function renderChevaux(){
   });
   t.innerHTML=sorted.map(c=>{
     // Heures cette semaine : utilise C.affSem (cache hebdo chargé au démarrage)
-    const hSem=C.affSem.filter(a=>a.equide_id===c.id&&!a.cours_exceptionnel).length;
-    const prev=+(c.heures_prev||0); // seuil hebdo
+    const hSem=C.affSem.filter(a=>a.equide_id===c.id).length;
+    const prev=+(c.heures_prev||0); // seuil hebdo max
     const pct=prev>0?Math.min(100,(hSem/prev)*100):0;
     const cls=pct>=100?'d':pct>=75?'w':'';
     const[bs,bt]=pct>=100?['br','Dépassé']:pct>=75?['bgo','Attention']:['bg','OK'];
@@ -1306,10 +1323,9 @@ function renderChevaux(){
       <td><strong>${c.nom}</strong>${c.hors_cours?'<span class="b br" style="margin-left:4px;font-size:10px">hors cours</span>':''}</td>
       <td><span style="color:var(--muted)">${c.categorie||'—'}</span></td>
       <td>${c.annee_naissance||'—'}</td>
-      <td><strong>${hSem}h sem.</strong>${prev>0?` / ${prev}h max`:''}
+      <td><strong>${hSem}h / sem.</strong>${prev>0?` (max ${prev}h)`:''}
         ${prev>0?`<div class="hbb"><div class="hbf ${cls}" style="width:${pct}%"></div></div>`:''}
       </td>
-      <td><strong>${c.heures_reel||0}h</strong> total</td>
       <td><span class="b ${bs}">${bt}</span></td>
       <td style="font-size:11px">${prochains.length?prochains.map(s=>`<div style="color:var(--muted)">${fmtDate(s.date)}${s.date_fin?' → '+fmtDate(s.date_fin):''} <span class="b ${SBDG[s.type]||'b'}" style="font-size:10px">${SLBL[s.type]||''}</span></div>`).join(''):'-'}</td>
       <td style="display:flex;gap:4px;flex-wrap:wrap">
@@ -1460,7 +1476,8 @@ function editStage(id){const s=C.stages.find(x=>x.id===id);document.getElementBy
 async function delStage(id){if(!confirm('Supprimer ce stage ?'))return;await dbDel('stage_participants',[{col:'stage_id',op:'eq',val:id}]);await dbDel('stage_chevaux',[{col:'stage_id',op:'eq',val:id}]);await dbDel('stages',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadStages();}
 function openPart(sid){
   document.getElementById('part-stage-id').value=sid;
-  ['part-prenom','part-tel','part-note'].forEach(i=>document.getElementById(i).value='');
+  ['part-prenom','part-tel','part-note','part-montant','part-date-reg'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('part-methode').value='';
   document.getElementById('part-dj').value='journee';
   document.getElementById('part-cav-ex').innerHTML='<option value="">— Saisie libre —</option>'+[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>`<option value="${c.id}">${c.prenom}</option>`).join('');
   const chvDispo=C.chv.filter(c=>!c.hors_cours);
@@ -1474,9 +1491,11 @@ function openPart(sid){
 function prefillPart(){const cav=C.cav.find(c=>c.id===v('part-cav-ex'));if(cav){document.getElementById('part-prenom').value=cav.prenom;document.getElementById('part-tel').value=cav.telephone||'';}else{document.getElementById('part-prenom').value='';document.getElementById('part-tel').value='';}}
 async function savePart(){
   const sid=v('part-stage-id'),prenom=v('part-prenom').trim(),tel=v('part-tel')||null,dj=v('part-dj'),chvId=v('part-chv')||null,note=v('part-note')||null;
+  const montant=parseFloat(v('part-montant'))||null,methode_paiement=v('part-methode')||null,date_reglement=v('part-date-reg')||null;
+  const regle=!!methode_paiement;
   if(!prenom){toast('Le prénom est requis','err');return;}
   if(chvId){const stage=C.stages.find(s=>s.id===sid);if(stage){const st=C.statuts.find(x=>x.equide_id===chvId&&x.date>=stage.date_debut&&x.date<=stage.date_fin);if(st){const nom=C.chv.find(c=>c.id===chvId)?.nom||'Ce cheval';toast(`⚠️ ${nom} a un statut spécial durant ce stage.`,'warn');}}}
-  await dbIns('stage_participants',{stage_id:sid,prenom,telephone:tel,demi_journee:dj,equide_id:chvId,note});
+  await dbIns('stage_participants',{stage_id:sid,prenom,telephone:tel,demi_journee:dj,equide_id:chvId,note,regle,montant,methode_paiement,date_reglement});
   toast('Participant ajouté','ok');closeMo('mo-part');await loadStages();
 }
 async function delPart(id){if(!confirm('Supprimer ?'))return;await dbDel('stage_participants',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadStages();}
@@ -1538,57 +1557,82 @@ async function saveExc(){
 // ══════════════════════════════════════════════════
 function setHistTab(tab){
   histTab=tab;
+  _histCouples=[];_histAbsences=[]; // reset cache pour forcer rechargement
   document.querySelectorAll('.hist-tab button').forEach((b,i)=>{b.classList.toggle('on',(tab==='couples'&&i===0)||(tab==='absences'&&i===1));});
   loadHistorique();
 }
+// Cache données historique (chargé une fois, filtré en JS sans rechargement)
+let _histCouples=[];let _histAbsences=[];
+
 async function loadHistorique(){
   const el=document.getElementById('hist-content');if(!el)return;
-  // Sauvegarder les valeurs des filtres AVANT de réécrire l'innerHTML
-  const cavF=document.getElementById('hist-cav-f')?.value||'';
-  const chvF=document.getElementById('hist-chv-f')?.value||'';
-  const absCavF=document.getElementById('hist-abs-cav-f')?.value||'';
   el.innerHTML='<div class="ls"><div class="spin"></div></div>';
   if(histTab==='couples'){
     const aff=await dbSel('affectations_seance',{select:'*,cavaliers(prenom),equides(nom),seances(date,groupe_id)',order:[{col:'created_at',asc:false}]});
-    const withHorse=aff.filter(a=>a.equide_id&&a.cavaliers&&a.equides&&a.seances);
-    const filtered=withHorse.filter(a=>{
-      if(cavF&&!(a.cavaliers?.prenom||'').toLowerCase().includes(cavF.toLowerCase()))return false;
-      if(chvF&&!(a.equides?.nom||'').toLowerCase().includes(chvF.toLowerCase()))return false;
+    _histCouples=aff.filter(a=>a.equide_id&&a.cavaliers&&a.equides&&a.seances);
+  } else {
+    _histAbsences=await dbSel('affectations_seance',{select:'*,cavaliers(prenom),seances(date)',filter:[{col:'absent',op:'eq',val:'true'}],order:[{col:'created_at',asc:false}]});
+  }
+  renderHistorique();
+}
+
+function renderHistorique(){
+  const el=document.getElementById('hist-content');if(!el)return;
+  if(histTab==='couples'){
+    const cavF=(document.getElementById('hist-cav-f')?.value||'').toLowerCase();
+    const chvF=(document.getElementById('hist-chv-f')?.value||'').toLowerCase();
+    const filtered=_histCouples.filter(a=>{
+      if(cavF&&!(a.cavaliers?.prenom||'').toLowerCase().includes(cavF))return false;
+      if(chvF&&!(a.equides?.nom||'').toLowerCase().includes(chvF))return false;
       return true;
     });
+    const tbody=document.getElementById('hist-tbody');
+    if(tbody){
+      tbody.innerHTML=filtered.length?filtered.map(a=>{const g=C.grp.find(x=>x.id===a.seances?.groupe_id);const c=g?.couleur||'#c9a84c';const il=g?isLightColor(c):false;return`<tr><td>${fmtDate(a.seances?.date||'')}</td><td><strong>${a.cavaliers?.prenom||'?'}</strong></td><td>🐎 ${a.equides?.nom||'?'}</td><td>${g?`<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${il?'#3a3028':'#fff'}">${g.nom}</span>`:'—'}</td></tr>`;}).join(''):'<tr class="er"><td colspan="4">Aucun résultat</td></tr>';
+      return;
+    }
+    // Premier rendu : créer le squelette complet
     el.innerHTML=`
       <div class="hist-filters">
-        <input id="hist-cav-f" placeholder="Filtrer cavalier…" oninput="loadHistorique()" value="${cavF}" style="width:180px">
-        <input id="hist-chv-f" placeholder="Filtrer cheval…" oninput="loadHistorique()" value="${chvF}" style="width:180px">
+        <input id="hist-cav-f" placeholder="Filtrer cavalier…" oninput="renderHistorique()" style="width:180px">
+        <input id="hist-chv-f" placeholder="Filtrer cheval…" oninput="renderHistorique()" style="width:180px">
       </div>
       <div class="tc"><table><thead><tr><th>Date</th><th>Cavalier</th><th>Cheval</th><th>Groupe</th></tr></thead>
-      <tbody>${filtered.length?filtered.map(a=>{const g=C.grp.find(x=>x.id===a.seances?.groupe_id);const c=g?.couleur||'#c9a84c';const il=g?isLightColor(c):false;return`<tr><td>${fmtDate(a.seances?.date||'')}</td><td><strong>${a.cavaliers?.prenom||'?'}</strong></td><td>🐎 ${a.equides?.nom||'?'}</td><td>${g?`<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${il?'#3a3028':'#fff'}">${g.nom}</span>`:'—'}</td></tr>`;}).join(''):'<tr class="er"><td colspan="4">Aucun résultat</td></tr>'}
-      </tbody></table></div>`;
+      <tbody id="hist-tbody"></tbody></table></div>`;
+    renderHistorique();
   } else {
-    const aff=await dbSel('affectations_seance',{select:'*,cavaliers(prenom),seances(date)',filter:[{col:'absent',op:'eq',val:'true'}],order:[{col:'created_at',asc:false}]});
-    const filtered=aff.filter(a=>!absCavF||(a.cavaliers?.prenom||'').toLowerCase().includes(absCavF.toLowerCase()));
-    el.innerHTML=`
-      <div class="hist-filters">
-        <input id="hist-abs-cav-f" placeholder="Filtrer cavalier…" oninput="loadHistorique()" value="${absCavF}" style="width:180px">
-      </div>
-      <div class="tc"><table><thead><tr><th>Date</th><th>Cavalier</th><th>Motif</th><th>Rattrapage prévu</th><th>Effectué ?</th></tr></thead>
-      <tbody>${filtered.length?filtered.map(a=>`<tr>
+    const absF=(document.getElementById('hist-abs-cav-f')?.value||'').toLowerCase();
+    const filtered=_histAbsences.filter(a=>!absF||(a.cavaliers?.prenom||'').toLowerCase().includes(absF));
+    const tbody=document.getElementById('hist-abs-tbody');
+    if(tbody){
+      tbody.innerHTML=filtered.length?filtered.map(a=>`<tr>
         <td>${fmtDate(a.seances?.date||'')}</td>
         <td><strong>${a.cavaliers?.prenom||'?'}</strong></td>
         <td>${a.motif_absence||'<span style="color:var(--muted)">—</span>'}</td>
         <td>${a.date_rattrapage?fmtDate(a.date_rattrapage):'<span style="color:var(--muted)">—</span>'}</td>
-        <td>
-          ${a.rattrapage_effectue
-            ?`<span class="b bg">✅ Oui</span> <button class="btn btn-g sm" onclick="toggleRattEffectue('${a.id}',false)">↩</button>`
-            :`<button class="btn btn-o sm" onclick="toggleRattEffectue('${a.id}',true)">Marquer effectué</button>`}
-        </td>
-      </tr>`).join(''):'<tr class="er"><td colspan="5">Aucune absence</td></tr>'}
-      </tbody></table></div>`;
+        <td>${a.rattrapage_effectue
+          ?`<span class="b bg">✅ Oui</span> <button class="btn btn-g sm" onclick="toggleRattEffectue('${a.id}',false)">↩</button>`
+          :`<button class="btn btn-o sm" onclick="toggleRattEffectue('${a.id}',true)">Marquer effectué</button>`}
+        </td></tr>`).join(''):'<tr class="er"><td colspan="5">Aucune absence</td></tr>';
+      return;
+    }
+    // Premier rendu
+    el.innerHTML=`
+      <div class="hist-filters">
+        <input id="hist-abs-cav-f" placeholder="Filtrer cavalier…" oninput="renderHistorique()" style="width:180px">
+      </div>
+      <div class="tc"><table><thead><tr><th>Date</th><th>Cavalier</th><th>Motif</th><th>Rattrapage prévu</th><th>Effectué ?</th></tr></thead>
+      <tbody id="hist-abs-tbody"></tbody></table></div>`;
+    renderHistorique();
   }
 }
+
 async function toggleRattEffectue(affId,val){
   await dbUpd('affectations_seance',{rattrapage_effectue:val},[{col:'id',op:'eq',val:affId}]);
-  toast(val?'Rattrapage marqué effectué':'Annulé','ok');loadHistorique();
+  // Mettre à jour le cache local
+  const a=_histAbsences.find(x=>x.id===affId);if(a)a.rattrapage_effectue=val;
+  toast(val?'Rattrapage marqué effectué':'Annulé','ok');
+  renderHistorique();
 }
 
 // ── Selects ──
