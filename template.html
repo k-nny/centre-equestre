@@ -759,17 +759,27 @@ async function loadSemaine(){
   const dimanche=new Date(lundi);dimanche.setDate(lundi.getDate()+6);
   const lundiStr=lundi.toISOString().split('T')[0];const dimStr=dimanche.toISOString().split('T')[0];
   C.seaSem=await dbSel('seances',{select:'id,date',filter:[{col:'date',op:'gte',val:lundiStr},{col:'date',op:'lte',val:dimStr}]});
+  C.affSem=[];
   if(C.seaSem.length){
     const iv=`(${C.seaSem.map(s=>`"${s.id}"`).join(',')})`;
-    // Affectations de la semaine (présents avec cheval)
+    // Affectations cavaliers présents avec cheval
     const all=await dbSel('affectations_seance',{select:'id,seance_id,equide_id,absent',filter:[{col:'seance_id',op:'in',val:iv}]});
-    C.affSem=all.filter(a=>!a.absent&&a.equide_id);
-    // Ajouter les chevaux des moniteurs 2 de la semaine
+    all.filter(a=>!a.absent&&a.equide_id).forEach(a=>C.affSem.push(a));
+    // Chevaux des moniteurs 2
     const seaWithMon2=await dbSel('seances',{select:'id,moniteur2_cheval_id',filter:[{col:'id',op:'in',val:iv}]});
     seaWithMon2.filter(s=>s.moniteur2_cheval_id).forEach(s=>{
-      C.affSem.push({id:'mon2_'+s.id,seance_id:s.id,equide_id:s.moniteur2_cheval_id,absent:false,_mon2:true});
+      C.affSem.push({id:'mon2_'+s.id,equide_id:s.moniteur2_cheval_id});
     });
-  }else C.affSem=[];
+  }
+  // Chevaux des stages actifs cette semaine
+  const stagesSem=await dbSel('stages',{select:'id,date_debut,date_fin',filter:[{col:'date_fin',op:'gte',val:lundiStr},{col:'date_debut',op:'lte',val:dimStr}]});
+  if(stagesSem.length){
+    const isv=`(${stagesSem.map(s=>`"${s.id}"`).join(',')})`;
+    const partsSem=await dbSel('stage_participants',{select:'id,stage_id,equide_id',filter:[{col:'stage_id',op:'in',val:isv}]});
+    partsSem.filter(p=>p.equide_id).forEach(p=>C.affSem.push({id:'stg_'+p.id,equide_id:p.equide_id}));
+    const chvsSem=await dbSel('stage_chevaux',{select:'id,stage_id,equide_id',filter:[{col:'stage_id',op:'in',val:isv}]});
+    chvsSem.filter(c=>c.equide_id).forEach(c=>C.affSem.push({id:'stgc_'+c.id,equide_id:c.equide_id}));
+  }
 }
 async function loadGrp(){C.grp=await dbSel('groupes',{order:[{col:'created_at'}]});renderGroupes();popSelects();}
 async function loadCav(){
@@ -1373,11 +1383,14 @@ async function delStatut(id){if(!confirm('Supprimer ?'))return;await dbDel('equi
 // ══════════════════════════════════════════════════
 function renderAlerts(){
   const el=document.getElementById('alerts');if(!el)return;
-  const alertsHtml=C.chv.filter(c=>c.heures_prev>0).map(c=>{
+  const alertsHtml=C.chv.map(c=>{
     const hSem=C.affSem.filter(a=>a.equide_id===c.id).length;
-    const pct=c.heures_prev>0?hSem/c.heures_prev:0;
-    if(pct>=1) return`<div class="alert-box" style="border-left:3px solid #c0392b">🚨 <div><strong>${c.nom}</strong> — ${hSem}h / ${c.heures_prev}h cette semaine <strong>DÉPASSÉ</strong></div></div>`;
-    if(pct>=0.75) return`<div class="alert-box" style="border-left:3px solid var(--gold);color:var(--gold)">⚠️ <div><strong>${c.nom}</strong> — ${hSem}h / ${c.heures_prev}h cette semaine (${Math.round(pct*100)}%)</div></div>`;
+    if(!hSem&&!c.heures_prev)return null; // pas d'activité, pas de max → skip
+    const maxH=+(c.heures_prev||0);
+    const pct=maxH>0?hSem/maxH:0;
+    if(maxH>0&&pct>=1) return`<div class="alert-box" style="border-left:3px solid #c0392b">🚨 <div><strong>${c.nom}</strong> — ${hSem}h / ${maxH}h cette semaine <strong>DÉPASSÉ</strong></div></div>`;
+    if(maxH>0&&pct>=0.75) return`<div class="alert-box" style="border-left:3px solid var(--gold);color:var(--gold)">⚠️ <div><strong>${c.nom}</strong> — ${hSem}h / ${maxH}h cette semaine (${Math.round(pct*100)}%)</div></div>`;
+    if(hSem>0&&maxH===0) return`<div class="alert-box" style="border-left:3px solid var(--border);color:var(--muted)">ℹ️ <div><strong>${c.nom}</strong> — ${hSem}h cette semaine (pas de max défini)</div></div>`;
     return null;
   }).filter(Boolean).join('');
   el.innerHTML=alertsHtml||'<div style="color:var(--muted);font-size:12px;padding:4px 0">✅ Aucune alerte cette semaine</div>';
@@ -1409,10 +1422,10 @@ function renderChevaux(){
       <td><strong>${c.nom}</strong>${alertIcon?` ${alertIcon}`:''}${c.hors_cours?'<span class="b br" style="margin-left:4px;font-size:10px">hors cours</span>':''}</td>
       <td><span style="color:var(--muted)">${c.categorie||'—'}</span></td>
       <td>${c.annee_naissance||'—'}</td>
-      <td><strong style="${pct>=100?'color:var(--danger)':pct>=75?'color:var(--gold)':''}">${hSem}h / sem.</strong>${prev>0?` — max ${prev}h`:''}
-        ${prev>0?`<div class="hbb"><div class="hbf ${cls}" style="width:${pct}%"></div></div>`:''}
+      <td><strong style="${pct>=100?'color:#c0392b':pct>=75?'color:var(--gold)':''}">${hSem}h</strong>${prev>0?` / ${prev}h max`:''}
+        ${prev>0?`<div class="hbb"><div class="hbf ${cls}" style="width:${pct}%"></div></div>`:`${hSem>0?'<div class="hbb"><div class="hbf" style="width:100%;opacity:.3"></div></div>':''}`}
       </td>
-      ${prev>0?`<td><span class="b ${bs}">${bt}</span></td>`:'<td>—</td>'}
+      ${prev>0?`<td><span class="b ${bs}">${bt}</span></td>`:'<td style="color:var(--muted);font-size:11px">—</td>'}
       <td style="font-size:11px">${prochains.length?prochains.map(s=>`<div style="color:var(--muted)">${fmtDate(s.date)}${s.date_fin?' → '+fmtDate(s.date_fin):''} <span class="b ${SBDG[s.type]||'b'}" style="font-size:10px">${SLBL[s.type]||''}</span></div>`).join(''):'-'}</td>
       <td style="display:flex;gap:4px;flex-wrap:wrap">
         <button class="btn btn-o sm" onclick="newStatut('${c.id}')">+Statut</button>
