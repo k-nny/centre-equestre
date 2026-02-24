@@ -1485,8 +1485,8 @@ function renderStages(){
     return`<div class="stg-wrap">
       <div class="stg-hdr">
         <div>
-          <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px">${fmtDate(st.date_debut)}${st.date_fin!==st.date_debut?' → '+fmtDate(st.date_fin):''} · ${pts.length} participant${pts.length>1?'s':''}</div>
-          <div class="stg-ttl">🏕 ${st.titre}</div>
+          <div class="stg-ttl">${fmtDate(st.date_debut)}${st.date_fin!==st.date_debut?' → '+fmtDate(st.date_fin):''} · ${pts.length} participant${pts.length>1?'s':''}</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px">🏕 ${st.titre}</div>
           ${st.notes?`<div style="font-size:12px;color:var(--muted);margin-top:3px;font-style:italic">${st.notes}</div>`:''}
         </div>
         <div style="display:flex;gap:5px;flex-wrap:wrap">
