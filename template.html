@@ -1110,12 +1110,12 @@ function renderSeances(){
             ${chvDispo.map(c=>{
               const pris=prisIci.has(c.id)&&aff.equide_id!==c.id;
               const st=statsDuJour.find(x=>x.equide_id===c.id);
+              const sel=aff.equide_id===c.id;
               const hSem=C.affSem.filter(a=>a.equide_id===c.id).length;
               const maxH=+(c.heures_prev||0);
               const apres=hSem+(sel?0:1); // si déjà sélectionné, pas de +1
               const depasse=maxH>0&&apres>maxH;
               const proche=maxH>0&&!depasse&&apres/maxH>=0.75;
-              const sel=aff.equide_id===c.id;
               let suffix='';
               if(pris) suffix=' ✗ pris';
               else {
@@ -1618,14 +1618,19 @@ async function savePart(){
   const editId=document.getElementById('part-stage-id').dataset.editId;
   if(editId){
     // Mode édition
+    const oldPart=C.parts.find(x=>x.id===editId);
+    if(oldPart?.equide_id&&oldPart.equide_id!==chvId){const oc=C.chv.find(c=>c.id===oldPart.equide_id);if(oc){const h2=Math.max(0,(oc.heures_reel||0)-1);await dbUpd('equides',{heures_reel:h2},[{col:'id',op:'eq',val:oc.id}]);oc.heures_reel=h2;}}
+    if(chvId&&chvId!==oldPart?.equide_id){const chv=C.chv.find(c=>c.id===chvId);if(chv){const h2=(chv.heures_reel||0)+1;await dbUpd('equides',{heures_reel:h2},[{col:'id',op:'eq',val:chvId}]);chv.heures_reel=h2;}}
     await dbUpd('stage_participants',{prenom,telephone:tel,demi_journee:dj,equide_id:chvId,note,regle,montant,methode_paiement,date_reglement},[{col:'id',op:'eq',val:editId}]);
     delete document.getElementById('part-stage-id').dataset.editId;
     toast('Participant modifié','ok');
   }else{
     if(chvId){const stage=C.stages.find(s=>s.id===sid);if(stage){const st=C.statuts.find(x=>x.equide_id===chvId&&statutActifADate(x,stage.date_debut));if(st){const nom=C.chv.find(c=>c.id===chvId)?.nom||'Ce cheval';toast(`⚠️ ${nom} a un statut spécial durant ce stage.`,'warn');}}}
     await dbIns('stage_participants',{stage_id:sid,prenom,telephone:tel,demi_journee:dj,equide_id:chvId,note,regle,montant,methode_paiement,date_reglement});
+    if(chvId){const chv=C.chv.find(c=>c.id===chvId);if(chv){const h2=(chv.heures_reel||0)+1;await dbUpd('equides',{heures_reel:h2},[{col:'id',op:'eq',val:chvId}]);chv.heures_reel=h2;}}
     toast('Participant ajouté','ok');
   }
+  await loadSemaine();renderAlerts();renderChevaux();
   // Réinitialiser le titre de la modale
   document.querySelector('#mo-part h3').textContent='Ajouter un participant';
   document.querySelector('#mo-part .btn-p').textContent='Ajouter';
