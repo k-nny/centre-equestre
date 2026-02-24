@@ -739,6 +739,7 @@ function go(p){
   document.getElementById('page-'+p).classList.add('active');
   const b=document.querySelector('[data-p="'+p+'"]');if(b)b.classList.add('active');
   if(p==='vue')loadVue();
+  if(p==='dashboard'){if(!C.affSem.length)loadSemaine().then(()=>renderAlerts());else renderAlerts();}
   if(p==='dash')renderDash();
   if(p==='seances')onSeaDate();
   if(p==='stages')loadStages();
@@ -760,10 +761,14 @@ async function loadSemaine(){
   C.seaSem=await dbSel('seances',{select:'id,date',filter:[{col:'date',op:'gte',val:lundiStr},{col:'date',op:'lte',val:dimStr}]});
   if(C.seaSem.length){
     const iv=`(${C.seaSem.map(s=>`"${s.id}"`).join(',')})`;
-    // On prend tout sans filtre bool (évite les problèmes de type Supabase)
+    // Affectations de la semaine (présents avec cheval)
     const all=await dbSel('affectations_seance',{select:'id,seance_id,equide_id,absent',filter:[{col:'seance_id',op:'in',val:iv}]});
-    // Filtre en JS : uniquement présents, et qui ont un cheval
     C.affSem=all.filter(a=>!a.absent&&a.equide_id);
+    // Ajouter les chevaux des moniteurs 2 de la semaine
+    const seaWithMon2=await dbSel('seances',{select:'id,moniteur2_cheval_id',filter:[{col:'id',op:'in',val:iv}]});
+    seaWithMon2.filter(s=>s.moniteur2_cheval_id).forEach(s=>{
+      C.affSem.push({id:'mon2_'+s.id,seance_id:s.id,equide_id:s.moniteur2_cheval_id,absent:false,_mon2:true});
+    });
   }else C.affSem=[];
 }
 async function loadGrp(){C.grp=await dbSel('groupes',{order:[{col:'created_at'}]});renderGroupes();popSelects();}
@@ -910,15 +915,7 @@ function renderDash(){
   document.getElementById('s-chv').textContent=C.chv.length;
   const today=new Date().toISOString().split('T')[0];
   document.getElementById('s-sea').textContent=C.sea.filter(s=>s.date===today).length;
-  const seuil=+document.getElementById('seuil')?.value||20;
-  const alertsHtml=C.chv.filter(c=>c.heures_prev>0).map(c=>{
-    const hSem=C.affSem.filter(a=>a.equide_id===c.id).length;
-    const pct=hSem/c.heures_prev;
-    if(pct>=1) return`<div class="alert-box" style="border-left:3px solid var(--danger)">🚨 <div><strong>${c.nom}</strong> — ${hSem}h cette semaine (max ${c.heures_prev}h) <span style="color:var(--danger);font-weight:700">DÉPASSÉ</span></div></div>`;
-    if(pct>=0.75) return`<div class="alert-box" style="border-left:3px solid var(--gold)">⚠️ <div><strong>${c.nom}</strong> — ${hSem}h / ${c.heures_prev}h cette semaine (${Math.round(pct*100)}%)</div></div>`;
-    return null;
-  }).filter(Boolean).join('');
-  document.getElementById('alerts').innerHTML=alertsHtml||'<div style="color:var(--muted);font-size:12px;padding:4px 0">Aucune alerte cette semaine</div>';
+  renderAlerts();
   const tc=C.sea.filter(s=>s.date===today);
   document.getElementById('td-sea').innerHTML=!tc.length?'<div class="ls">Aucune séance</div>':
     `<table><thead><tr><th>Groupe</th><th>Heure</th><th>Discipline</th><th>Moniteur</th></tr></thead><tbody>${tc.map(s=>{const g=C.grp.find(x=>x.id===s.groupe_id)||{};return`<tr><td><strong>${g.nom||'?'}</strong></td><td>${(s.heure||'').slice(0,5)}</td><td>${s.discipline||'—'}</td><td>${s.moniteur1?.prenom||'—'}</td></tr>`;}).join('')}</tbody></table>`;
@@ -1115,11 +1112,17 @@ function renderSeances(){
               const st=statsDuJour.find(x=>x.equide_id===c.id);
               const hSem=C.affSem.filter(a=>a.equide_id===c.id).length;
               const maxH=+(c.heures_prev||0);
-              const depasse=maxH>0&&(hSem+1)>maxH;
+              const apres=hSem+(sel?0:1); // si déjà sélectionné, pas de +1
+              const depasse=maxH>0&&apres>maxH;
+              const proche=maxH>0&&!depasse&&apres/maxH>=0.75;
               const sel=aff.equide_id===c.id;
               let suffix='';
-              if(pris)suffix=' ✗ pris';
-              else{if(st)suffix=` ⚠️ ${SLBL[st.type]||'statut'}`;if(depasse)suffix+=(suffix?' · ':' ')+'⏱ '+hSem+'h/'+maxH+'h';}
+              if(pris) suffix=' ✗ pris';
+              else {
+                if(st) suffix=` ⚠️ ${SLBL[st.type]||'statut'}`;
+                if(depasse) suffix+=(suffix?' · ':' ')+'🚨 '+hSem+'h/'+maxH+'h MAX';
+                else if(proche) suffix+=(suffix?' · ':' ')+'⚠️ '+hSem+'h/'+maxH+'h';
+              }
               return`<option value="${c.id}"${sel?' selected':''}${pris?' disabled':''}>${c.nom}${suffix}</option>`;
             }).join('')}
           </select>`}
@@ -1366,9 +1369,25 @@ async function saveStatut(){
 async function delStatut(id){if(!confirm('Supprimer ?'))return;await dbDel('equide_statuts',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadStatuts();}
 
 // ══════════════════════════════════════════════════
+//  ALERTES CHEVAUX
+// ══════════════════════════════════════════════════
+function renderAlerts(){
+  const el=document.getElementById('alerts');if(!el)return;
+  const alertsHtml=C.chv.filter(c=>c.heures_prev>0).map(c=>{
+    const hSem=C.affSem.filter(a=>a.equide_id===c.id).length;
+    const pct=c.heures_prev>0?hSem/c.heures_prev:0;
+    if(pct>=1) return`<div class="alert-box" style="border-left:3px solid #c0392b">🚨 <div><strong>${c.nom}</strong> — ${hSem}h / ${c.heures_prev}h cette semaine <strong>DÉPASSÉ</strong></div></div>`;
+    if(pct>=0.75) return`<div class="alert-box" style="border-left:3px solid var(--gold);color:var(--gold)">⚠️ <div><strong>${c.nom}</strong> — ${hSem}h / ${c.heures_prev}h cette semaine (${Math.round(pct*100)}%)</div></div>`;
+    return null;
+  }).filter(Boolean).join('');
+  el.innerHTML=alertsHtml||'<div style="color:var(--muted);font-size:12px;padding:4px 0">✅ Aucune alerte cette semaine</div>';
+}
+
+// ══════════════════════════════════════════════════
 //  CHEVAUX
 // ══════════════════════════════════════════════════
 function renderChevaux(){
+  renderAlerts();
   const t=document.getElementById('tb-chv');if(!t)return;
   if(!C.chv.length){t.innerHTML='<tr class="er"><td colspan="8">Aucun cheval</td></tr>';return;}
   const today=new Date().toISOString().split('T')[0];
@@ -1385,11 +1404,12 @@ function renderChevaux(){
     const cls=pct>=100?'d':pct>=75?'w':'';
     const[bs,bt]=pct>=100?['br','Dépassé']:pct>=75?['bgo','Attention']:['bg','OK'];
     const prochains=C.statuts.filter(s=>s.equide_id===c.id&&s.date>=today).slice(0,2);
-    return`<tr>
-      <td><strong>${c.nom}</strong>${c.hors_cours?'<span class="b br" style="margin-left:4px;font-size:10px">hors cours</span>':''}</td>
+    const alertIcon=pct>=100?'🚨':pct>=75?'⚠️':'';
+    return`<tr style="${pct>=100?'background:rgba(180,55,40,.06)':pct>=75?'background:rgba(201,168,76,.06)':''}">
+      <td><strong>${c.nom}</strong>${alertIcon?` ${alertIcon}`:''}${c.hors_cours?'<span class="b br" style="margin-left:4px;font-size:10px">hors cours</span>':''}</td>
       <td><span style="color:var(--muted)">${c.categorie||'—'}</span></td>
       <td>${c.annee_naissance||'—'}</td>
-      <td><strong>${hSem}h / sem.</strong>${prev>0?` — max ${prev}h`:''}
+      <td><strong style="${pct>=100?'color:var(--danger)':pct>=75?'color:var(--gold)':''}">${hSem}h / sem.</strong>${prev>0?` — max ${prev}h`:''}
         ${prev>0?`<div class="hbb"><div class="hbf ${cls}" style="width:${pct}%"></div></div>`:''}
       </td>
       ${prev>0?`<td><span class="b ${bs}">${bt}</span></td>`:'<td>—</td>'}
@@ -1497,8 +1517,8 @@ function renderStages(){
     return`<div class="stg-wrap">
       <div class="stg-hdr">
         <div>
-          <div class="stg-ttl">${fmtDate(st.date_debut)}${st.date_fin!==st.date_debut?' → '+fmtDate(st.date_fin):''} · ${pts.length} participant${pts.length>1?'s':''}</div>
-          <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px">🏕 ${st.titre}</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px">${fmtDate(st.date_debut)}${st.date_fin!==st.date_debut?' → '+fmtDate(st.date_fin):''} · ${pts.length} participant${pts.length>1?'s':''}</div>
+          <div class="stg-ttl">🏕 ${st.titre}</div>
           ${st.notes?`<div style="font-size:12px;color:var(--muted);margin-top:3px;font-style:italic">${st.notes}</div>`:''}
         </div>
         <div style="display:flex;gap:5px;flex-wrap:wrap">
@@ -1518,6 +1538,7 @@ function renderStages(){
             ${p.note?`<span style="font-size:11px;color:var(--muted)">${p.note}</span>`:''}
             ${montant?`<span style="font-size:12px;font-weight:700;color:var(--gold)">${montant}€</span>`:''}
             ${regle?`<span class="b bg" style="font-size:10px">✅ Réglé${methode?' — '+methode:''}${dateR?' le '+fmtDate(dateR):''}</span>`:`<span class="b br" style="font-size:10px">⏳ En attente</span>`}
+            <button class="btn btn-g sm" onclick="editPart('${p.id}','${st.id}')">✏️</button>
             <button class="btn btn-g sm" onclick="openPartReglement('${p.id}','${st.id}')">💳</button>
             <button class="btn btn-d sm" onclick="delPart('${p.id}')">🗑</button>
           </div>
@@ -1542,6 +1563,9 @@ function editStage(id){const s=C.stages.find(x=>x.id===id);document.getElementBy
 async function delStage(id){if(!confirm('Supprimer ce stage ?'))return;await dbDel('stage_participants',[{col:'stage_id',op:'eq',val:id}]);await dbDel('stage_chevaux',[{col:'stage_id',op:'eq',val:id}]);await dbDel('stages',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadStages();}
 function openPart(sid){
   document.getElementById('part-stage-id').value=sid;
+  delete document.getElementById('part-stage-id').dataset.editId;
+  document.querySelector('#mo-part h3').textContent='Ajouter un participant';
+  document.querySelector('#mo-part .btn-p').textContent='Ajouter';
   ['part-prenom','part-tel','part-note','part-montant','part-date-reg'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('part-methode').value='';
   document.getElementById('part-dj').value='journee';
@@ -1557,15 +1581,55 @@ function openPart(sid){
   }).join('');
   openMo('mo-part');
 }
+function editPart(partId,stageId){
+  // Réutilise la modale openPart en mode édition
+  const p=C.parts.find(x=>x.id===partId);if(!p)return;
+  const sid=stageId;
+  document.getElementById('part-stage-id').value=sid;
+  document.getElementById('part-prenom').value=p.prenom||'';
+  document.getElementById('part-tel').value=p.telephone||'';
+  document.getElementById('part-note').value=p.note||'';
+  document.getElementById('part-montant').value=p.montant!=null?p.montant:'';
+  document.getElementById('part-date-reg').value=p.date_reglement||'';
+  document.getElementById('part-methode').value=p.methode_paiement||'';
+  document.getElementById('part-dj').value=p.demi_journee||'journee';
+  document.getElementById('part-cav-ex').innerHTML='<option value="">— Saisie libre —</option>'+[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>`<option value="${c.id}">${c.prenom}</option>`).join('');
+  const chvDispo=C.chv.filter(c=>!c.hors_cours);
+  const stage=C.stages.find(s=>s.id===sid);
+  // Chevaux pris dans ce stage sauf le cheval actuel du participant
+  const prisStage=new Set(C.parts.filter(x=>x.stage_id===sid&&x.equide_id&&x.id!==partId).map(x=>x.equide_id));
+  document.getElementById('part-chv').innerHTML='<option value="">— Non attribué —</option>'+chvDispo.map(c=>{
+    const pris=prisStage.has(c.id);
+    const st=stage?C.statuts.filter(x=>x.equide_id===c.id&&statutActifADate(x,stage.date_debut)):[];
+    return`<option value="${c.id}"${p.equide_id===c.id?' selected':''}${pris?' disabled':''}>${c.nom}${pris?' ✗ déjà attribué':st.length?' ⚠️ statut planifié':''}`;
+  }).join('');
+  // Stocker l'id du participant pour savePart
+  document.getElementById('part-stage-id').dataset.editId=partId;
+  document.querySelector('#mo-part h3').textContent='✏️ Modifier participant';
+  document.querySelector('#mo-part .btn-p').textContent='Enregistrer';
+  openMo('mo-part');
+}
 function prefillPart(){const cav=C.cav.find(c=>c.id===v('part-cav-ex'));if(cav){document.getElementById('part-prenom').value=cav.prenom;document.getElementById('part-tel').value=cav.telephone||'';}else{document.getElementById('part-prenom').value='';document.getElementById('part-tel').value='';}}
 async function savePart(){
   const sid=v('part-stage-id'),prenom=v('part-prenom').trim(),tel=v('part-tel')||null,dj=v('part-dj'),chvId=v('part-chv')||null,note=v('part-note')||null;
   const montant=parseFloat(v('part-montant'))||null,methode_paiement=v('part-methode')||null,date_reglement=v('part-date-reg')||null;
   const regle=!!methode_paiement;
   if(!prenom){toast('Le prénom est requis','err');return;}
-  if(chvId){const stage=C.stages.find(s=>s.id===sid);if(stage){const st=C.statuts.find(x=>x.equide_id===chvId&&x.date>=stage.date_debut&&x.date<=stage.date_fin);if(st){const nom=C.chv.find(c=>c.id===chvId)?.nom||'Ce cheval';toast(`⚠️ ${nom} a un statut spécial durant ce stage.`,'warn');}}}
-  await dbIns('stage_participants',{stage_id:sid,prenom,telephone:tel,demi_journee:dj,equide_id:chvId,note,regle,montant,methode_paiement,date_reglement});
-  toast('Participant ajouté','ok');closeMo('mo-part');await loadStages();
+  const editId=document.getElementById('part-stage-id').dataset.editId;
+  if(editId){
+    // Mode édition
+    await dbUpd('stage_participants',{prenom,telephone:tel,demi_journee:dj,equide_id:chvId,note,regle,montant,methode_paiement,date_reglement},[{col:'id',op:'eq',val:editId}]);
+    delete document.getElementById('part-stage-id').dataset.editId;
+    toast('Participant modifié','ok');
+  }else{
+    if(chvId){const stage=C.stages.find(s=>s.id===sid);if(stage){const st=C.statuts.find(x=>x.equide_id===chvId&&statutActifADate(x,stage.date_debut));if(st){const nom=C.chv.find(c=>c.id===chvId)?.nom||'Ce cheval';toast(`⚠️ ${nom} a un statut spécial durant ce stage.`,'warn');}}}
+    await dbIns('stage_participants',{stage_id:sid,prenom,telephone:tel,demi_journee:dj,equide_id:chvId,note,regle,montant,methode_paiement,date_reglement});
+    toast('Participant ajouté','ok');
+  }
+  // Réinitialiser le titre de la modale
+  document.querySelector('#mo-part h3').textContent='Ajouter un participant';
+  document.querySelector('#mo-part .btn-p').textContent='Ajouter';
+  closeMo('mo-part');await loadStages();
 }
 async function delPart(id){if(!confirm('Supprimer ?'))return;await dbDel('stage_participants',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadStages();}
 function openChvStage(sid){
