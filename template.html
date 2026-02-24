@@ -245,8 +245,18 @@ tr:hover td{background:rgba(201,168,76,.12);}
 </div>
 <div class="hb" id="hb" onclick="toggleSB()"><span></span><span></span><span></span></div>
 <div class="sbo" id="sbo" onclick="toggleSB()"></div>
-<div id="ld"><div class="logo">🐴</div><div class="spin"></div><div class="sub" id="ld-sub">Chargement…</div></div>
-<div id="app">
+<div id="site-login" style="display:flex;position:fixed;inset:0;background:var(--bg);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:16px">
+  <div style="font-size:40px">🐴</div>
+  <div style="font-size:16px;font-weight:700;color:var(--cream);text-transform:uppercase;letter-spacing:1px">Les Écuries de l'Octroi</div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px 32px;width:100%;max-width:320px;display:flex;flex-direction:column;gap:14px;box-shadow:0 8px 40px rgba(0,0,0,.12)">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Accès sécurisé</div>
+    <div class="pwg"><input type="password" id="site-pw-in" placeholder="Mot de passe…" onkeydown="if(event.key==='Enter')chkSitePw()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 40px 10px 12px;color:var(--text);font-family:Arial,sans-serif;font-size:14px;outline:none"><button class="pwe" onclick="togSitePw()" type="button">👁</button></div>
+    <div id="site-pw-err" style="color:#b43728;font-size:12px;display:none">Mot de passe incorrect.</div>
+    <button class="btn btn-p" id="site-pw-btn" onclick="chkSitePw()" style="width:100%">Accéder</button>
+  </div>
+</div>
+<div id="ld" style="display:none"><div class="logo">🐴</div><div class="spin"></div><div class="sub" id="ld-sub">Chargement…</div></div>
+<div id="app" style="display:none">
  <div style="display:flex">
   <nav class="sb" id="sb">
    <div class="sb-brand"><div class="logo">🐴 Les Écuries de l'Octroi</div><div class="sub">Gestion</div></div>
@@ -655,10 +665,47 @@ async function dbDel(table,filter){return dbReq({action:'query',method:'delete',
 
 // ── Init ──
 window.onload=async()=>{
+  // Vérifier le token site d'abord
+  const savedSite=localStorage.getItem('ce_site_token');
+  if(savedSite){
+    try{
+      const r=await fetch('/api/db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'verify',token:savedSite})});
+      const j=await r.json();
+      if(j&&j.ok){await initApp(savedSite);return;}
+    }catch{}
+    localStorage.removeItem('ce_site_token');
+  }
+  // Pas de token valide → afficher l'écran de connexion
+  // (site-login est déjà visible par défaut)
+};
+
+async function chkSitePw(){
+  const pw=document.getElementById('site-pw-in').value;
+  const btn=document.getElementById('site-pw-btn');btn.textContent='…';btn.disabled=true;
+  document.getElementById('site-pw-err').style.display='none';
+  try{
+    const r=await fetch('/api/db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'auth',password:pw})});
+    const j=await r.json();
+    if(j&&j.ok){
+      localStorage.setItem('ce_site_token',j.token);
+      document.getElementById('site-login').style.display='none';
+      await initApp(j.token);
+    }else{
+      document.getElementById('site-pw-err').style.display='block';
+      document.getElementById('site-pw-in').value='';
+      document.getElementById('site-pw-in').focus();
+    }
+  }catch{document.getElementById('site-pw-err').style.display='block';}
+  btn.textContent='Accéder';btn.disabled=false;
+}
+function togSitePw(){const i=document.getElementById('site-pw-in');i.type=i.type==='password'?'text':'password';}
+
+async function initApp(siteToken){
   const today=new Date().toISOString().split('T')[0];
   ['pub-date','sea-date'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=today;});
   document.getElementById('pub-lbl').textContent=fmtL(today);
   const tdl=document.getElementById('td-lbl');if(tdl)tdl.textContent=fmtL(today);
+  document.getElementById('ld').style.display='flex';
   try{
     await chargerVacancesZoneA();
     await loadAll();
@@ -678,7 +725,7 @@ window.onload=async()=>{
     const s=document.getElementById('ld-sub');s.textContent='Erreur : '+(e.message||e);s.style.color='#b43728';
     document.querySelector('#ld .spin').style.display='none';console.error(e);
   }
-};
+}
 
 // ── Couleurs groupes (color picker) ──
 function syncColor(from){
@@ -720,7 +767,7 @@ async function chkPw(){
   const btn=document.getElementById('pw-btn');btn.textContent='…';btn.disabled=true;
   try{
     const r=await dbReq({action:'auth',password:pw});
-    if(r.ok){sessionToken=r.token||'';closeMo('mo-pw');enableAdmin();}
+    if(r.ok){sessionToken=r.token||'';localStorage.setItem('ce_admin_token',sessionToken);closeMo('mo-pw');enableAdmin();}
     else{document.getElementById('pw-err').style.display='block';document.getElementById('pw-in').value='';document.getElementById('pw-in').focus();}
   }catch{document.getElementById('pw-err').style.display='block';}
   btn.textContent='Connexion';btn.disabled=false;
@@ -732,7 +779,7 @@ function enableAdmin(){
   renderCavaliers();go('dash');toast('Mode admin activé','ok');
 }
 function logoutAdmin(){
-  isAdmin=false;sessionToken='';document.getElementById('admin-banner').classList.remove('show');
+  isAdmin=false;sessionToken='';localStorage.removeItem('ce_admin_token');document.getElementById('admin-banner').classList.remove('show');
   document.getElementById('mc').classList.remove('wb');document.getElementById('anav').style.display='none';
   document.getElementById('atbtn').textContent='🔑 Mode administrateur';document.getElementById('atbtn').classList.remove('on');
   renderCavaliers();go('vue');toast('Déconnecté','ok');
