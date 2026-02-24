@@ -911,7 +911,14 @@ function renderDash(){
   const today=new Date().toISOString().split('T')[0];
   document.getElementById('s-sea').textContent=C.sea.filter(s=>s.date===today).length;
   const seuil=+document.getElementById('seuil')?.value||20;
-  document.getElementById('alerts').innerHTML=C.chv.filter(c=>(c.heures_reel||0)>=seuil).map(c=>`<div class="alert-box">⚠️ <div><strong>${c.nom}</strong> — ${c.heures_reel||0}h réelles (seuil ${seuil}h)</div></div>`).join('');
+  const alertsHtml=C.chv.filter(c=>c.heures_prev>0).map(c=>{
+    const hSem=C.affSem.filter(a=>a.equide_id===c.id).length;
+    const pct=hSem/c.heures_prev;
+    if(pct>=1) return`<div class="alert-box" style="border-left:3px solid var(--danger)">🚨 <div><strong>${c.nom}</strong> — ${hSem}h cette semaine (max ${c.heures_prev}h) <span style="color:var(--danger);font-weight:700">DÉPASSÉ</span></div></div>`;
+    if(pct>=0.75) return`<div class="alert-box" style="border-left:3px solid var(--gold)">⚠️ <div><strong>${c.nom}</strong> — ${hSem}h / ${c.heures_prev}h cette semaine (${Math.round(pct*100)}%)</div></div>`;
+    return null;
+  }).filter(Boolean).join('');
+  document.getElementById('alerts').innerHTML=alertsHtml||'<div style="color:var(--muted);font-size:12px;padding:4px 0">Aucune alerte cette semaine</div>';
   const tc=C.sea.filter(s=>s.date===today);
   document.getElementById('td-sea').innerHTML=!tc.length?'<div class="ls">Aucune séance</div>':
     `<table><thead><tr><th>Groupe</th><th>Heure</th><th>Discipline</th><th>Moniteur</th></tr></thead><tbody>${tc.map(s=>{const g=C.grp.find(x=>x.id===s.groupe_id)||{};return`<tr><td><strong>${g.nom||'?'}</strong></td><td>${(s.heure||'').slice(0,5)}</td><td>${s.discipline||'—'}</td><td>${s.moniteur1?.prenom||'—'}</td></tr>`;}).join('')}</tbody></table>`;
@@ -1068,6 +1075,10 @@ function renderSeances(){
     const s=C.sea.find(x=>x.id===a.seance_id);const h=(s?.heure||s?.groupes?.heure||'').slice(0,5);
     if(!heurChv.has(h))heurChv.set(h,new Set());heurChv.get(h).add(a.equide_id);
   }
+  // Ajouter les chevaux des moniteurs 2
+  for(const s of C.sea){
+    if(s.moniteur2_cheval_id){const h=(s.heure||s.groupes?.heure||'').slice(0,5);if(!heurChv.has(h))heurChv.set(h,new Set());heurChv.get(h).add(s.moniteur2_cheval_id);}
+  }
   const date=v('sea-date');
   const statsDuJour=statutsActifsADate(date);
   let html='';
@@ -1165,10 +1176,11 @@ async function updChv(affId,cid,seaId,heure,date){
     // Alerte heures hebdomadaires — C.affSem toujours chargé depuis loadSemaine
     const chv=C.chv.find(c=>c.id===cid);
     if(chv&&chv.heures_prev>0){
-      // hSem = nb h déjà attribuées cette semaine. On alerte si l'ajout dépasse le max
       const hSem=C.affSem.filter(a=>a.equide_id===cid).length;
-      const apresAjout=hSem+1; // la séance qu'on est en train d'attribuer
-      if(apresAjout>chv.heures_prev){toast(`⚠️ ${chv.nom} : ${apresAjout}h cette semaine (max ${chv.heures_prev}h) !`,'warn');}
+      const apresAjout=hSem+1;
+      if(apresAjout>chv.heures_prev) toast(`🚨 ${chv.nom} : ${apresAjout}h cette semaine — max ${chv.heures_prev}h dépassé !`,'err');
+      else if(apresAjout===chv.heures_prev) toast(`⚠️ ${chv.nom} : ${apresAjout}h — c'est le maximum hebdo !`,'warn');
+      else if(apresAjout/chv.heures_prev>=0.75) toast(`⚠️ ${chv.nom} : ${apresAjout}h / ${chv.heures_prev}h max cette semaine`,'warn');
     }
   }
   // ancien cheval → décrémente heures_reel
