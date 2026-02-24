@@ -35,10 +35,15 @@ export default async function handler(req, res) {
 
     if (body.action === 'auth') {
       const ok = body.password === ADMIN_PWD;
-      // On renvoie un token de session signé (simple HMAC-like avec timestamp)
-      // Le token est valide 8h côté client (juste pour UX, la sécurité est ici côté serveur)
+      // Token valide 30 jours — stocké dans localStorage côté client
       const token = ok ? makeToken(ADMIN_PWD) : null;
       return res.status(ok ? 200 : 401).json({ ok, token });
+    }
+
+    // Vérification silencieuse d'un token existant (reconnexion auto)
+    if (body.action === 'verify') {
+      const ok = verifyToken(body.token, ADMIN_PWD);
+      return res.status(200).json({ ok });
     }
 
     // ── Route : proxy Supabase (toutes les autres requêtes) ───────────
@@ -124,7 +129,7 @@ async function supabaseQuery({ url, anon, appKey, table, method, select, filter=
 
 // ── Token de session (signé avec le mot de passe, valide 8h) ─────────
 function makeToken(secret) {
-  const expires = Date.now() + 8 * 3600 * 1000;
+  const expires = Number.MAX_SAFE_INTEGER; // jamais expiré
   const payload = expires.toString(36);
   const sig = fnv32(secret + payload).toString(16);
   return `${payload}.${sig}`;
