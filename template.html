@@ -598,11 +598,11 @@ tr:hover td{background:rgba(201,168,76,.12);}
 
 <!-- Rattrapage -->
 <div class="mo" id="mo-ratt"><div class="md" style="max-width:400px">
- <h3>➕ Rattrapage</h3><input type="hidden" id="ratt-sid">
+ <h3 id="ratt-title">➕ Rattrapage</h3><input type="hidden" id="ratt-sid"><input type="hidden" id="ratt-aff-id">
  <div class="fg"><label>Cavalier *</label><select id="ratt-cav"><option value="">— Sélectionner —</option></select></div>
  <div class="fg"><label>Cheval</label><select id="ratt-chv"><option value="">— Non attribué —</option></select></div>
  <div class="fg"><label>Date du cours rattrapé <span style="color:var(--muted)">(optionnel)</span></label><input type="date" id="ratt-date-cours" placeholder="Date du cours absent…"></div>
- <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-ratt')">Annuler</button><button class="btn btn-p" onclick="saveRatt()">Ajouter</button></div>
+ <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-ratt')">Annuler</button><button class="btn btn-p" id="ratt-save-btn" onclick="saveRatt()">Ajouter</button></div>
 </div></div>
 
 <!-- Absence -->
@@ -1236,7 +1236,7 @@ function renderSeances(){
           ${aff.absent
             ?`<button class="btn btn-g sm" onclick="togAbs('${aff.id}',false,'${s.id}')">✅</button><button class="btn btn-g sm" onclick="editAbsModal('${aff.id}')">✏️</button>`
             :`<button class="btn btn-o sm" onclick="openAbsModal('${aff.id}','${s.id}')">❌</button>`}
-          ${aff.rattrapage?`<button class="btn btn-d sm" onclick="delAff('${aff.id}','${s.id}')">🗑</button>`:''}
+          ${aff.rattrapage?`<button class="btn btn-g sm" onclick="editRatt('${aff.id}','${s.id}','${h}','${date}')">✏️</button><button class="btn btn-d sm" onclick="delAff('${aff.id}','${s.id}')">🗑</button>`:''}
         </div>
       </div>`;
     }).join('');
@@ -1347,6 +1347,9 @@ async function delAff(id,seaId){if(!confirm('Supprimer ce rattrapage ?'))return;
 
 function openRatt(seaId,heure,date){
   document.getElementById('ratt-sid').value=seaId;
+  document.getElementById('ratt-aff-id').value='';
+  document.getElementById('ratt-title').textContent='➕ Rattrapage';
+  document.getElementById('ratt-save-btn').textContent='Ajouter';
   const ex=C.aff.filter(a=>a.seance_id===seaId).map(a=>a.cavalier_id);
   document.getElementById('ratt-cav').innerHTML='<option value="">— Sélectionner —</option>'+[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>{
     const grps=getCavGroups(c.id).map(gid=>C.grp.find(x=>x.id===gid)?.nom).filter(Boolean);
@@ -1375,11 +1378,63 @@ function openRatt(seaId,heure,date){
   document.getElementById('ratt-date-cours').value='';
   openMo('mo-ratt');
 }
+function editRatt(affId,seaId,heure,date){
+  const aff=C.aff.find(a=>a.id===affId);if(!aff)return;
+  document.getElementById('ratt-sid').value=seaId;
+  document.getElementById('ratt-aff-id').value=affId;
+  document.getElementById('ratt-title').textContent='✏️ Modifier le rattrapage';
+  document.getElementById('ratt-save-btn').textContent='Enregistrer';
+  // Cavaliers : tous sélectionnables sauf ceux déjà dans la séance (sauf le cavalier actuel)
+  const ex=C.aff.filter(a=>a.seance_id===seaId&&a.id!==affId).map(a=>a.cavalier_id);
+  document.getElementById('ratt-cav').innerHTML='<option value="">— Sélectionner —</option>'+[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>{
+    const grps=getCavGroups(c.id).map(gid=>C.grp.find(x=>x.id===gid)?.nom).filter(Boolean);
+    return`<option value="${c.id}"${ex.includes(c.id)?' disabled':''}${aff.cavalier_id===c.id?' selected':''}>${c.prenom}${grps.length?' ('+grps.join(', ')+')':''}`;
+  }).join('');
+  // Chevaux
+  const pris=new Set();
+  C.sea.filter(s=>(s.heure||s.groupes?.heure||'').slice(0,5)===heure)
+    .forEach(s=>C.aff.filter(a=>a.seance_id===s.id&&a.equide_id&&!a.absent&&a.id!==affId)
+    .forEach(a=>pris.add(a.equide_id)));
+  const statsDuJour=statutsActifsADate(date);
+  document.getElementById('ratt-chv').innerHTML='<option value="">— Non attribué —</option>'+C.chv.filter(c=>!c.hors_cours).map(c=>{
+    const p=pris.has(c.id);const st=statsDuJour.find(x=>x.equide_id===c.id);
+    const hSem=C.affSem.filter(a=>a.equide_id===c.id).length;const maxH=+(c.heures_prev||0);
+    const depasse=maxH>0&&(hSem+1)>maxH;
+    let suffix='';
+    if(p) suffix=' ✗ pris';
+    else{if(st)suffix=` ⚠️ ${SLBL[st.type]||'statut'}`;if(depasse)suffix+=(suffix?' · ':' ')+'⏱ '+hSem+'h/'+maxH+'h';}
+    return`<option value="${c.id}"${aff.equide_id===c.id?' selected':''}${p?' disabled':''}>${c.nom}${suffix}`;
+  }).join('');
+  document.getElementById('ratt-date-cours').value=aff.date_cours_rattrape||'';
+  openMo('mo-ratt');
+}
+
 async function saveRatt(){
-  const seaId=v('ratt-sid'),cavId=v('ratt-cav'),chvId=v('ratt-chv'),dateCoursRattrape=v('ratt-date-cours')||null;
+  const seaId=v('ratt-sid'),cavId=v('ratt-cav'),chvId=v('ratt-chv')||null,dateCoursRattrape=v('ratt-date-cours')||null,affId=v('ratt-aff-id');
   if(!cavId){toast('Choisissez un cavalier','err');return;}
-  await dbIns('affectations_seance',{seance_id:seaId,cavalier_id:cavId,equide_id:chvId||null,absent:false,rattrapage:true,date_cours_rattrape:dateCoursRattrape});
-  toast('Rattrapage ajouté','ok');closeMo('mo-ratt');await loadSeances(v('sea-date'));
+  if(affId){
+    // Mode modification
+    const old=C.aff.find(a=>a.id===affId);
+    // Gérer changement de cheval (heures réelles)
+    if(old?.equide_id&&old.equide_id!==chvId){
+      const oc=C.chv.find(c=>c.id===old.equide_id);
+      if(oc){const h2=Math.max(0,(oc.heures_reel||0)-1);await dbUpd('equides',{heures_reel:h2},[{col:'id',op:'eq',val:oc.id}]);oc.heures_reel=h2;}
+    }
+    if(chvId&&chvId!==old?.equide_id){
+      const chv=C.chv.find(c=>c.id===chvId);
+      if(chv){const h2=(chv.heures_reel||0)+1;await dbUpd('equides',{heures_reel:h2},[{col:'id',op:'eq',val:chvId}]);chv.heures_reel=h2;}
+    }
+    await dbUpd('affectations_seance',{cavalier_id:cavId,equide_id:chvId,date_cours_rattrape:dateCoursRattrape},[{col:'id',op:'eq',val:affId}]);
+    // Mettre à jour le cache historique si chargé
+    const hr=_histRattrapages.find(x=>x.id===affId);
+    if(hr){hr.date_cours_rattrape=dateCoursRattrape;if(hr.cavaliers)hr.cavaliers.prenom=C.cav.find(c=>c.id===cavId)?.prenom||hr.cavaliers.prenom;if(hr.equides)hr.equides.nom=chvId?C.chv.find(c=>c.id===chvId)?.nom:'';else if(chvId)hr.equides={nom:C.chv.find(c=>c.id===chvId)?.nom||'?'};}
+    toast('Rattrapage modifié','ok');
+  }else{
+    // Mode création
+    await dbIns('affectations_seance',{seance_id:seaId,cavalier_id:cavId,equide_id:chvId,absent:false,rattrapage:true,date_cours_rattrape:dateCoursRattrape});
+    toast('Rattrapage ajouté','ok');
+  }
+  closeMo('mo-ratt');await loadSeances(v('sea-date'));
 }
 
 // Moniteur 2
@@ -2014,6 +2069,7 @@ function renderRattrapages(){
         <td>${a.date_cours_rattrape?fmtDate(a.date_cours_rattrape):'<span style="color:var(--muted)">—</span>'}</td>
         <td>${a.equides?.nom?`🐎 ${a.equides.nom}`:'<span style="color:var(--muted)">—</span>'}</td>
         <td>${g?`<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${il?'#3a3028':'#fff'}">${g.nom}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+        <td><button class="btn btn-g sm" onclick="editRattHist('${a.id}')">✏️</button></td>
       </tr>`;
     }).join(''):'<tr class="er"><td colspan="5">Aucun résultat</td></tr>';
     return;
@@ -2032,10 +2088,36 @@ function renderRattrapages(){
       <span style="font-size:12px;color:var(--muted);margin-left:4px" id="ratt-hist-count"></span>
     </div>
     <div class="tc"><table>
-      <thead><tr><th>Date séance</th><th>Cavalier</th><th>Cours rattrapé</th><th>Cheval</th><th>Groupe</th></tr></thead>
+      <thead><tr><th>Date séance</th><th>Cavalier</th><th>Cours rattrapé</th><th>Cheval</th><th>Groupe</th><th></th></tr></thead>
       <tbody id="ratt-hist-tbody"></tbody>
     </table></div>`;
   renderRattrapages();
+}
+
+function editRattHist(affId){
+  const a=_histRattrapages.find(x=>x.id===affId);if(!a)return;
+  document.getElementById('ratt-sid').value=a.seance_id||'';
+  document.getElementById('ratt-aff-id').value=affId;
+  document.getElementById('ratt-title').textContent='✏️ Modifier le rattrapage';
+  document.getElementById('ratt-save-btn').textContent='Enregistrer';
+  // Cavaliers
+  document.getElementById('ratt-cav').innerHTML='<option value="">— Sélectionner —</option>'+[...C.cav].sort((x,y)=>x.prenom.localeCompare(y.prenom,'fr')).map(c=>`<option value="${c.id}"${a.cavalier_id===c.id?' selected':''}>${c.prenom}</option>`).join('');
+  // Chevaux
+  document.getElementById('ratt-chv').innerHTML='<option value="">— Non attribué —</option>'+C.chv.filter(c=>!c.hors_cours).map(c=>`<option value="${c.id}"${a.equide_id===c.id?' selected':''}>${c.nom}</option>`).join('');
+  document.getElementById('ratt-date-cours').value=a.date_cours_rattrape||'';
+  // Override save pour mettre à jour le cache hist
+  document.getElementById('ratt-save-btn').onclick=async()=>{
+    const cavId=v('ratt-cav'),chvId=v('ratt-chv')||null,dateCoursRattrape=v('ratt-date-cours')||null;
+    if(!cavId){toast('Choisissez un cavalier','err');return;}
+    await dbUpd('affectations_seance',{cavalier_id:cavId,equide_id:chvId,date_cours_rattrape:dateCoursRattrape},[{col:'id',op:'eq',val:affId}]);
+    a.cavalier_id=cavId;a.equide_id=chvId;a.date_cours_rattrape=dateCoursRattrape;
+    if(a.cavaliers)a.cavaliers.prenom=C.cav.find(c=>c.id===cavId)?.prenom||a.cavaliers.prenom;
+    a.equides=chvId?{nom:C.chv.find(c=>c.id===chvId)?.nom||'?'}:null;
+    toast('Rattrapage modifié','ok');closeMo('mo-ratt');
+    document.getElementById('ratt-save-btn').onclick=saveRatt;
+    renderRattrapages();
+  };
+  openMo('mo-ratt');
 }
 
 function renderReglements(){
