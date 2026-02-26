@@ -662,7 +662,17 @@ let C={grp:[],cav:[],cavGrp:[],chv:[],mon:[],sea:[],aff:[],statuts:[],stages:[],
 // ── Proxy ──
 async function dbReq(body){
   const r=await fetch('/api/db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  const j=await r.json();if(!r.ok)throw new Error(j.error||'Erreur serveur');return j;
+  const j=await r.json();
+  if(r.status===401||r.status===403){
+    // Token invalide (mot de passe changé) → effacer et redemander
+    localStorage.removeItem('ce_site_token');
+    localStorage.removeItem('ce_admin_active');
+    document.getElementById('site-login').style.display='flex';
+    document.getElementById('app').style.display='none';
+    document.getElementById('ld').style.display='none';
+    throw new Error('Session expirée, veuillez vous reconnecter.');
+  }
+  if(!r.ok)throw new Error(j.error||'Erreur serveur');return j;
 }
 async function dbSel(table,{select='*',filter=[],order=[]}={}){const r=await dbReq({action:'query',method:'select',table,select,filter,order});return r.data||[];}
 async function dbIns(table,data){return dbReq({action:'query',method:'insert',table,data,token:sessionToken});}
@@ -671,21 +681,11 @@ async function dbDel(table,filter){return dbReq({action:'query',method:'delete',
 
 // ── Init ──
 window.onload=async()=>{
-  // Vérifier le token site d'abord
+  // Si un token existe en local → accès direct, sans aucun appel réseau
+  // Le token ne peut être invalidé que si le mot de passe change côté serveur ;
+  // dans ce cas le premier vrai appel API retournera 401/403 et on déconnecte.
   const savedSite=localStorage.getItem('ce_site_token');
-  if(savedSite){
-    try{
-      const r=await fetch('/api/db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'verify',token:savedSite})});
-      const j=await r.json();
-      if(j&&j.ok){await initApp(savedSite);return;}
-      // Serveur a répondu ok:false → token expiré
-      localStorage.removeItem('ce_site_token');
-      localStorage.removeItem('ce_admin_token');
-    }catch{
-      // Erreur réseau / cold start → faire confiance au token local
-      await initApp(savedSite);return;
-    }
-  }
+  if(savedSite){await initApp(savedSite);return;}
   // Pas de token → afficher l'écran de connexion
 };
 
