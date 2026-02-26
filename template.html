@@ -604,10 +604,10 @@ tr:hover td{background:rgba(201,168,76,.12);}
 
 <!-- Absence -->
 <div class="mo" id="mo-abs"><div class="md" style="max-width:400px">
- <h3>❌ Marquer absent</h3><input type="hidden" id="abs-aff-id">
+ <h3 id="mo-abs-t">❌ Marquer absent</h3><input type="hidden" id="abs-aff-id">
  <div class="fg"><label>Motif <span style="color:var(--muted)">(optionnel)</span></label><input type="text" id="abs-motif" placeholder="Maladie, vacances…"></div>
  <div class="fg"><label>Date de rattrapage prévu <span style="color:var(--muted)">(optionnel)</span></label><input type="date" id="abs-ratt-date"></div>
- <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-abs')">Annuler</button><button class="btn btn-d" onclick="saveAbsence()">Confirmer l'absence</button></div>
+ <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-abs')">Annuler</button><button class="btn btn-d" id="abs-save-btn" onclick="saveAbsence()">Confirmer l'absence</button></div>
 </div></div>
 
 <!-- Moniteur 2 séance -->
@@ -695,7 +695,7 @@ async function chkSitePw(){
     const j=await r.json();
     if(j&&j.ok){
       localStorage.setItem('ce_site_token',j.token);
-      localStorage.setItem('ce_admin_token',j.token);
+      // NE PAS stocker ce_admin_token ici : l'admin doit se connecter séparément
       document.getElementById('site-login').style.display='none';
       await initApp(j.token);
     }else{
@@ -719,10 +719,21 @@ async function initApp(siteToken){
     await loadAll();
     document.getElementById('ld').style.display='none';
     document.getElementById('app').style.display='block';
-    // Le token site = même mdp que admin → activer admin automatiquement
-    sessionToken=siteToken;
-    localStorage.setItem('ce_admin_token',siteToken);
-    enableAdmin();
+    // Vérifier si un token admin existant est valide (reconnexion admin persistée)
+    const savedAdmin=localStorage.getItem('ce_admin_token');
+    if(savedAdmin){
+      try{
+        const r=await fetch('/api/db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'verify',token:savedAdmin})});
+        const j=await r.json();
+        if(j&&j.ok){sessionToken=savedAdmin;enableAdmin();return;}
+        else{localStorage.removeItem('ce_admin_token');}
+      }catch{
+        // Erreur réseau : faire confiance au token local
+        sessionToken=savedAdmin;enableAdmin();return;
+      }
+    }
+    // Aller sur la vue planning (pas admin)
+    go('vue');
   }catch(e){
     const s=document.getElementById('ld-sub');s.textContent='Erreur : '+(e.message||e);s.style.color='#b43728';
     document.querySelector('#ld .spin').style.display='none';console.error(e);
@@ -778,10 +789,13 @@ function enableAdmin(){
   isAdmin=true;document.getElementById('admin-banner').classList.add('show');
   document.getElementById('mc').classList.add('wb');document.getElementById('anav').style.display='block';
   document.getElementById('atbtn').textContent='🔒 Quitter admin';document.getElementById('atbtn').classList.add('on');
+  if(sessionToken)localStorage.setItem('ce_admin_token',sessionToken);
   renderCavaliers();go('dash');toast('Mode admin activé','ok');
 }
 function logoutAdmin(){
-  isAdmin=false;sessionToken='';document.getElementById('admin-banner').classList.remove('show');
+  isAdmin=false;sessionToken='';
+  localStorage.removeItem('ce_admin_token');
+  document.getElementById('admin-banner').classList.remove('show');
   document.getElementById('mc').classList.remove('wb');document.getElementById('anav').style.display='none';
   document.getElementById('atbtn').textContent='🔑 Mode administrateur';document.getElementById('atbtn').classList.remove('on');
   renderCavaliers();go('vue');toast('Déconnecté','ok');
@@ -894,13 +908,19 @@ function startVueRefresh(){
   const base=document.getElementById('pub-date')?.value;
   const todayStr=new Date().toISOString().split('T')[0];
   if(!base||base!==todayStr||isAdmin)return; // seulement vue client aujourd'hui
-  // Calcule le temps jusqu'à la prochaine minute
+  // Calcule le temps jusqu'au prochain tick à HH:00 ou HH:30
   const now=new Date();
-  const msUntilNextMin=(60-now.getSeconds())*1000-now.getMilliseconds();
+  const minutes=now.getMinutes();
+  const seconds=now.getSeconds();
+  const ms=now.getMilliseconds();
+  // Prochain multiple de 30 min (0 ou 30)
+  const nextTick=minutes<30?30:60; // 30 → :30, sinon :00 de l'heure suivante
+  const msUntilNextTick=((nextTick-minutes)*60-seconds)*1000-ms+500; // +500ms marge
   _vueRefreshTimer=setTimeout(()=>{
     loadVue();
-    _vueRefreshTimer=setInterval(loadVue,60000);
-  },msUntilNextMin);
+    // Relancer pour le prochain tick 30 min plus tard
+    _vueRefreshTimer=setInterval(loadVue,30*60*1000);
+  },msUntilNextTick);
 }
 function stopVueRefresh(){
   if(_vueRefreshTimer){clearTimeout(_vueRefreshTimer);clearInterval(_vueRefreshTimer);_vueRefreshTimer=null;}
@@ -1217,7 +1237,7 @@ function renderSeances(){
         </div>
         <div style="display:flex;gap:4px;margin-left:auto">
           ${aff.absent
-            ?`<button class="btn btn-g sm" onclick="togAbs('${aff.id}',false,'${s.id}')">✅</button>`
+            ?`<button class="btn btn-g sm" onclick="togAbs('${aff.id}',false,'${s.id}')">✅</button><button class="btn btn-g sm" onclick="editAbsModal('${aff.id}')">✏️</button>`
             :`<button class="btn btn-o sm" onclick="openAbsModal('${aff.id}','${s.id}')">❌</button>`}
           ${aff.rattrapage?`<button class="btn btn-d sm" onclick="delAff('${aff.id}','${s.id}')">🗑</button>`:''}
         </div>
@@ -1290,15 +1310,36 @@ function openAbsModal(affId,seaId){
   document.getElementById('abs-aff-id').value=affId;
   document.getElementById('abs-motif').value='';
   document.getElementById('abs-ratt-date').value='';
+  document.getElementById('mo-abs-t').textContent='❌ Marquer absent';
+  document.getElementById('abs-save-btn').textContent="Confirmer l'absence";
+  document.getElementById('abs-save-btn').className='btn btn-d';
+  openMo('mo-abs');
+}
+function editAbsModal(affId){
+  const aff=C.aff.find(a=>a.id===affId);if(!aff)return;
+  document.getElementById('abs-aff-id').value=affId;
+  document.getElementById('abs-motif').value=aff.motif_absence||'';
+  document.getElementById('abs-ratt-date').value=aff.date_rattrapage||'';
+  document.getElementById('mo-abs-t').textContent='✏️ Modifier l\'absence';
+  document.getElementById('abs-save-btn').textContent='Enregistrer';
+  document.getElementById('abs-save-btn').className='btn btn-p';
   openMo('mo-abs');
 }
 async function saveAbsence(){
   const affId=v('abs-aff-id'),motif=v('abs-motif')||null,rattDate=v('abs-ratt-date')||null;
-  // décrémente cheval si assigné
-  const old=C.aff.find(a=>a.id===affId);
-  if(old?.equide_id){const oldChv=C.chv.find(c=>c.id===old.equide_id);if(oldChv){const h2=Math.max(0,(oldChv.heures_reel||0)-1);await dbUpd('equides',{heures_reel:h2},[{col:'id',op:'eq',val:old.equide_id}]);oldChv.heures_reel=h2;}}
-  await dbUpd('affectations_seance',{absent:true,equide_id:null,motif_absence:motif,date_rattrapage:rattDate},[{col:'id',op:'eq',val:affId}]);
-  toast('Absent','ok');closeMo('mo-abs');await loadSeances(v('sea-date'));
+  const aff=C.aff.find(a=>a.id===affId);
+  const isAlreadyAbsent=aff?.absent;
+  if(!isAlreadyAbsent){
+    // décrémente cheval si assigné
+    if(aff?.equide_id){const oldChv=C.chv.find(c=>c.id===aff.equide_id);if(oldChv){const h2=Math.max(0,(oldChv.heures_reel||0)-1);await dbUpd('equides',{heures_reel:h2},[{col:'id',op:'eq',val:aff.equide_id}]);oldChv.heures_reel=h2;}}
+    await dbUpd('affectations_seance',{absent:true,equide_id:null,motif_absence:motif,date_rattrapage:rattDate},[{col:'id',op:'eq',val:affId}]);
+    toast('Absent enregistré','ok');
+  } else {
+    // Modification d'une absence existante
+    await dbUpd('affectations_seance',{motif_absence:motif,date_rattrapage:rattDate},[{col:'id',op:'eq',val:affId}]);
+    toast('Absence modifiée','ok');
+  }
+  closeMo('mo-abs');await loadSeances(v('sea-date'));
 }
 async function togAbs(id,val,seaId){
   if(val){openAbsModal(id,seaId);return;}
@@ -1867,7 +1908,24 @@ function renderHistorique(){
     renderHistorique();
   } else {
     const absF=(document.getElementById('hist-abs-cav-f')?.value||'').toLowerCase();
-    const filtered=_histAbsences.filter(a=>!absF||(a.cavaliers?.prenom||'').toLowerCase().includes(absF));
+    const motifF=(document.getElementById('hist-abs-motif-f')?.value||'').toLowerCase();
+    const rattF=(document.getElementById('hist-abs-ratt-f')?.value||'');
+    const sortF=(document.getElementById('hist-abs-sort')?.value||'date-desc');
+    let filtered=_histAbsences.filter(a=>{
+      if(absF&&!(a.cavaliers?.prenom||'').toLowerCase().includes(absF))return false;
+      if(motifF&&!(a.motif_absence||'').toLowerCase().includes(motifF))return false;
+      if(rattF&&a.date_rattrapage!==rattF)return false;
+      return true;
+    });
+    // Tri
+    filtered=[...filtered].sort((a,b)=>{
+      if(sortF==='date-asc') return(a.seances?.date||'').localeCompare(b.seances?.date||'');
+      if(sortF==='date-desc') return(b.seances?.date||'').localeCompare(a.seances?.date||'');
+      if(sortF==='ratt-asc') return(a.date_rattrapage||'zzz').localeCompare(b.date_rattrapage||'zzz');
+      if(sortF==='ratt-desc') return(b.date_rattrapage||'').localeCompare(a.date_rattrapage||'');
+      if(sortF==='motif') return(a.motif_absence||'').localeCompare(b.motif_absence||'','fr');
+      return 0;
+    });
     const tbody=document.getElementById('hist-abs-tbody');
     if(tbody){
       tbody.innerHTML=filtered.length?filtered.map(a=>`<tr>
@@ -1878,18 +1936,51 @@ function renderHistorique(){
         <td>${a.rattrapage_effectue
           ?`<span class="b bg">✅ Oui</span> <button class="btn btn-g sm" onclick="toggleRattEffectue('${a.id}',false)">↩</button>`
           :`<button class="btn btn-o sm" onclick="toggleRattEffectue('${a.id}',true)">Marquer effectué</button>`}
-        </td></tr>`).join(''):'<tr class="er"><td colspan="5">Aucune absence</td></tr>';
+        </td>
+        <td><button class="btn btn-g sm" onclick="openEditAbsHist('${a.id}')">✏️</button></td>
+        </tr>`).join(''):'<tr class="er"><td colspan="6">Aucune absence</td></tr>';
       return;
     }
     // Premier rendu
     el.innerHTML=`
       <div class="hist-filters">
-        <input id="hist-abs-cav-f" placeholder="Filtrer cavalier…" oninput="renderHistorique()" style="width:180px">
+        <input id="hist-abs-cav-f" placeholder="Filtrer cavalier…" oninput="renderHistorique()" style="width:160px">
+        <input id="hist-abs-motif-f" placeholder="Filtrer motif…" oninput="renderHistorique()" style="width:150px">
+        <input type="date" id="hist-abs-ratt-f" onchange="renderHistorique()" title="Filtrer par date de rattrapage" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:Arial,sans-serif;font-size:12px;outline:none">
+        <select id="hist-abs-sort" onchange="renderHistorique()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:Arial,sans-serif;font-size:12px;outline:none">
+          <option value="date-desc">Date (récent → ancien)</option>
+          <option value="date-asc">Date (ancien → récent)</option>
+          <option value="ratt-asc">Rattrapage (proche → loin)</option>
+          <option value="ratt-desc">Rattrapage (loin → proche)</option>
+          <option value="motif">Motif (A → Z)</option>
+        </select>
       </div>
-      <div class="tc"><table><thead><tr><th>Date</th><th>Cavalier</th><th>Motif</th><th>Rattrapage prévu</th><th>Effectué ?</th></tr></thead>
+      <div class="tc"><table><thead><tr><th>Date</th><th>Cavalier</th><th>Motif</th><th>Rattrapage prévu</th><th>Effectué ?</th><th></th></tr></thead>
       <tbody id="hist-abs-tbody"></tbody></table></div>`;
     renderHistorique();
   }
+}
+
+function openEditAbsHist(affId){
+  // Cherche dans le cache historique absences
+  const a=_histAbsences.find(x=>x.id===affId);if(!a)return;
+  document.getElementById('abs-aff-id').value=affId;
+  document.getElementById('abs-motif').value=a.motif_absence||'';
+  document.getElementById('abs-ratt-date').value=a.date_rattrapage||'';
+  document.getElementById('mo-abs-t').textContent='✏️ Modifier l\'absence';
+  document.getElementById('abs-save-btn').textContent='Enregistrer';
+  document.getElementById('abs-save-btn').className='btn btn-p';
+  // Override saveAbsence pour mettre à jour le cache hist
+  document.getElementById('abs-save-btn').onclick=async()=>{
+    const motif=v('abs-motif')||null,rattDate=v('abs-ratt-date')||null;
+    await dbUpd('affectations_seance',{motif_absence:motif,date_rattrapage:rattDate},[{col:'id',op:'eq',val:affId}]);
+    // Update cache
+    a.motif_absence=motif;a.date_rattrapage=rattDate;
+    toast('Absence modifiée','ok');closeMo('mo-abs');renderHistorique();
+    // Remettre le onclick par défaut
+    document.getElementById('abs-save-btn').onclick=saveAbsence;
+  };
+  openMo('mo-abs');
 }
 
 async function toggleRattEffectue(affId,val){
