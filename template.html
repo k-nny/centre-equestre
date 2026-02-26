@@ -661,10 +661,22 @@ let C={grp:[],cav:[],cavGrp:[],chv:[],mon:[],sea:[],aff:[],statuts:[],stages:[],
 
 // ── Proxy ──
 async function dbReq(body){
-  const r=await fetch('/api/db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  const j=await r.json();
+  let r,j;
+  try{
+    r=await fetch('/api/db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  }catch(e){
+    // Erreur réseau pure (pas de connexion, cold start timeout…) → ne pas effacer le token
+    throw new Error('Erreur réseau : '+e.message);
+  }
+  try{
+    j=await r.json();
+  }catch(e){
+    // Réponse non-JSON (page d'erreur Vercel, etc.) → ne pas effacer le token
+    throw new Error('Réponse invalide du serveur (code '+r.status+')');
+  }
   if(r.status===401||r.status===403){
-    // Token invalide (mot de passe changé) → effacer et redemander
+    // Uniquement si le serveur répond explicitement 401/403 avec JSON valide
+    // = le mot de passe a changé → forcer reconnexion
     localStorage.removeItem('ce_site_token');
     localStorage.removeItem('ce_admin_active');
     document.getElementById('site-login').style.display='flex';
@@ -716,6 +728,7 @@ async function initApp(siteToken){
   ['pub-date','sea-date'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=today;});
   document.getElementById('pub-lbl').textContent=fmtL(today);
   const tdl=document.getElementById('td-lbl');if(tdl)tdl.textContent=fmtL(today);
+  document.getElementById('site-login').style.display='none'; // masquer l'écran de connexion dans tous les cas
   document.getElementById('ld').style.display='flex';
   try{
     await chargerVacancesZoneA();
