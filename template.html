@@ -698,23 +698,28 @@ function fnv32Client(str){let h=0x811c9dc5;for(let i=0;i<str.length;i++){h^=str.
 window.onload=async()=>{
   const savedSite=localStorage.getItem('ce_site_token');
   if(savedSite){
-    // Vérification légère : ping pour détecter si le mot de passe a changé
-    // Si le ping échoue (réseau, cold start), on fait quand même confiance au token local
+    // Ping : vérifier que le mot de passe n'a pas changé côté serveur
+    // Si le ping échoue (réseau, cold start) → on fait confiance au token local
     try{
       const r=await fetch('/api/db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'ping'})});
       if(r.ok){
         const j=await r.json();
-        const storedHash=localStorage.getItem('ce_pw_hash')||'';
-        if(storedHash&&j.hash&&j.hash!==storedHash){
+        const storedHash=localStorage.getItem('ce_pw_hash');
+        if(!storedHash){
+          // Première fois avec ce système → stocker le hash et continuer
+          localStorage.setItem('ce_pw_hash',j.hash);
+        } else if(j.hash!==storedHash){
           // Mot de passe changé → forcer reconnexion sur tous les appareils
           localStorage.removeItem('ce_site_token');
           localStorage.removeItem('ce_pw_hash');
           localStorage.removeItem('ce_admin_active');
           return; // affiche l'écran de connexion
         }
+      }else{
+        // Serveur répond mais erreur (ex: 500) → accès direct sans bloquer
       }
     }catch{
-      // Erreur réseau → accès direct sans vérification
+      // Erreur réseau / cold start → accès direct sans vérification
     }
     await initApp(savedSite);return;
   }
