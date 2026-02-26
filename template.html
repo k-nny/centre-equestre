@@ -2002,6 +2002,8 @@ function renderHistorique(){
       if(sortF==='ratt-asc') return(a.date_rattrapage||'zzz').localeCompare(b.date_rattrapage||'zzz');
       if(sortF==='ratt-desc') return(b.date_rattrapage||'').localeCompare(a.date_rattrapage||'');
       if(sortF==='motif') return(a.motif_absence||'').localeCompare(b.motif_absence||'','fr');
+      if(sortF==='effectue-oui') return(b.rattrapage_effectue?1:0)-(a.rattrapage_effectue?1:0);
+      if(sortF==='effectue-non') return(a.rattrapage_effectue?1:0)-(b.rattrapage_effectue?1:0);
       return 0;
     });
     const tbody=document.getElementById('hist-abs-tbody');
@@ -2031,6 +2033,8 @@ function renderHistorique(){
           <option value="ratt-asc">Rattrapage (proche → loin)</option>
           <option value="ratt-desc">Rattrapage (loin → proche)</option>
           <option value="motif">Motif (A → Z)</option>
+          <option value="effectue-oui">Rattrapages effectués en premier</option>
+          <option value="effectue-non">Non effectués en premier</option>
         </select>
       </div>
       <div class="tc"><table><thead><tr><th>Date</th><th>Cavalier</th><th>Motif</th><th>Rattrapage prévu</th><th>Effectué ?</th><th></th></tr></thead>
