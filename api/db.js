@@ -46,6 +46,13 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok });
     }
 
+    // Ping : retourne un hash public du mot de passe pour détecter un changement
+    // Sans révéler le mot de passe — le client compare juste le hash stocké
+    if (body.action === 'ping') {
+      const hash = fnv32(ADMIN_PWD).toString(16);
+      return res.status(200).json({ hash });
+    }
+
     // ── Route : proxy Supabase (toutes les autres requêtes) ───────────
     // { action: 'query', table, method, filter, data, token }
     if (body.action === 'query') {

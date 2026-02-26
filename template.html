@@ -692,12 +692,32 @@ async function dbUpd(table,data,filter){return dbReq({action:'query',method:'upd
 async function dbDel(table,filter){return dbReq({action:'query',method:'delete',table,filter,token:sessionToken});}
 
 // ── Init ──
+// FNV32 côté client — même algo que db.js, pour hasher le mot de passe localement
+function fnv32Client(str){let h=0x811c9dc5;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=(h*0x01000193)>>>0;}return h.toString(16);}
+
 window.onload=async()=>{
-  // Si un token existe en local → accès direct, sans aucun appel réseau
-  // Le token ne peut être invalidé que si le mot de passe change côté serveur ;
-  // dans ce cas le premier vrai appel API retournera 401/403 et on déconnecte.
   const savedSite=localStorage.getItem('ce_site_token');
-  if(savedSite){await initApp(savedSite);return;}
+  if(savedSite){
+    // Vérification légère : ping pour détecter si le mot de passe a changé
+    // Si le ping échoue (réseau, cold start), on fait quand même confiance au token local
+    try{
+      const r=await fetch('/api/db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'ping'})});
+      if(r.ok){
+        const j=await r.json();
+        const storedHash=localStorage.getItem('ce_pw_hash')||'';
+        if(storedHash&&j.hash&&j.hash!==storedHash){
+          // Mot de passe changé → forcer reconnexion sur tous les appareils
+          localStorage.removeItem('ce_site_token');
+          localStorage.removeItem('ce_pw_hash');
+          localStorage.removeItem('ce_admin_active');
+          return; // affiche l'écran de connexion
+        }
+      }
+    }catch{
+      // Erreur réseau → accès direct sans vérification
+    }
+    await initApp(savedSite);return;
+  }
   // Pas de token → afficher l'écran de connexion
 };
 
@@ -710,7 +730,9 @@ async function chkSitePw(){
     const j=await r.json();
     if(j&&j.ok){
       localStorage.setItem('ce_site_token',j.token);
-      // NE PAS stocker ce_admin_token ici : l'admin doit se connecter séparément
+      // Stocker le hash du mot de passe pour détecter un changement ultérieur
+      const ph=fnv32Client(pw);
+      localStorage.setItem('ce_pw_hash',ph);
       document.getElementById('site-login').style.display='none';
       await initApp(j.token);
     }else{
