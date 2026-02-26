@@ -719,20 +719,14 @@ async function initApp(siteToken){
     await loadAll();
     document.getElementById('ld').style.display='none';
     document.getElementById('app').style.display='block';
-    // Vérifier si un token admin existant est valide (reconnexion admin persistée)
-    const savedAdmin=localStorage.getItem('ce_admin_token');
-    if(savedAdmin){
-      try{
-        const r=await fetch('/api/db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'verify',token:savedAdmin})});
-        const j=await r.json();
-        if(j&&j.ok){sessionToken=savedAdmin;enableAdmin();return;}
-        else{localStorage.removeItem('ce_admin_token');}
-      }catch{
-        // Erreur réseau : faire confiance au token local
-        sessionToken=savedAdmin;enableAdmin();return;
-      }
+    // Restaurer le mode admin seulement si l'utilisateur l'avait explicitement activé
+    // (flag posé par enableAdmin, effacé par logoutAdmin — indépendant du token site)
+    if(localStorage.getItem('ce_admin_active')==='1'){
+      sessionToken=siteToken;
+      enableAdmin();
+      return;
     }
-    // Aller sur la vue planning (pas admin)
+    // Sinon : vue planning normale, sans admin
     go('vue');
   }catch(e){
     const s=document.getElementById('ld-sub');s.textContent='Erreur : '+(e.message||e);s.style.color='#b43728';
@@ -789,12 +783,12 @@ function enableAdmin(){
   isAdmin=true;document.getElementById('admin-banner').classList.add('show');
   document.getElementById('mc').classList.add('wb');document.getElementById('anav').style.display='block';
   document.getElementById('atbtn').textContent='🔒 Quitter admin';document.getElementById('atbtn').classList.add('on');
-  if(sessionToken)localStorage.setItem('ce_admin_token',sessionToken);
+  localStorage.setItem('ce_admin_active','1'); // flag : admin était actif
   renderCavaliers();go('dash');toast('Mode admin activé','ok');
 }
 function logoutAdmin(){
   isAdmin=false;sessionToken='';
-  localStorage.removeItem('ce_admin_token');
+  localStorage.removeItem('ce_admin_active'); // effacer le flag admin
   document.getElementById('admin-banner').classList.remove('show');
   document.getElementById('mc').classList.remove('wb');document.getElementById('anav').style.display='none';
   document.getElementById('atbtn').textContent='🔑 Mode administrateur';document.getElementById('atbtn').classList.remove('on');
