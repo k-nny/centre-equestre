@@ -377,6 +377,7 @@ tr:hover td{background:rgba(201,168,76,.12);}
     <div class="hist-tab">
      <button class="on" onclick="setHistTab('couples')">Couples Cav/Cheval</button>
      <button onclick="setHistTab('absences')">Absences</button>
+     <button onclick="setHistTab('reglements')">💰 Règlements</button>
     </div>
     <div id="hist-content"></div>
    </div>
@@ -1857,12 +1858,14 @@ async function saveExc(){
 // ══════════════════════════════════════════════════
 function setHistTab(tab){
   histTab=tab;
-  _histCouples=[];_histAbsences=[]; // reset cache pour forcer rechargement
-  document.querySelectorAll('.hist-tab button').forEach((b,i)=>{b.classList.toggle('on',(tab==='couples'&&i===0)||(tab==='absences'&&i===1));});
+  _histCouples=[];_histAbsences=[];_histReglements=null; // reset cache
+  document.querySelectorAll('.hist-tab button').forEach((b,i)=>{
+    b.classList.toggle('on',(tab==='couples'&&i===0)||(tab==='absences'&&i===1)||(tab==='reglements'&&i===2));
+  });
   loadHistorique();
 }
 // Cache données historique (chargé une fois, filtré en JS sans rechargement)
-let _histCouples=[];let _histAbsences=[];
+let _histCouples=[];let _histAbsences=[];let _histReglements=null;
 
 async function loadHistorique(){
   const el=document.getElementById('hist-content');if(!el)return;
@@ -1870,14 +1873,28 @@ async function loadHistorique(){
   if(histTab==='couples'){
     const aff=await dbSel('affectations_seance',{select:'*,cavaliers(prenom),equides(nom),seances(date,groupe_id)',order:[{col:'created_at',asc:false}]});
     _histCouples=aff.filter(a=>a.equide_id&&a.cavaliers&&a.equides&&a.seances);
-  } else {
+  } else if(histTab==='absences'){
     _histAbsences=await dbSel('affectations_seance',{select:'*,cavaliers(prenom),seances(date)',filter:[{col:'absent',op:'eq',val:'true'}],order:[{col:'created_at',asc:false}]});
+  } else if(histTab==='reglements'){
+    // Cours exceptionnels avec montant
+    const exc=await dbSel('affectations_seance',{
+      select:'id,nom_exceptionnel,montant_exceptionnel,regle_exceptionnel,methode_paiement_exc,date_reglement_exc,seances(date,groupe_id)',
+      filter:[{col:'cours_exceptionnel',op:'eq',val:'true'}],
+      order:[{col:'created_at',asc:false}]
+    });
+    // Participants stages avec montant
+    const parts=await dbSel('stage_participants',{
+      select:'id,prenom,montant,regle,methode_paiement,date_reglement,stage_id',
+      order:[{col:'created_at',asc:false}]
+    });
+    _histReglements={exc, parts, stages: C.stages};
   }
   renderHistorique();
 }
 
 function renderHistorique(){
   const el=document.getElementById('hist-content');if(!el)return;
+  if(histTab==='reglements'){renderReglements();return;}
   if(histTab==='couples'){
     const cavF=(document.getElementById('hist-cav-f')?.value||'').toLowerCase();
     const chvF=(document.getElementById('hist-chv-f')?.value||'').toLowerCase();
@@ -1953,6 +1970,133 @@ function renderHistorique(){
       <tbody id="hist-abs-tbody"></tbody></table></div>`;
     renderHistorique();
   }
+}
+
+function renderReglements(){
+  const el=document.getElementById('hist-content');if(!el)return;
+  if(!_histReglements){el.innerHTML='<div class="ls"><div class="spin"></div></div>';return;}
+  const {exc,parts,stages}=_histReglements;
+  const filtreF=(document.getElementById('reg-filtre')?.value||'all');
+  const searchF=(document.getElementById('reg-search')?.value||'').toLowerCase();
+
+  // ── Section cours exceptionnels ──
+  let excFiltered=exc.filter(a=>{
+    if(filtreF==='regle'&&!a.regle_exceptionnel)return false;
+    if(filtreF==='attente'&&a.regle_exceptionnel)return false;
+    if(searchF&&!(a.nom_exceptionnel||'').toLowerCase().includes(searchF))return false;
+    return true;
+  });
+  const totalExcRegle=exc.filter(a=>a.regle_exceptionnel).reduce((s,a)=>s+(parseFloat(a.montant_exceptionnel)||0),0);
+  const totalExcAttente=exc.filter(a=>!a.regle_exceptionnel&&a.montant_exceptionnel).reduce((s,a)=>s+(parseFloat(a.montant_exceptionnel)||0),0);
+
+  // ── Section stages ──
+  let stagesHtml='';
+  for(const st of [...stages].sort((a,b)=>b.date_debut.localeCompare(a.date_debut))){
+    const stParts=parts.filter(p=>p.stage_id===st.id);
+    let partsFiltered=stParts.filter(p=>{
+      if(filtreF==='regle'&&!p.regle)return false;
+      if(filtreF==='attente'&&p.regle)return false;
+      if(searchF&&!(p.prenom||'').toLowerCase().includes(searchF))return false;
+      return true;
+    });
+    const totalRegle=stParts.filter(p=>p.regle).reduce((s,p)=>s+(parseFloat(p.montant)||0),0);
+    const totalAttente=stParts.filter(p=>!p.regle&&p.montant).reduce((s,p)=>s+(parseFloat(p.montant)||0),0);
+    const totalGlobal=stParts.reduce((s,p)=>s+(parseFloat(p.montant)||0),0);
+    if(partsFiltered.length===0&&(filtreF!=='all'||searchF))continue;
+    stagesHtml+=`<div class="tc" style="margin-bottom:20px">
+      <div class="tt" style="flex-wrap:wrap;gap:8px">
+        <div>
+          <h3>🏕 ${st.titre}</h3>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${fmtDate(st.date_debut)}${st.date_fin!==st.date_debut?' → '+fmtDate(st.date_fin):''}</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div style="text-align:right">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Total encaissé</div>
+            <div style="font-size:20px;font-weight:700;color:#1e7a40">${totalRegle.toFixed(0)}€</div>
+          </div>
+          ${totalAttente>0?`<div style="text-align:right">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">En attente</div>
+            <div style="font-size:20px;font-weight:700;color:#b46414">${totalAttente.toFixed(0)}€</div>
+          </div>`:''}
+          ${totalGlobal>0?`<div style="text-align:right;border-left:1px solid var(--border);padding-left:10px">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Total prévu</div>
+            <div style="font-size:20px;font-weight:700;color:var(--gold)">${totalGlobal.toFixed(0)}€</div>
+          </div>`:''}
+        </div>
+      </div>
+      <table><thead><tr><th>Participant</th><th>Montant</th><th>Statut</th><th>Méthode</th><th>Date règlement</th></tr></thead>
+      <tbody>${partsFiltered.length?[...partsFiltered].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(p=>`<tr>
+        <td><strong>${p.prenom}</strong></td>
+        <td>${p.montant!=null?`<strong>${parseFloat(p.montant).toFixed(0)}€</strong>`:'<span style="color:var(--muted)">—</span>'}</td>
+        <td>${p.regle?'<span class="b bg">✅ Réglé</span>':'<span class="b br">⏳ En attente</span>'}</td>
+        <td>${p.methode_paiement||'<span style="color:var(--muted)">—</span>'}</td>
+        <td>${p.date_reglement?fmtDate(p.date_reglement):'<span style="color:var(--muted)">—</span>'}</td>
+      </tr>`).join(''):'<tr class="er"><td colspan="5">Aucun participant</td></tr>'}</tbody>
+      </table>
+    </div>`;
+  }
+
+  // ── Cours exceptionnels ──
+  const excHtml=`<div class="tc" style="margin-bottom:20px">
+    <div class="tt" style="flex-wrap:wrap;gap:8px">
+      <div><h3>⭐ Cours exceptionnels</h3></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div style="text-align:right">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Total encaissé</div>
+          <div style="font-size:20px;font-weight:700;color:#1e7a40">${totalExcRegle.toFixed(0)}€</div>
+        </div>
+        ${totalExcAttente>0?`<div style="text-align:right">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">En attente</div>
+          <div style="font-size:20px;font-weight:700;color:#b46414">${totalExcAttente.toFixed(0)}€</div>
+        </div>`:''}
+      </div>
+    </div>
+    <table><thead><tr><th>Nom</th><th>Date séance</th><th>Groupe</th><th>Montant</th><th>Statut</th><th>Méthode</th><th>Date règlement</th></tr></thead>
+    <tbody>${excFiltered.length?excFiltered.map(a=>{
+      const g=C.grp.find(x=>x.id===a.seances?.groupe_id);
+      const c=g?.couleur||'#c9a84c';const il=g?isLightColor(c):false;
+      return`<tr>
+        <td><strong>${a.nom_exceptionnel||'?'}</strong></td>
+        <td>${fmtDate(a.seances?.date||'')}</td>
+        <td>${g?`<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${il?'#3a3028':'#fff'}">${g.nom}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+        <td>${a.montant_exceptionnel!=null?`<strong>${parseFloat(a.montant_exceptionnel).toFixed(0)}€</strong>`:'<span style="color:var(--muted)">—</span>'}</td>
+        <td>${a.regle_exceptionnel?'<span class="b bg">✅ Réglé</span>':'<span class="b br">⏳ En attente</span>'}</td>
+        <td>${a.methode_paiement_exc||'<span style="color:var(--muted)">—</span>'}</td>
+        <td>${a.date_reglement_exc?fmtDate(a.date_reglement_exc):'<span style="color:var(--muted)">—</span>'}</td>
+      </tr>`;
+    }).join(''):'<tr class="er"><td colspan="7">Aucun résultat</td></tr>'}</tbody>
+    </table>
+  </div>`;
+
+  // ── Totaux globaux ──
+  const grandTotalRegle=totalExcRegle+stages.reduce((s,st)=>s+parts.filter(p=>p.stage_id===st.id&&p.regle).reduce((s2,p)=>s2+(parseFloat(p.montant)||0),0),0);
+  const grandTotalAttente=totalExcAttente+stages.reduce((s,st)=>s+parts.filter(p=>p.stage_id===st.id&&!p.regle&&p.montant).reduce((s2,p)=>s2+(parseFloat(p.montant)||0),0),0);
+
+  const existingContent=document.getElementById('reg-content');
+  if(existingContent){
+    existingContent.innerHTML=stagesHtml+excHtml;
+    return;
+  }
+  el.innerHTML=`
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+      <input id="reg-search" placeholder="Rechercher un nom…" oninput="renderReglements()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px;color:var(--text);font-family:Arial,sans-serif;font-size:12px;outline:none;width:200px">
+      <select id="reg-filtre" onchange="renderReglements()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px;color:var(--text);font-family:Arial,sans-serif;font-size:12px;outline:none">
+        <option value="all">Tous les règlements</option>
+        <option value="regle">✅ Réglés seulement</option>
+        <option value="attente">⏳ En attente seulement</option>
+      </select>
+      <div style="margin-left:auto;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+        <div style="text-align:right">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Total encaissé</div>
+          <div style="font-size:22px;font-weight:700;color:#1e7a40" id="reg-total-regle">${grandTotalRegle.toFixed(0)}€</div>
+        </div>
+        ${grandTotalAttente>0?`<div style="text-align:right">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">En attente</div>
+          <div style="font-size:22px;font-weight:700;color:#b46414">${grandTotalAttente.toFixed(0)}€</div>
+        </div>`:''}
+      </div>
+    </div>
+    <div id="reg-content">${stagesHtml+excHtml}</div>`;
 }
 
 function openEditAbsHist(affId){
