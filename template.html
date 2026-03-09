@@ -457,6 +457,7 @@ tr:hover td{background:rgba(201,168,76,.12);}
   <div class="fg"><label>Année de naissance</label><input type="number" id="chv-annee" min="1980" max="2025" placeholder="2015"></div>
  </div>
  <div class="fr">
+  <div class="fg"><label>Heures réelles semaine</label><input type="number" id="chv-h-reel" value="0" min="0" step="0.5"></div>
   <div class="fg"><label>Max heures / semaine</label><input type="number" id="chv-h-prev" value="0" min="0" step="0.5"></div>
  </div>
  <div class="fg"><label>Note visible par tous</label><textarea id="chv-note" placeholder="Informations, particularités…" rows="2"></textarea></div>
@@ -914,7 +915,7 @@ async function loadSeances(date){
   C.sea=await dbSel('seances',{select:'*,groupes(nom,heure,jour,moniteur_id,note,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)',filter:[{col:'date',op:'eq',val:date}],order:[{col:'heure'}]});
   if(C.sea.length){
     const iv=`(${C.sea.map(s=>`"${s.id}"`).join(',')})`;
-    C.aff=await dbSel('affectations_seance',{select:'*,cavaliers(prenom),equides(nom)',filter:[{col:'seance_id',op:'in',val:iv}]});
+    C.aff=await dbSel('affectations_seance',{select:'*,cavaliers(prenom,nom),equides(nom)',filter:[{col:'seance_id',op:'in',val:iv}]});
   }else C.aff=[];
   renderSeances();
 }
@@ -987,7 +988,7 @@ async function loadVue(){
   let affs=[];
   if(seances.length){
     const is=`(${seances.map(s=>`"${s.id}"`).join(',')})`;
-    affs=await dbSel('affectations_seance',{select:'*,cavaliers(prenom),equides(nom)',filter:[{col:'seance_id',op:'in',val:is}]});
+    affs=await dbSel('affectations_seance',{select:'*,cavaliers(prenom,nom),equides(nom)',filter:[{col:'seance_id',op:'in',val:is}]});
   }
   let stParts=[],stChvs=[];
   if(stgAll.length){
@@ -1015,7 +1016,7 @@ async function loadVue(){
     const rows=sorted.map((a,i)=>{
       const bg=i%2===0?'#fff':`${couleur}80`; // zèbre: blanc / couleur cours à 50%
       return`<div class="pcr ${a.absent?'abr':''}" style="background:${bg}">
-        <div class="pcn">${a.cavaliers?cap(a.cavaliers.prenom||''):a.nom_exceptionnel||'?'}${a.cours_exceptionnel?'<span class="rtag" style="background:var(--gold);color:#fff">excep.</span>':''}${a.rattrapage?`<span class="rtag">rattrap.${a.date_cours_rattrape?' '+fmtDate(a.date_cours_rattrape):''}</span>`:''}${a.absent?'<span class="b br" style="margin-left:5px;font-size:10px">absent</span>':''}</div>
+        <div class="pcn">${a.cavaliers?cap(a.cavaliers.prenom||'')+(a.cavaliers.nom?' '+a.cavaliers.nom.toUpperCase():''):a.nom_exceptionnel||'?'}${a.cours_exceptionnel?'<span class="rtag" style="background:var(--gold);color:#fff">excep.</span>':''}${a.rattrapage?`<span class="rtag">↩ ${a.date_cours_rattrape?fmtDate(a.date_cours_rattrape):'rattrap.'}</span>`:''}${a.absent?'<span class="b br" style="margin-left:5px;font-size:10px">absent</span>':''}</div>
         <div class="pch2">${a.absent?'<span style="color:var(--muted)">—</span>':`🐎 <strong>${a.equides?.nom||'Non attribué'}</strong>`}</div>
       </div>`;
     }).join('');
@@ -1271,8 +1272,8 @@ function renderSeances(){
         ?'rgba(251,146,60,0.08)'
         :aff.absent
           ?'rgba(220,38,38,0.04)'
-          :(rowIdx%2===0?'transparent':'rgba(0,0,0,0.022)');
-      const cavNom=aff.cavaliers?cap(aff.cavaliers.prenom||''):'?';
+          :(rowIdx%2===0?'transparent':couleur+'80');
+      const cavNom=aff.cavaliers?cap(aff.cavaliers.prenom||'')+(aff.cavaliers.nom?' '+aff.cavaliers.nom.toUpperCase():''):'?';
       return`<div class="cr" style="background:${rowBg};${isRatt?'border-left:3px solid #f59e0b':''}">
         <div class="cn ${aff.absent?'ab':''}">${cavNom}${isRatt?`<span class="b bo" style="margin-left:4px;font-size:10px">↩ ${aff.date_cours_rattrape?fmtDate(aff.date_cours_rattrape):'rattrap.'}</span>`:''}</div>
         <div style="flex:1;max-width:195px">${aff.absent?`<span style="color:var(--muted);font-size:12px">Absent${aff.motif_absence?' — '+aff.motif_absence:''}${aff.date_rattrapage?' (rattrap. '+fmtDate(aff.date_rattrapage)+')':''}</span>`:`
@@ -1374,7 +1375,7 @@ async function updChv(affId,cid,seaId,heure,date){
 // Absence modal
 function openAbsModal(affId,seaId){
   const aff=C.aff.find(a=>a.id===affId);
-  const nomCav=aff?.cavaliers?cap(aff.cavaliers.prenom||''):'?';
+  const nomCav=aff?.cavaliers?cap(aff.cavaliers.prenom||'')+(aff.cavaliers.nom?' '+aff.cavaliers.nom.toUpperCase():''):'?';
   document.getElementById('abs-aff-id').value=affId;
   document.getElementById('abs-motif').value='';
   document.getElementById('abs-ratt-date').value='';
@@ -1385,10 +1386,11 @@ function openAbsModal(affId,seaId){
 }
 function editAbsModal(affId){
   const aff=C.aff.find(a=>a.id===affId);if(!aff)return;
+  const nomCavEdit=aff.cavaliers?cap(aff.cavaliers.prenom||'')+(aff.cavaliers.nom?' '+aff.cavaliers.nom.toUpperCase():''):'?';
   document.getElementById('abs-aff-id').value=affId;
   document.getElementById('abs-motif').value=aff.motif_absence||'';
   document.getElementById('abs-ratt-date').value=aff.date_rattrapage||'';
-  document.getElementById('mo-abs-t').textContent='✏️ Modifier l\'absence';
+  document.getElementById('mo-abs-t').textContent=`✏️ Modifier l'absence (${nomCavEdit})`;
   document.getElementById('abs-save-btn').textContent='Enregistrer';
   document.getElementById('abs-save-btn').className='btn btn-p';
   openMo('mo-abs');
@@ -1432,7 +1434,7 @@ function openRatt(seaId,heure,date){
   const ex=C.aff.filter(a=>a.seance_id===seaId).map(a=>a.cavalier_id);
   document.getElementById('ratt-cav').innerHTML='<option value="">— Sélectionner —</option>'+[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>{
     const grps=getCavGroups(c.id).map(gid=>C.grp.find(x=>x.id===gid)?.nom).filter(Boolean);
-    return`<option value="${c.id}"${ex.includes(c.id)?' disabled':''}>${cap(c.prenom||'')}${grps.length?' ('+grps.join(', ')+')':''}`;
+    return`<option value="${c.id}"${ex.includes(c.id)?' disabled':''}>${cap(c.prenom||'')}${c.nom?' '+c.nom.toUpperCase():''}${grps.length?' ('+grps.join(', ')+')':''}`;
   }).join('');
   // Chevaux pris sur tout le créneau (toutes séances à cette heure)
   const pris=new Set();
@@ -1467,7 +1469,7 @@ function editRatt(affId,seaId,heure,date){
   const ex=C.aff.filter(a=>a.seance_id===seaId&&a.id!==affId).map(a=>a.cavalier_id);
   document.getElementById('ratt-cav').innerHTML='<option value="">— Sélectionner —</option>'+[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>{
     const grps=getCavGroups(c.id).map(gid=>C.grp.find(x=>x.id===gid)?.nom).filter(Boolean);
-    return`<option value="${c.id}"${ex.includes(c.id)?' disabled':''}${aff.cavalier_id===c.id?' selected':''}>${cap(c.prenom||'')}${grps.length?' ('+grps.join(', ')+')':''}`;
+    return`<option value="${c.id}"${ex.includes(c.id)?' disabled':''}${aff.cavalier_id===c.id?' selected':''}>${cap(c.prenom||'')}${c.nom?' '+c.nom.toUpperCase():''}${grps.length?' ('+grps.join(', ')+')':''}`;
   }).join('');
   // Chevaux
   const pris=new Set();
@@ -1833,7 +1835,7 @@ function openPart(sid){
   ['part-prenom','part-tel','part-note','part-montant','part-date-reg'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('part-methode').value='';
   document.getElementById('part-dj').value='journee';
-  document.getElementById('part-cav-ex').innerHTML='<option value="">— Saisie libre —</option>'+[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>`<option value="${c.id}">${cap(c.prenom||'')}</option>`).join('');
+  document.getElementById('part-cav-ex').innerHTML='<option value="">— Saisie libre —</option>'+[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>`<option value="${c.id}">${cap(c.prenom||'')}${c.nom?' '+c.nom.toUpperCase():''}</option>`).join('');
   const stage=C.stages.find(s=>s.id===sid);
   // Chevaux déjà attribués à un participant de ce stage
   const prisStage=new Set(C.parts.filter(p=>p.stage_id===sid&&p.equide_id).map(p=>p.equide_id));
@@ -1856,7 +1858,7 @@ function editPart(partId,stageId){
   document.getElementById('part-date-reg').value=p.date_reglement||'';
   document.getElementById('part-methode').value=p.methode_paiement||'';
   document.getElementById('part-dj').value=p.demi_journee||'journee';
-  document.getElementById('part-cav-ex').innerHTML='<option value="">— Saisie libre —</option>'+[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>`<option value="${c.id}">${cap(c.prenom||'')}</option>`).join('');
+  document.getElementById('part-cav-ex').innerHTML='<option value="">— Saisie libre —</option>'+[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>`<option value="${c.id}">${cap(c.prenom||'')}${c.nom?' '+c.nom.toUpperCase():''}</option>`).join('');
   const stage=C.stages.find(s=>s.id===sid);
   // Chevaux pris dans ce stage sauf le cheval actuel du participant
   const prisStage=new Set(C.parts.filter(x=>x.stage_id===sid&&x.equide_id&&x.id!==partId).map(x=>x.equide_id));
@@ -2008,13 +2010,13 @@ async function loadHistorique(){
   const el=document.getElementById('hist-content');if(!el)return;
   el.innerHTML='<div class="ls"><div class="spin"></div></div>';
   if(histTab==='couples'){
-    const aff=await dbSel('affectations_seance',{select:'*,cavaliers(prenom),equides(nom),seances(date,groupe_id)',order:[{col:'created_at',asc:false}]});
+    const aff=await dbSel('affectations_seance',{select:'*,cavaliers(prenom,nom),equides(nom),seances(date,groupe_id)',order:[{col:'created_at',asc:false}]});
     _histCouples=aff.filter(a=>a.equide_id&&a.cavaliers&&a.equides&&a.seances);
   } else if(histTab==='absences'){
-    _histAbsences=await dbSel('affectations_seance',{select:'*,cavaliers(prenom),seances(date)',filter:[{col:'absent',op:'eq',val:'true'}],order:[{col:'created_at',asc:false}]});
+    _histAbsences=await dbSel('affectations_seance',{select:'*,cavaliers(prenom,nom),seances(date)',filter:[{col:'absent',op:'eq',val:'true'}],order:[{col:'created_at',asc:false}]});
   } else if(histTab==='rattrapages'){
     _histRattrapages=await dbSel('affectations_seance',{
-      select:'*,cavaliers(prenom),equides(nom),seances(date,groupe_id)',
+      select:'*,cavaliers(prenom,nom),equides(nom),seances(date,groupe_id)',
       filter:[{col:'rattrapage',op:'eq',val:'true'}],
       order:[{col:'created_at',asc:false}]
     });
@@ -2049,7 +2051,7 @@ function renderHistorique(){
     });
     const tbody=document.getElementById('hist-tbody');
     if(tbody){
-      tbody.innerHTML=filtered.length?filtered.map(a=>{const g=C.grp.find(x=>x.id===a.seances?.groupe_id);const c=g?.couleur||'#c9a84c';const il=g?isLightColor(c):false;return`<tr><td>${fmtDate(a.seances?.date||'')}</td><td><strong>${a.cavaliers?cap(a.cavaliers.prenom||''):'?'}</strong></td><td>🐎 ${a.equides?.nom||'?'}</td><td>${g?`<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${il?'#3a3028':'#fff'}">${g.nom}</span>`:'—'}</td></tr>`;}).join(''):'<tr class="er"><td colspan="4">Aucun résultat</td></tr>';
+      tbody.innerHTML=filtered.length?filtered.map(a=>{const g=C.grp.find(x=>x.id===a.seances?.groupe_id);const c=g?.couleur||'#c9a84c';const il=g?isLightColor(c):false;return`<tr><td>${fmtDate(a.seances?.date||'')}</td><td><strong>${a.cavaliers?cap(a.cavaliers.prenom||'')+(a.cavaliers.nom?' '+a.cavaliers.nom.toUpperCase():''):'?'}</strong></td><td>🐎 ${a.equides?.nom||'?'}</td><td>${g?`<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${il?'#3a3028':'#fff'}">${g.nom}</span>`:'—'}</td></tr>`;}).join(''):'<tr class="er"><td colspan="4">Aucun résultat</td></tr>';
       return;
     }
     // Premier rendu : créer le squelette complet
@@ -2089,7 +2091,7 @@ function renderHistorique(){
     if(tbody){
       tbody.innerHTML=filtered.length?filtered.map(a=>`<tr>
         <td>${fmtDate(a.seances?.date||'')}</td>
-        <td><strong>${a.cavaliers?cap(a.cavaliers.prenom||''):'?'}</strong></td>
+        <td><strong>${a.cavaliers?cap(a.cavaliers.prenom||'')+(a.cavaliers.nom?' '+a.cavaliers.nom.toUpperCase():''):'?'}</strong></td>
         <td>${a.motif_absence||'<span style="color:var(--muted)">—</span>'}</td>
         <td>${a.date_rattrapage?fmtDate(a.date_rattrapage):'<span style="color:var(--muted)">—</span>'}</td>
         <td>${a.rattrapage_effectue
@@ -2151,7 +2153,7 @@ function renderRattrapages(){
       const c=g?.couleur||'#c9a84c';const il=g?isLightColor(c):false;
       return`<tr>
         <td>${fmtDate(a.seances?.date||'')}</td>
-        <td><strong>${a.cavaliers?cap(a.cavaliers.prenom||''):'?'}</strong></td>
+        <td><strong>${a.cavaliers?cap(a.cavaliers.prenom||'')+(a.cavaliers.nom?' '+a.cavaliers.nom.toUpperCase():''):'?'}</strong></td>
         <td>${a.date_cours_rattrape?fmtDate(a.date_cours_rattrape):'<span style="color:var(--muted)">—</span>'}</td>
         <td>${a.equides?.nom?`🐎 ${a.equides.nom}`:'<span style="color:var(--muted)">—</span>'}</td>
         <td>${g?`<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${il?'#3a3028':'#fff'}">${g.nom}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
@@ -2187,7 +2189,7 @@ function editRattHist(affId){
   document.getElementById('ratt-title').textContent='✏️ Modifier le rattrapage';
   document.getElementById('ratt-save-btn').textContent='Enregistrer';
   // Cavaliers
-  document.getElementById('ratt-cav').innerHTML='<option value="">— Sélectionner —</option>'+[...C.cav].sort((x,y)=>x.prenom.localeCompare(y.prenom,'fr')).map(c=>`<option value="${c.id}"${a.cavalier_id===c.id?' selected':''}>${cap(c.prenom||'')}</option>`).join('');
+  document.getElementById('ratt-cav').innerHTML='<option value="">— Sélectionner —</option>'+[...C.cav].sort((x,y)=>x.prenom.localeCompare(y.prenom,'fr')).map(c=>`<option value="${c.id}"${a.cavalier_id===c.id?' selected':''}>${cap(c.prenom||'')}${c.nom?' '+c.nom.toUpperCase():''}</option>`).join('');
   // Chevaux
   document.getElementById('ratt-chv').innerHTML='<option value="">— Non attribué —</option>'+C.chv.filter(c=>!c.hors_cours).map(c=>`<option value="${c.id}"${a.equide_id===c.id?' selected':''}>${c.nom}</option>`).join('');
   document.getElementById('ratt-date-cours').value=a.date_cours_rattrape||'';
