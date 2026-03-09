@@ -1705,16 +1705,16 @@ function renderChevaux(){
     </tr>`;
   }).join('');
 }
-function newChv(){document.getElementById('mo-chv-t').textContent='Nouveau cheval';['chv-id','chv-nom','chv-note','chv-cat'].forEach(i=>document.getElementById(i).value='');document.getElementById('chv-annee').value='';document.getElementById('chv-h-reel').value='0';document.getElementById('chv-h-prev').value='0';document.getElementById('chv-hors-cours').checked=false;openMo('mo-chv');}
+function newChv(){document.getElementById('mo-chv-t').textContent='Nouveau cheval';['chv-id','chv-nom','chv-note','chv-cat'].forEach(i=>document.getElementById(i).value='');document.getElementById('chv-annee').value='';document.getElementById('chv-h-prev').value='0';document.getElementById('chv-hors-cours').checked=false;openMo('mo-chv');}
 async function saveCheval(){
-  const nom=v('chv-nom').trim(),categorie=v('chv-cat')||null,annee_naissance=parseInt(v('chv-annee'))||null,heures_reel=parseFloat(v('chv-h-reel'))||0,heures_prev=parseFloat(v('chv-h-prev'))||0,hors_cours=document.getElementById('chv-hors-cours').checked,note=v('chv-note')||null,id=v('chv-id');
+  const nom=v('chv-nom').trim(),categorie=v('chv-cat')||null,annee_naissance=parseInt(v('chv-annee'))||null,heures_reel=0,heures_prev=parseFloat(v('chv-h-prev'))||0,hors_cours=document.getElementById('chv-hors-cours').checked,note=v('chv-note')||null,id=v('chv-id');
   if(!nom){toast('Le nom est requis','err');return;}
   const data={nom,categorie,annee_naissance,heures_reel,heures_prev,hors_cours,note};
   if(id)await dbUpd('equides',data,[{col:'id',op:'eq',val:id}]);
   else await dbIns('equides',data);
   toast(id?'Modifié':'Ajouté','ok');closeMo('mo-chv');await loadChv();
 }
-function editChv(id){const c=C.chv.find(x=>x.id===id);document.getElementById('mo-chv-t').textContent='Modifier';document.getElementById('chv-id').value=id;document.getElementById('chv-nom').value=c.nom;document.getElementById('chv-cat').value=c.categorie||'';document.getElementById('chv-annee').value=c.annee_naissance||'';document.getElementById('chv-h-reel').value=c.heures_reel||0;document.getElementById('chv-h-prev').value=c.heures_prev||0;document.getElementById('chv-hors-cours').checked=!!c.hors_cours;document.getElementById('chv-note').value=c.note||'';openMo('mo-chv');}
+function editChv(id){const c=C.chv.find(x=>x.id===id);document.getElementById('mo-chv-t').textContent='Modifier';document.getElementById('chv-id').value=id;document.getElementById('chv-nom').value=c.nom;document.getElementById('chv-cat').value=c.categorie||'';document.getElementById('chv-annee').value=c.annee_naissance||'';0;document.getElementById('chv-h-prev').value=c.heures_prev||0;document.getElementById('chv-hors-cours').checked=!!c.hors_cours;document.getElementById('chv-note').value=c.note||'';openMo('mo-chv');}
 async function delChv(id){if(!confirm('Supprimer ?'))return;await dbDel('equides',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadChv();}
 
 // ══════════════════════════════════════════════════
