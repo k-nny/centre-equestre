@@ -441,7 +441,7 @@ tr:hover td{background:rgba(201,168,76,.12);}
  <h3 id="mo-cav-t">Nouveau cavalier</h3><input type="hidden" id="cav-id">
  <div class="fr">
   <div class="fg"><label>Prénom *</label><input type="text" id="cav-prenom" placeholder="Kenny"></div>
-  <div class="fg"><label>Nom de famille</label><input type="text" id="cav-nom" placeholder="Dupont"></div>
+  <div class="fg"><label>Nom de famille</label><input type="text" id="cav-nom" placeholder="DODEY"></div>
  </div>
  <div class="fg"><label>Téléphone <span style="color:var(--muted)">(admin)</span></label><input type="tel" id="cav-tel" placeholder="06 12 34 56 78"></div>
  <div class="fg"><label>Groupes assignés</label><div class="cav-checkgrid" id="cav-grp-grid"></div></div>
@@ -542,7 +542,8 @@ tr:hover td{background:rgba(201,168,76,.12);}
    <option value="Espèces">Espèces</option>
    <option value="Chèque">Chèque</option>
    <option value="Virement">Virement</option>
-   <option value="CB">Carte bancaire</option>
+   <option value="Pass">Pass</option>
+  <option value="Offert">Offert</option>
   </select></div>
  </div>
  <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-part')">Annuler</button><button class="btn btn-p" onclick="savePart()">Ajouter</button></div>
@@ -573,7 +574,8 @@ tr:hover td{background:rgba(201,168,76,.12);}
   <option value="Espèces">Espèces</option>
   <option value="Chèque">Chèque</option>
   <option value="Virement">Virement</option>
-  <option value="CB">Carte bancaire</option>
+  <option value="Pass">Pass</option>
+  <option value="Offert">Offert</option>
  </select></div>
  <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-part-reg')">Annuler</button><button class="btn btn-p" onclick="savePartReglement()">Enregistrer</button></div>
 </div></div>
@@ -592,7 +594,8 @@ tr:hover td{background:rgba(201,168,76,.12);}
   <option value="Espèces">Espèces</option>
   <option value="Chèque">Chèque</option>
   <option value="Virement">Virement</option>
-  <option value="CB">Carte bancaire</option>
+  <option value="Pass">Pass</option>
+  <option value="Offert">Offert</option>
  </select></div>
  <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-exc')">Annuler</button><button class="btn btn-p" id="exc-btn" onclick="saveExc()">Ajouter</button></div>
 </div></div>
@@ -1013,24 +1016,40 @@ async function loadVue(){
     const elMon=elMonId?C.mon.find(m=>m.id===elMonId):null;
     const mon2prenom=s.moniteur2?.prenom;
     const cheval2nom=s.cheval2?.nom;
-    const rows=sorted.map((a,i)=>{
-      const bg=i%2===0?'#fff':`${couleur}80`; // zèbre: blanc / couleur cours à 50%
-      return`<div class="pcr ${a.absent?'abr':''}" style="background:${bg}">
-        <div class="pcn">${a.cavaliers?cap(a.cavaliers.prenom||'')+(a.cavaliers.nom?' '+a.cavaliers.nom.toUpperCase():''):a.nom_exceptionnel||'?'}${a.cours_exceptionnel?'<span class="rtag" style="background:var(--gold);color:#fff">excep.</span>':''}${a.rattrapage?`<span class="rtag">↩ ${a.date_cours_rattrape?fmtDate(a.date_cours_rattrape):'rattrap.'}</span>`:''}${a.absent?'<span class="b br" style="margin-left:5px;font-size:10px">absent</span>':''}</div>
+    // Même ordre que la page Séances : présents → rattrapages → exceptionnels → absents
+    const vPresents=saVisibles.filter(a=>!a.absent&&!a.rattrapage&&!a.cours_exceptionnel).sort((a,b)=>(a.cavaliers?.prenom||'').localeCompare(b.cavaliers?.prenom||'','fr'));
+    const vRatt=saVisibles.filter(a=>a.rattrapage).sort((a,b)=>(a.cavaliers?.prenom||'').localeCompare(b.cavaliers?.prenom||'','fr'));
+    const vExc=saVisibles.filter(a=>a.cours_exceptionnel).sort((a,b)=>(a.nom_exceptionnel||'').localeCompare(b.nom_exceptionnel||'','fr'));
+    const vAbsents=saVisibles.filter(a=>a.absent&&!a.rattrapage).sort((a,b)=>(a.cavaliers?.prenom||'').localeCompare(b.cavaliers?.prenom||'','fr'));
+    const vOrdered=[...vPresents,...vRatt,...vExc,...vAbsents];
+    const rows=vOrdered.map((a,i)=>{
+      const isRatt=a.rattrapage;
+      const rowBg=isRatt
+        ?'rgba(251,146,60,0.08)'
+        :a.absent
+          ?'rgba(220,38,38,0.04)'
+          :(i%2===0?'transparent':couleur+'80');
+      return`<div class="pcr ${a.absent?'abr':''}" style="background:${rowBg};${isRatt?'border-left:3px solid #f59e0b':''}">
+        <div class="pcn">${a.cavaliers?cap(a.cavaliers.prenom||''):a.nom_exceptionnel||'?'}${a.cours_exceptionnel?'<span class="rtag" style="background:var(--gold);color:#fff">excep.</span>':''}${isRatt?`<span class="rtag">↩ ${a.date_cours_rattrape?fmtDate(a.date_cours_rattrape):'rattrap.'}</span>`:''}${a.absent?'<span class="b br" style="margin-left:5px;font-size:10px">absent</span>':''}</div>
         <div class="pch2">${a.absent?'<span style="color:var(--muted)">—</span>':`🐎 <strong>${a.equides?.nom||'Non attribué'}</strong>`}</div>
       </div>`;
     }).join('');
-    blocs.push({h,html:`<div class="pcc" style="border-left:4px solid ${couleur}">
-      <div class="pch"><div class="pheure">${h}</div>
-        <div style="flex:1"><div class="pgn" style="color:${couleur}">${g.nom||'Groupe'}</div>
-        <div class="pdi">
-          ${s.discipline?`<span class="b bb" style="font-size:10px;margin-right:4px">${s.discipline}</span>`:''}
-          👤 ${s.moniteur1?.prenom||'—'}
-          ${elMon?`· <span class="b bp" style="font-size:10px">${elMon.prenom}</span>`:''}
-          ${mon2prenom?`· <span style="color:var(--muted)">👤 ${mon2prenom}${cheval2nom?' 🐎 '+cheval2nom:''}</span>`:''}
-        </div></div>
+    const isLight=isLightColor(couleur);
+    const txtC=isLight?'#2a1f00':'#fff';
+    const mutC=isLight?'rgba(0,0,0,0.55)':'rgba(255,255,255,0.75)';
+    blocs.push({h,html:`<div class="pcc" style="border:none;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.10)">
+      <div class="pch" style="background:${couleur};border-bottom:none">
+        <div class="pheure" style="color:${txtC}">${h}</div>
+        <div style="flex:1">
+          <div class="pgn" style="color:${txtC}">${g.nom||'Groupe'}</div>
+          <div class="pdi" style="color:${mutC}">
+            ${s.discipline?`<span style="background:rgba(255,255,255,0.2);border-radius:4px;padding:1px 6px;font-size:10px;margin-right:4px">${s.discipline}</span>`:''}
+            👤 ${s.moniteur1?.prenom||'—'}
+            ${elMon?`· <span style="opacity:.85">${elMon.prenom}</span>`:''}
+            ${mon2prenom?`· 👤 ${mon2prenom}${cheval2nom?' 🐎 '+cheval2nom:''}`:''}</div>
+        </div>
       </div>
-      ${sorted.length===0?'<div style="padding:12px 20px;color:var(--muted)">Aucun cavalier</div>':rows}
+      ${vOrdered.length===0?'<div style="padding:12px 20px;color:var(--muted)">Aucun cavalier</div>':rows}
       ${g.note?`<div class="note-pub">📝 ${g.note}</div>`:''}</div>`});
   }
   for(const st of stgAll){
