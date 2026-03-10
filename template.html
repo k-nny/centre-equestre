@@ -3735,11 +3735,14 @@
     // Ouvre la modale cours exceptionnel en mode édition règlement depuis l'historique
     function openEditReglExc(affId) {
       const a = (_histReglements?.exc || []).find(x => x.id === affId); if (!a) return;
-      // Réutilise openExc en mode édition (sans avoir besoin de la séance dans la vue semaine)
+      const date = a.seances?.date || '';
+      const heure = a.seances?.heure_debut || a.seances?.heure || '';
       document.getElementById('exc-aff-id').value = affId;
-      document.getElementById('exc-sea-id').value = a.seances?.id || '';
-      document.getElementById('exc-heure').value = '';
-      document.getElementById('exc-date').value = a.seances?.date || '';
+      document.getElementById('exc-sea-id').value = a.seances?.id || a.seance_id || '';
+      document.getElementById('exc-heure').value = heure;
+      document.getElementById('exc-date').value = date;
+      // Peuple le select cheval avec le bon cheval présélectionné
+      document.getElementById('exc-chv').innerHTML = _buildExcChvList(heure, date, a.equide_id);
       document.getElementById('exc-title').textContent = '✏️ Modifier règlement';
       document.getElementById('exc-nom').value = a.nom_exceptionnel || '';
       document.getElementById('exc-montant').value = a.montant_exceptionnel != null ? a.montant_exceptionnel : '';
@@ -3851,7 +3854,7 @@
       } else if (histTab === 'reglements') {
         // Cours exceptionnels avec montant
         const exc = await dbSel('affectations_seance', {
-          select: 'id,nom_exceptionnel,montant_exceptionnel,regle_exceptionnel,methode_paiement_exc,date_reglement_exc,seances(date,groupe_id)',
+          select: 'id,seance_id,equide_id,nom_exceptionnel,montant_exceptionnel,regle_exceptionnel,methode_paiement_exc,date_reglement_exc,seances(id,date,heure_debut,groupe_id)',
           filter: [{ col: 'cours_exceptionnel', op: 'eq', val: 'true' }],
           order: [{ col: 'created_at', asc: false }]
         });
