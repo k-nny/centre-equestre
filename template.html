@@ -1976,16 +1976,36 @@ function renderStages(){
   el.innerHTML=C.stages.map(st=>{
     const pts=C.parts.filter(p=>p.stage_id===st.id);
     const chvs=C.chvS.filter(c=>c.stage_id===st.id);
-    // Ligne participant : drop zone pour recevoir un cheval libre
+    // Zone de dépôt inverse : lâcher un cheval-participant ici le renvoie en libre
+    const dropZoneLibre=`<div id="stg-libre-drop-${st.id}"
+      style="padding:8px 16px;border-top:2px dashed rgba(139,105,20,.2);background:rgba(139,105,20,.02);min-height:44px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;transition:background .15s"
+      ondragover="onLibreDragOver(event)" ondragleave="onLibreDragLeave(event)" ondrop="onLibreDrop(event,'${st.id}')">
+      <span style="color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">
+        🐎 Chevaux libres${chvs.length?'':' — aucun pour l\'instant'}
+      </span>
+      ${chvs.map(c=>`<span class="b bgo stg-chv-chip" draggable="true"
+        data-chv-id="${c.equide_id}" data-chv-nom="${(c.equides?.nom||'?').replace(/"/g,'&quot;')}" data-chvs-id="${c.id}"
+        ondragstart="onChvDragStart(event)"
+        style="cursor:grab;padding:5px 10px;font-size:12px;user-select:none;display:inline-flex;align-items:center;gap:4px">
+        🐴 ${c.equides?.nom||'?'}${c.demi_journee&&c.demi_journee!=='journee'?' ('+c.demi_journee+')':''}
+        <button onclick="event.stopPropagation();delChvStage('${c.id}')" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:0 0 0 2px;font-size:13px;line-height:1" title="Supprimer">×</button>
+      </span>`).join('')}
+      <span style="font-size:10px;color:var(--muted);font-style:italic;margin-left:4px">← Glisser un cheval ici pour le désassigner</span>
+    </div>`;
+    // Ligne participant : draggable si elle a un cheval + drop zone pour recevoir un libre
     const ptRows=[...pts].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(p=>{
       const regle=p.regle,methode=p.methode_paiement,montant=p.montant,dateR=p.date_reglement;
       const hasChv=!!p.equide_id;
-      return`<div class="pcr stg-drop-zone" data-part-id="${p.id}" data-stage-id="${st.id}"
+      return`<div class="pcr stg-drop-zone${hasChv?' stg-part-draggable':''}"
+        data-part-id="${p.id}" data-stage-id="${st.id}"
+        data-chv-id="${p.equide_id||''}" data-chv-nom="${(p.equides?.nom||'').replace(/"/g,'&quot;')}"
+        draggable="${hasChv?'true':'false'}"
+        ondragstart="${hasChv?`onPartDragStart(event)`:'false'}"
         ondragover="onPartDragOver(event)" ondragleave="onPartDragLeave(event)" ondrop="onPartDrop(event,'${p.id}','${st.id}')"
-        style="transition:background .15s">
+        style="transition:background .15s;cursor:${hasChv?'grab':'default'}">
         <div class="pcn">${p.prenom}${p.demi_journee&&p.demi_journee!=='journee'?` <span class="b bo" style="font-size:10px">${p.demi_journee}</span>`:''}</div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span class="pch2" id="part-chv-lbl-${p.id}">${hasChv?`🐎 <strong>${p.equides.nom}</strong>`:'<span style="color:var(--muted);font-style:italic">Déposer un cheval ici…</span>'}</span>
+          <span class="pch2">${hasChv?`🐎 <strong>${p.equides.nom}</strong>`:'<span style="color:var(--muted);font-style:italic;font-size:12px">Déposer un cheval ici…</span>'}</span>
           ${isAdmin&&p.telephone?`<span style="font-size:11px;color:var(--muted)">📞 ${p.telephone}</span>`:''}
           ${p.note?`<span style="font-size:11px;color:var(--muted)">${p.note}</span>`:''}
           ${montant?`<span style="font-size:12px;font-weight:700;color:var(--gold)">${montant}€</span>`:''}
@@ -1996,17 +2016,7 @@ function renderStages(){
         </div>
       </div>`;
     }).join('');
-    // Chevaux libres : chips draggables
-    const chvChips=chvs.length?`<div style="padding:10px 16px;border-top:2px dashed rgba(139,105,20,.25);background:rgba(139,105,20,.03);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <span style="color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">🐎 Chevaux libres — glisser vers un participant :</span>
-      ${chvs.map(c=>`<span class="b bgo stg-chv-chip" draggable="true"
-        data-chv-id="${c.equide_id}" data-chv-nom="${(c.equides?.nom||'?').replace(/"/g,'&quot;')}" data-chvs-id="${c.id}"
-        ondragstart="onChvDragStart(event)"
-        style="cursor:grab;padding:5px 10px;font-size:12px;user-select:none">
-        🐴 ${c.equides?.nom||'?'}${c.demi_journee&&c.demi_journee!=='journee'?' ('+c.demi_journee+')':''}
-        <button onclick="delChvStage('${c.id}')" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:0 0 0 4px;font-size:13px" title="Supprimer">×</button>
-      </span>`).join('')}
-    </div>`:'';
+    const chvChips=''; // intégré dans dropZoneLibre
     return`<div class="stg-wrap">
       <div class="stg-hdr">
         <div>
@@ -2022,55 +2032,99 @@ function renderStages(){
         </div>
       </div>
       ${ptRows}
-      ${chvChips}
+      ${dropZoneLibre}
     </div>`;
   }).join('');
 }
 
-// ── Drag & drop chevaux → participants (stages) ──────────────────────────────
-let _dragChvId=null, _dragChvNom=null, _dragChvsId=null;
+// ── Drag & drop stages : libre ↔ participant ─────────────────────────────────
+// Deux types de drag :
+//   'libre'  : chip de cheval libre  → data-chv-id, data-chv-nom, data-chvs-id
+//   'part'   : ligne participant avec cheval → data-part-id, data-chv-id, data-chv-nom, data-stage-id
+let _stgDrag = null; // { type:'libre'|'part', chvId, chvNom, chvsId?, partId?, stageId }
 
 function onChvDragStart(e){
-  _dragChvId=e.currentTarget.dataset.chvId;
-  _dragChvNom=e.currentTarget.dataset.chvNom;
-  _dragChvsId=e.currentTarget.dataset.chvsId;
+  e.stopPropagation();
+  _stgDrag={type:'libre', chvId:e.currentTarget.dataset.chvId,
+    chvNom:e.currentTarget.dataset.chvNom, chvsId:e.currentTarget.dataset.chvsId};
   e.dataTransfer.effectAllowed='move';
-  e.currentTarget.style.opacity='.5';
-  e.currentTarget.addEventListener('dragend',()=>{e.currentTarget.style.opacity='1';},{ once:true });
+  e.currentTarget.style.opacity='.45';
+  e.currentTarget.addEventListener('dragend',()=>{e.currentTarget.style.opacity='1';},{once:true});
 }
 
+function onPartDragStart(e){
+  // Drag depuis une ligne participant — ne pas propager au drop zone parent
+  e.stopPropagation();
+  _stgDrag={type:'part', chvId:e.currentTarget.dataset.chvId,
+    chvNom:e.currentTarget.dataset.chvNom, partId:e.currentTarget.dataset.partId,
+    stageId:e.currentTarget.dataset.stageId};
+  e.dataTransfer.effectAllowed='move';
+  e.currentTarget.style.opacity='.45';
+  e.currentTarget.addEventListener('dragend',()=>{e.currentTarget.style.opacity='1';},{once:true});
+}
+
+// Highlight helpers
+function _highlightOn(el,color='rgba(139,105,20,.13)'){
+  el.style.background=color;el.style.outline='2px dashed var(--gold)';el.style.borderRadius='7px';
+}
+function _highlightOff(el){el.style.background='';el.style.outline='';}
+
+// Drag over participant (drop zone : libre→participant OU part→autre participant)
 function onPartDragOver(e){
-  e.preventDefault();
-  e.dataTransfer.dropEffect='move';
-  e.currentTarget.style.background='rgba(139,105,20,.12)';
-  e.currentTarget.style.outline='2px dashed var(--gold)';
-  e.currentTarget.style.borderRadius='6px';
+  if(!_stgDrag) return;
+  // Accepter libre et part (mais pas si on survole sa propre ligne)
+  const targetPartId=e.currentTarget.dataset.partId;
+  if(_stgDrag.type==='part'&&_stgDrag.partId===targetPartId) return;
+  e.preventDefault();e.dataTransfer.dropEffect='move';
+  _highlightOn(e.currentTarget);
 }
+function onPartDragLeave(e){_highlightOff(e.currentTarget);}
 
-function onPartDragLeave(e){
-  e.currentTarget.style.background='';
-  e.currentTarget.style.outline='';
-}
-
+// Drop vers participant (libre→part  OU  part→part)
 async function onPartDrop(e, partId, stageId){
-  e.preventDefault();
-  e.currentTarget.style.background='';
-  e.currentTarget.style.outline='';
-  if(!_dragChvId) return;
-  const chvId=_dragChvId, chvNom=_dragChvNom, chvsId=_dragChvsId;
-  _dragChvId=null; _dragChvNom=null; _dragChvsId=null;
-  // Vérifier si le participant a déjà un cheval
+  e.preventDefault();_highlightOff(e.currentTarget);
+  if(!_stgDrag)return;
+  const {type,chvId,chvNom,chvsId,partId:srcPartId}=_stgDrag; _stgDrag=null;
+  if(type==='part'&&srcPartId===partId)return; // même ligne, rien à faire
   const part=C.parts.find(p=>p.id===partId);
-  if(part?.equide_id){
-    if(!confirm(`${part.prenom} a déjà ${part.equides?.nom||'un cheval'}. Remplacer par ${chvNom} ?`))return;
-    // Remettre l'ancien cheval en libre
+  if(!part)return;
+  // Si le participant cible a déjà un cheval → le remettre en libre
+  if(part.equide_id&&part.equide_id!==chvId){
     await dbIns('stage_chevaux',{stage_id:stageId,equide_id:part.equide_id,demi_journee:part.demi_journee||'journee'});
   }
-  // Attribuer le cheval au participant
+  // Attribuer le cheval au participant cible
   await dbUpd('stage_participants',{equide_id:chvId},[{col:'id',op:'eq',val:partId}]);
-  // Supprimer de la liste "chevaux libres"
-  await dbDel('stage_chevaux',[{col:'id',op:'eq',val:chvsId}]);
-  toast(`🐴 ${chvNom} → ${part?.prenom||'participant'}`, 'ok');
+  if(type==='libre'&&chvsId){
+    // Retirer de la liste libres
+    await dbDel('stage_chevaux',[{col:'id',op:'eq',val:chvsId}]);
+  } else if(type==='part'&&srcPartId){
+    // Désaffecter l'ancien participant source
+    await dbUpd('stage_participants',{equide_id:null},[{col:'id',op:'eq',val:srcPartId}]);
+  }
+  toast(`🐴 ${chvNom} → ${part.prenom}`,'ok');
+  await loadStages();
+}
+
+// Drag over zone libre (drop zone : participant → libre)
+function onLibreDragOver(e){
+  if(!_stgDrag||_stgDrag.type!=='part')return;
+  e.preventDefault();e.dataTransfer.dropEffect='move';
+  _highlightOn(e.currentTarget,'rgba(139,105,20,.07)');
+}
+function onLibreDragLeave(e){_highlightOff(e.currentTarget);}
+
+// Drop participant → libre
+async function onLibreDrop(e, stageId){
+  e.preventDefault();_highlightOff(e.currentTarget);
+  if(!_stgDrag||_stgDrag.type!=='part')return;
+  const {chvId,chvNom,partId}=_stgDrag; _stgDrag=null;
+  const part=C.parts.find(p=>p.id===partId);
+  if(!part||!part.equide_id)return;
+  // Désassigner le cheval du participant
+  await dbUpd('stage_participants',{equide_id:null},[{col:'id',op:'eq',val:partId}]);
+  // L'ajouter en libre
+  await dbIns('stage_chevaux',{stage_id:stageId,equide_id:chvId,demi_journee:part.demi_journee||'journee'});
+  toast(`🐴 ${chvNom} → libres`,'ok');
   await loadStages();
 }
 function newStage(){document.getElementById('mo-stage-t').textContent='Nouveau stage';['stage-id','stage-titre','stage-notes'].forEach(i=>document.getElementById(i).value='');document.getElementById('stage-deb').value='';document.getElementById('stage-fin').value='';openMo('mo-stage');}
@@ -2084,6 +2138,21 @@ async function saveStage(){
 }
 function editStage(id){const s=C.stages.find(x=>x.id===id);document.getElementById('mo-stage-t').textContent='Modifier';document.getElementById('stage-id').value=id;document.getElementById('stage-titre').value=s.titre;document.getElementById('stage-deb').value=s.date_debut;document.getElementById('stage-fin').value=s.date_fin;document.getElementById('stage-notes').value=s.notes||'';openMo('mo-stage');}
 async function delStage(id){if(!confirm('Supprimer ce stage ?'))return;await dbDel('stage_participants',[{col:'stage_id',op:'eq',val:id}]);await dbDel('stage_chevaux',[{col:'stage_id',op:'eq',val:id}]);await dbDel('stages',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadStages();}
+// Retourne le Set des equide_id déjà pris dans un stage (participants + libres)
+// excludePartId : ignorer ce participant (mode édition)
+// excludeChvsId : ignorer ce cheval libre (mode drag)
+// Retourne un Map equide_id → {type:'part'|'libre', nom:string, partId?:string, chvsId?:string}
+function getChvUsageStage(sid, {excludePartId=null, excludeChvsId=null}={}){
+  const usage=new Map();
+  C.parts.filter(p=>p.stage_id===sid&&p.equide_id&&p.id!==excludePartId)
+    .forEach(p=>usage.set(p.equide_id,{type:'part',nom:p.prenom,partId:p.id}));
+  C.chvS.filter(c=>c.stage_id===sid&&c.id!==excludeChvsId)
+    .forEach(c=>usage.set(c.equide_id,{type:'libre',chvsId:c.id}));
+  return usage;
+}
+// Compat ancien usage (Set) pour les filtres qu'on ne veut pas modifier
+function getChvPrisStage(sid, opts={}){ return new Set(getChvUsageStage(sid,opts).keys()); }
+
 function openPart(sid){
   document.getElementById('part-stage-id').value=sid;
   delete document.getElementById('part-stage-id').dataset.editId;
@@ -2094,12 +2163,12 @@ function openPart(sid){
   document.getElementById('part-dj').value='journee';
   document.getElementById('part-cav-ex').innerHTML='<option value="">— Saisie libre —</option>'+[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>`<option value="${c.id}">${cap(c.prenom||'')}${c.nom?' '+c.nom.toUpperCase():''}</option>`).join('');
   const stage=C.stages.find(s=>s.id===sid);
-  // Chevaux déjà attribués à un participant de ce stage
-  const prisStage=new Set(C.parts.filter(p=>p.stage_id===sid&&p.equide_id).map(p=>p.equide_id));
+  const usageStage=getChvUsageStage(sid);
   document.getElementById('part-chv').innerHTML='<option value="">— Non attribué —</option>'+getSortedChvDispo().map(c=>{
-    const pris=prisStage.has(c.id);
+    const u=usageStage.get(c.id);
     const st=stage?C.statuts.filter(x=>x.equide_id===c.id&&x.date>=stage.date_debut&&x.date<=stage.date_fin):[];
-    return`<option value="${c.id}"${pris?' disabled':''}>${c.nom}${pris?' ✗ déjà attribué':st.length?' ⚠️ statut planifié':''}`;
+    const suffix=u?(u.type==='part'?` ↺ réattribuer (était: ${u.nom})`:'  ↺ retirer des libres'):st.length?' ⚠️ statut planifié':'';
+    return`<option value="${c.id}">${c.nom}${suffix}`;
   }).join('');
   openMo('mo-part');
 }
@@ -2117,12 +2186,12 @@ function editPart(partId,stageId){
   document.getElementById('part-dj').value=p.demi_journee||'journee';
   document.getElementById('part-cav-ex').innerHTML='<option value="">— Saisie libre —</option>'+[...C.cav].sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')).map(c=>`<option value="${c.id}">${cap(c.prenom||'')}${c.nom?' '+c.nom.toUpperCase():''}</option>`).join('');
   const stage=C.stages.find(s=>s.id===sid);
-  // Chevaux pris dans ce stage sauf le cheval actuel du participant
-  const prisStage=new Set(C.parts.filter(x=>x.stage_id===sid&&x.equide_id&&x.id!==partId).map(x=>x.equide_id));
+  const usageStage=getChvUsageStage(sid,{excludePartId:partId});
   document.getElementById('part-chv').innerHTML='<option value="">— Non attribué —</option>'+getSortedChvDispo().map(c=>{
-    const pris=prisStage.has(c.id);
+    const u=usageStage.get(c.id);
     const st=stage?C.statuts.filter(x=>x.equide_id===c.id&&statutActifADate(x,stage.date_debut)):[];
-    return`<option value="${c.id}"${p.equide_id===c.id?' selected':''}${pris?' disabled':''}>${c.nom}${pris?' ✗ déjà attribué':st.length?' ⚠️ statut planifié':''}`;
+    const suffix=u?(u.type==='part'?` ↺ réattribuer (était: ${u.nom})`:'  ↺ retirer des libres'):st.length?' ⚠️ statut planifié':'';
+    return`<option value="${c.id}"${p.equide_id===c.id?' selected':''}>${c.nom}${suffix}`;
   }).join('');
   // Stocker l'id du participant pour savePart
   document.getElementById('part-stage-id').dataset.editId=partId;
@@ -2140,15 +2209,32 @@ async function savePart(){
   if(editId){
     // Mode édition
     const oldPart=C.parts.find(x=>x.id===editId);
-    if(oldPart?.equide_id&&oldPart.equide_id!==chvId){const oc=C.chv.find(c=>c.id===oldPart.equide_id);if(oc){const h2=Math.max(0,(oc.heures_reel||0)-1);await dbUpd('equides',{heures_reel:h2},[{col:'id',op:'eq',val:oc.id}]);oc.heures_reel=h2;}}
-    if(chvId&&chvId!==oldPart?.equide_id){const chv=C.chv.find(c=>c.id===chvId);if(chv){const h2=(chv.heures_reel||0)+1;await dbUpd('equides',{heures_reel:h2},[{col:'id',op:'eq',val:chvId}]);chv.heures_reel=h2;}}
+    const oldChvId=oldPart?.equide_id||null;
+    if(oldChvId&&oldChvId!==chvId){const oc=C.chv.find(c=>c.id===oldChvId);if(oc){const h2=Math.max(0,(oc.heures_reel||0)-1);await dbUpd('equides',{heures_reel:h2},[{col:'id',op:'eq',val:oc.id}]);oc.heures_reel=h2;}}
+    if(chvId&&chvId!==oldChvId){
+      const chv=C.chv.find(c=>c.id===chvId);if(chv){const h2=(chv.heures_reel||0)+1;await dbUpd('equides',{heures_reel:h2},[{col:'id',op:'eq',val:chvId}]);chv.heures_reel=h2;}
+      // Si le nouveau cheval était en libre → le retirer
+      const libre=C.chvS.find(c=>c.stage_id===sid&&c.equide_id===chvId);
+      if(libre)await dbDel('stage_chevaux',[{col:'id',op:'eq',val:libre.id}]);
+      // Si le nouveau cheval était attribué à un autre participant → le désaffecter
+      const autreP=C.parts.find(p=>p.stage_id===sid&&p.equide_id===chvId&&p.id!==editId);
+      if(autreP)await dbUpd('stage_participants',{equide_id:null},[{col:'id',op:'eq',val:autreP.id}]);
+    }
     await dbUpd('stage_participants',{prenom,telephone:tel,demi_journee:dj,equide_id:chvId,note,regle,montant,methode_paiement,date_reglement},[{col:'id',op:'eq',val:editId}]);
     delete document.getElementById('part-stage-id').dataset.editId;
     toast('Participant modifié','ok');
   }else{
     if(chvId){const stage=C.stages.find(s=>s.id===sid);if(stage){const st=C.statuts.find(x=>x.equide_id===chvId&&statutActifADate(x,stage.date_debut));if(st){const nom=C.chv.find(c=>c.id===chvId)?.nom||'Ce cheval';toast(`⚠️ ${nom} a un statut spécial durant ce stage.`,'warn');}}}
     await dbIns('stage_participants',{stage_id:sid,prenom,telephone:tel,demi_journee:dj,equide_id:chvId,note,regle,montant,methode_paiement,date_reglement});
-    if(chvId){const chv=C.chv.find(c=>c.id===chvId);if(chv){const h2=(chv.heures_reel||0)+1;await dbUpd('equides',{heures_reel:h2},[{col:'id',op:'eq',val:chvId}]);chv.heures_reel=h2;}}
+    if(chvId){
+      const chv=C.chv.find(c=>c.id===chvId);if(chv){const h2=(chv.heures_reel||0)+1;await dbUpd('equides',{heures_reel:h2},[{col:'id',op:'eq',val:chvId}]);chv.heures_reel=h2;}
+      // Si ce cheval était en libre → le retirer
+      const libre=C.chvS.find(c=>c.stage_id===sid&&c.equide_id===chvId);
+      if(libre)await dbDel('stage_chevaux',[{col:'id',op:'eq',val:libre.id}]);
+      // Si ce cheval était attribué à un autre participant → le désaffecter
+      const autreP=C.parts.find(p=>p.stage_id===sid&&p.equide_id===chvId);
+      if(autreP)await dbUpd('stage_participants',{equide_id:null},[{col:'id',op:'eq',val:autreP.id}]);
+    }
     toast('Participant ajouté','ok');
   }
   await loadSemaine();renderAlerts();renderChevaux();
@@ -2160,14 +2246,27 @@ async function savePart(){
 async function delPart(id){if(!confirm('Supprimer ?'))return;await dbDel('stage_participants',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadStages();}
 function openChvStage(sid){
   document.getElementById('chs-sid').value=sid;
-  document.getElementById('chs-chv').innerHTML='<option value="">— Sélectionner —</option>'+getSortedChvDispo().map(c=>`<option value="${c.id}">${c.nom}</option>`).join('');
+  const usageStage=getChvUsageStage(sid);
+  const stage=C.stages.find(s=>s.id===sid);
+  document.getElementById('chs-chv').innerHTML='<option value="">— Sélectionner —</option>'+getSortedChvDispo().map(c=>{
+    const u=usageStage.get(c.id);
+    const st=stage?C.statuts.filter(x=>x.equide_id===c.id&&x.date>=stage.date_debut&&x.date<=stage.date_fin):[];
+    const suffix=u?(u.type==='part'?` ↺ libérer (était: ${u.nom})`:'  ↺ déjà en libre'):st.length?' ⚠️ statut planifié':'';
+    return`<option value="${c.id}"${u?.type==='libre'?' disabled':''}>${c.nom}${suffix}`;
+  }).join('');
   document.getElementById('chs-dj').value='journee';document.getElementById('chs-note').value='';openMo('mo-chs');
 }
 async function saveChvStage(){
   const sid=v('chs-sid'),chvId=v('chs-chv'),dj=v('chs-dj'),note=v('chs-note')||null;
   if(!chvId){toast('Choisissez un cheval','err');return;}
+  // Si ce cheval était attribué à un participant → le désaffecter
+  const autreP=C.parts.find(p=>p.stage_id===sid&&p.equide_id===chvId);
+  if(autreP){
+    if(!confirm(`Ce cheval est attribué à ${autreP.prenom}. Le libérer et le mettre en libre ?`))return;
+    await dbUpd('stage_participants',{equide_id:null},[{col:'id',op:'eq',val:autreP.id}]);
+  }
   await dbIns('stage_chevaux',{stage_id:sid,equide_id:chvId,demi_journee:dj,note});
-  toast('Cheval ajouté','ok');closeMo('mo-chs');await loadStages();
+  toast('Cheval ajouté en libre','ok');closeMo('mo-chs');await loadStages();
 }
 async function delChvStage(id){await dbDel('stage_chevaux',[{col:'id',op:'eq',val:id}]);toast('Supprimé','ok');await loadStages();}
 
