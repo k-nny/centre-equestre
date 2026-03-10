@@ -3745,7 +3745,6 @@
       document.getElementById('exc-montant').value = a.montant_exceptionnel != null ? a.montant_exceptionnel : '';
       document.getElementById('exc-date-reg').value = a.date_reglement_exc || '';
       document.getElementById('exc-methode').value = a.methode_paiement_exc || '';
-      document.getElementById('exc-regle').checked = !!a.regle_exceptionnel;
       document.getElementById('exc-btn').textContent = 'Enregistrer';
       // Override saveExc pour rafraîchir l'historique après save
       const origOnclick = document.getElementById('exc-btn').onclick;
