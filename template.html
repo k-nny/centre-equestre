@@ -1647,12 +1647,26 @@
 
         <!-- DISCIPLINES -->
         <div class="page" id="page-disciplines">
-          <div class="ph">
-            <h2>Icônes des disciplines</h2>
-            <p class="no-upper">Personnalisez l'icône affichée pour chaque discipline (PNG, JPG, SVG, WebP — max 1 Mo)
-            </p>
+          <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div>
+              <h2>Disciplines</h2>
+              <p class="no-upper">Gérez les disciplines et leurs icônes (PNG, JPG, SVG, WebP — max 1 Mo)</p>
+            </div>
+            <button class="btn btn-p" onclick="newDisc()">➕ Nouvelle discipline</button>
           </div>
-          <div id="disc-icons-grid"></div>
+          <div class="tc" style="overflow:hidden">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:52px"></th>
+                  <th>Nom</th>
+                  <th style="width:140px">Icône</th>
+                  <th style="width:100px"></th>
+                </tr>
+              </thead>
+              <tbody id="tb-disc"></tbody>
+            </table>
+          </div>
         </div>
 
         <!-- HISTORIQUE -->
@@ -1674,6 +1688,35 @@
   </div>
 
   <!-- ═══════════════ MODALS ═══════════════ -->
+
+  <!-- Discipline -->
+  <div class="mo" id="mo-disc">
+    <div class="md" style="max-width:420px">
+      <h3 id="mo-disc-t">Nouvelle discipline</h3><input type="hidden" id="disc-id">
+      <div class="fg"><label>Nom *</label><input type="text" id="disc-nom" placeholder="Ex : DRESSAGE"
+          style="text-transform:uppercase"></div>
+      <div class="fg"><label>Icône <span style="font-weight:400;color:var(--muted)">(PNG, JPG, SVG, WebP — max 1
+            Mo)</span></label>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
+          <div id="disc-icon-preview"
+            style="width:52px;height:52px;border-radius:10px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;background:var(--surface2);overflow:hidden;flex-shrink:0">
+            <span style="font-size:22px;color:var(--muted)">—</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="cursor:pointer">
+              <input type="file" id="disc-icon-file" accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                style="display:none" onchange="previewDiscIcon(this)">
+              <span class="btn btn-g sm" id="disc-icon-btn">⬆️ Choisir une image</span>
+            </label>
+            <button class="btn btn-d sm" id="disc-icon-del" style="display:none" onclick="clearDiscIconFile()">🗑
+              Retirer l'icône</button>
+          </div>
+        </div>
+      </div>
+      <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-disc')">Annuler</button><button class="btn btn-p"
+          onclick="saveDisc()">Enregistrer</button></div>
+    </div>
+  </div>
 
   <!-- Auth -->
   <div class="mo" id="mo-pw">
@@ -2067,7 +2110,7 @@
 
     const JOURS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
     const JS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-    const DISC = ['BALADE', 'BALADE & MES OBS', 'BaS', 'DRESSAGE', 'EQUIFEEL', 'EQUIFEEL+Cord', 'EQUIFUN', 'HORSEBALL', 'JEUX', 'LONGE', 'MeS OBSTACLE', 'MeS PLAT', 'MISE EN ROUTE', 'OBSTACLE', 'PAS COURS', 'PIED & JEUX', 'PLAT', 'SOINS', 'SPRING GARDEN', 'THÉORIE', 'THÉORIE / SOINS', 'VOLTIGE'];
+    let DISC = []; // chargé depuis la table disciplines
     const DISC_EMOJI = {
       'BALADE': '🌿',
       'BALADE & MES OBS': '🌿',
@@ -2108,10 +2151,14 @@
     // Charge les icônes depuis Supabase
     async function loadDiscIcons() {
       try {
+        // Charger les disciplines (noms) depuis la table disciplines
+        const discs = await dbSel('disciplines', { select: 'nom', order: 'nom' });
+        DISC = discs.map(d => d.nom);
+        // Charger les icônes
         const r = await dbSel('discipline_icons', { select: 'discipline,icon_url' });
         DISC_ICONS = {};
         r.forEach(x => { DISC_ICONS[x.discipline] = x.icon_url; });
-      } catch (e) { console.warn('Icons non chargées', e); }
+      } catch (e) { console.warn('Disciplines non chargées', e); }
     }
     const SLBL = { attache: '🔗 Attache/Box', veto: '🩺 Vétérinaire', marechal: '🔨 Maréchal', repos: '😴 Repos' };
     // Vérifie si un statut est actif à une date donnée (couvre date_fin)
@@ -3958,92 +4005,162 @@
     // ══════════════════════════════════════════════════
     //  DISCIPLINES — Gestion des icônes
     // ══════════════════════════════════════════════════
+    // ─── Disciplines CRUD ────────────────────────────────────────────────────────
+
     function renderDiscPage() {
-      const el = document.getElementById('disc-icons-grid'); if (!el) return;
-      el.innerHTML = DISC.map(d => {
+      const tb = document.getElementById('tb-disc'); if (!tb) return;
+      if (!DISC.length) { tb.innerHTML = '<tr class="er"><td colspan="4">Aucune discipline</td></tr>'; return; }
+      tb.innerHTML = DISC.map(d => {
         const url = DISC_ICONS[d];
-        return `<div class="tc" style="margin-bottom:0">
-      <div style="display:flex;align-items:center;gap:14px;padding:12px 16px;flex-wrap:wrap">
-        <!-- Aperçu -->
-        <div style="width:52px;height:52px;border-radius:10px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;background:var(--surface2);flex-shrink:0;overflow:hidden">
-          ${url
-            ? `<img src="${url}" style="width:44px;height:44px;object-fit:contain">`
-            : `<span style="font-size:22px;color:var(--muted)">—</span>`}
+        const esc = d.replace(/'/g, "\\'");
+        return `<tr>
+      <td style="padding:8px 12px;width:60px">
+        <div style="width:44px;height:44px;border-radius:8px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;background:var(--surface2);overflow:hidden">
+          ${url ? `<img src="${url}" style="width:36px;height:36px;object-fit:contain">` : `<span style="font-size:18px;color:var(--muted)">—</span>`}
         </div>
-        <!-- Nom + statut -->
-        <div style="flex:1;min-width:120px">
-          <div style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.3px">${d}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px">${url ? '✅ Icône personnalisée' : 'Aucune icône'}</div>
+      </td>
+      <td><strong style="text-transform:uppercase;letter-spacing:.3px">${d}</strong></td>
+      <td><span style="font-size:11px;color:${url ? '#2e7d32' : 'var(--muted)'}">${url ? '✅ Icône personnalisée' : 'Aucune icône'}</span></td>
+      <td style="white-space:nowrap;padding:8px 12px">
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-g sm" onclick="editDisc('${esc}')">✏️</button>
+          <button class="btn btn-d sm" onclick="delDisc('${esc}')">🗑</button>
         </div>
-        <!-- Actions -->
-        <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
-          <label style="cursor:pointer">
-            <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="display:none" onchange="uploadDiscIcon('${d}',this)">
-            <span class="btn ${url ? 'btn-g' : 'btn-p'} sm">${url ? '🔄 Remplacer' : '⬆️ Uploader'}</span>
-          </label>
-          ${url ? `<button class="btn btn-d sm" onclick="deleteDiscIcon('${d}')">🗑 Supprimer</button>` : ''}
-        </div>
-      </div>
-    </div>`;
-      }).join('<div style="height:1px;background:var(--border)"></div>');
-
-      // Wrapper dans un tc
-      el.innerHTML = `<div class="tc" style="overflow:hidden">${el.innerHTML}</div>`;
+      </td>
+    </tr>`;
+      }).join('');
     }
 
-    async function uploadDiscIcon(discipline, input) {
+    function newDisc() {
+      document.getElementById('mo-disc-t').textContent = 'Nouvelle discipline';
+      document.getElementById('disc-id').value = '';
+      document.getElementById('disc-nom').value = '';
+      document.getElementById('disc-icon-file').value = '';
+      document.getElementById('disc-icon-del').style.display = 'none';
+      document.getElementById('disc-icon-btn').textContent = '⬆️ Choisir une image';
+      document.getElementById('disc-icon-preview').innerHTML = '<span style="font-size:22px;color:var(--muted)">—</span>';
+      openMo('mo-disc');
+    }
+
+    function editDisc(nom) {
+      document.getElementById('mo-disc-t').textContent = 'Modifier la discipline';
+      document.getElementById('disc-id').value = nom;
+      document.getElementById('disc-nom').value = nom;
+      document.getElementById('disc-icon-file').value = '';
+      const url = DISC_ICONS[nom];
+      const prev = document.getElementById('disc-icon-preview');
+      if (url) {
+        prev.innerHTML = `<img src="${url}" style="width:44px;height:44px;object-fit:contain">`;
+        document.getElementById('disc-icon-del').style.display = '';
+        document.getElementById('disc-icon-btn').textContent = '🔄 Remplacer';
+      } else {
+        prev.innerHTML = '<span style="font-size:22px;color:var(--muted)">—</span>';
+        document.getElementById('disc-icon-del').style.display = 'none';
+        document.getElementById('disc-icon-btn').textContent = '⬆️ Choisir une image';
+      }
+      openMo('mo-disc');
+    }
+
+    function previewDiscIcon(input) {
       const file = input.files[0]; if (!file) return;
-      if (file.size > 1024 * 1024) { toast('Fichier trop lourd (max 1 Mo)', 'err'); return; }
-      const allowed = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp'];
-      if (!allowed.includes(file.type)) { toast('Format non supporté (PNG, JPG, SVG, WebP)', 'err'); return; }
-
-      toast('Upload en cours…', 'warn');
-      try {
-        // Lire en base64
-        const b64 = await new Promise((res, rej) => {
-          const r = new FileReader();
-          r.onload = () => res(r.result.split(',')[1]);
-          r.onerror = rej;
-          r.readAsDataURL(file);
-        });
-
-        const resp = await fetch('/api/db', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'upload-icon', token: sessionToken, discipline, fileBase64: b64, mimeType: file.type })
-        });
-        const j = await resp.json();
-        if (!j.ok) throw new Error(j.error || 'Erreur upload');
-
-        // Mettre à jour le cache local + forcer rechargement img (cache-buster)
-        DISC_ICONS[discipline] = j.url + '?t=' + Date.now();
-        toast('Icône uploadée !', 'ok');
-        renderDiscPage();
-      } catch (e) {
-        toast('Erreur : ' + e.message, 'err');
-      }
-      input.value = ''; // reset input
+      const reader = new FileReader();
+      reader.onload = e => {
+        document.getElementById('disc-icon-preview').innerHTML = `<img src="${e.target.result}" style="width:44px;height:44px;object-fit:contain">`;
+        document.getElementById('disc-icon-btn').textContent = '🔄 Remplacer';
+        document.getElementById('disc-icon-del').style.display = '';
+      };
+      reader.readAsDataURL(file);
     }
 
-    async function deleteDiscIcon(discipline) {
-      if (!confirm('Supprimer l\'icône de "' + discipline + '" ?')) return;
-      const url = DISC_ICONS[discipline] || '';
-      // Extraire le nom de fichier depuis l'URL
-      const fileName = url.split('/').pop().split('?')[0];
-      try {
-        const resp = await fetch('/api/db', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'delete-icon', token: sessionToken, discipline, fileName })
-        });
-        const j = await resp.json();
-        if (!j.ok) throw new Error(j.error || 'Erreur suppression');
-        delete DISC_ICONS[discipline];
-        toast('Icône supprimée', 'ok');
-        renderDiscPage();
-      } catch (e) {
-        toast('Erreur : ' + e.message, 'err');
+    function clearDiscIconFile() {
+      const nomOrig = document.getElementById('disc-id').value;
+      document.getElementById('disc-icon-file').value = '';
+      const url = DISC_ICONS[nomOrig];
+      const prev = document.getElementById('disc-icon-preview');
+      if (url) {
+        prev.innerHTML = `<img src="${url}" style="width:44px;height:44px;object-fit:contain">`;
+        document.getElementById('disc-icon-del').style.display = '';
+        document.getElementById('disc-icon-btn').textContent = '🔄 Remplacer';
+      } else {
+        prev.innerHTML = '<span style="font-size:22px;color:var(--muted)">—</span>';
+        document.getElementById('disc-icon-del').style.display = 'none';
+        document.getElementById('disc-icon-btn').textContent = '⬆️ Choisir une image';
       }
+    }
+
+    async function saveDisc() {
+      const nomOrig = document.getElementById('disc-id').value;
+      const nom = document.getElementById('disc-nom').value.trim().toUpperCase();
+      if (!nom) { toast('Le nom est obligatoire', 'err'); return; }
+      const fileInput = document.getElementById('disc-icon-file');
+      const file = fileInput.files[0] || null;
+      if (file) {
+        if (file.size > 1024 * 1024) { toast('Fichier trop lourd (max 1 Mo)', 'err'); return; }
+        const allowed = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp'];
+        if (!allowed.includes(file.type)) { toast('Format non supporté', 'err'); return; }
+      }
+      try {
+        if (nomOrig) {
+          // Modification
+          if (nom !== nomOrig) {
+            await dbUpd('disciplines', { nom }, [{ col: 'nom', op: 'eq', val: nomOrig }]);
+            if (DISC_ICONS[nomOrig]) {
+              DISC_ICONS[nom] = DISC_ICONS[nomOrig];
+              delete DISC_ICONS[nomOrig];
+              await dbUpd('discipline_icons', { discipline: nom }, [{ col: 'discipline', op: 'eq', val: nomOrig }]);
+            }
+            const idx = DISC.indexOf(nomOrig);
+            if (idx !== -1) DISC[idx] = nom;
+            DISC.sort((a, b) => a.localeCompare(b, 'fr'));
+          }
+        } else {
+          // Création
+          if (DISC.includes(nom)) { toast('Cette discipline existe déjà', 'err'); return; }
+          await dbIns('disciplines', { nom });
+          DISC.push(nom);
+          DISC.sort((a, b) => a.localeCompare(b, 'fr'));
+        }
+        // Upload icône si fichier sélectionné
+        if (file) {
+          const b64 = await new Promise((res, rej) => {
+            const r = new FileReader();
+            r.onload = () => res(r.result.split(',')[1]);
+            r.onerror = rej;
+            r.readAsDataURL(file);
+          });
+          toast('Upload en cours…', 'warn');
+          const resp = await fetch('/api/db', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'upload-icon', token: sessionToken, discipline: nom, fileBase64: b64, mimeType: file.type })
+          });
+          const j = await resp.json();
+          if (!j.ok) throw new Error(j.error || 'Erreur upload');
+          DISC_ICONS[nom] = j.url + '?t=' + Date.now();
+        }
+        toast(nomOrig ? 'Discipline modifiée' : 'Discipline créée', 'ok');
+        closeMo('mo-disc');
+        popSelects();
+        renderDiscPage();
+      } catch (e) { toast('Erreur : ' + e.message, 'err'); }
+    }
+
+    async function delDisc(nom) {
+      if (!confirm('Supprimer la discipline "' + nom + '" ?')) return;
+      try {
+        await dbDel('disciplines', [{ col: 'nom', op: 'eq', val: nom }]);
+        if (DISC_ICONS[nom]) {
+          const fileName = (DISC_ICONS[nom] || '').split('/').pop().split('?')[0];
+          await fetch('/api/db', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete-icon', token: sessionToken, discipline: nom, fileName })
+          });
+          delete DISC_ICONS[nom];
+        }
+        DISC = DISC.filter(d => d !== nom);
+        toast('Discipline supprimée', 'ok');
+        popSelects();
+        renderDiscPage();
+      } catch (e) { toast('Erreur : ' + e.message, 'err'); }
     }
   </script>
 </body>
