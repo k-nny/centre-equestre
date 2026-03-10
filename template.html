@@ -1948,7 +1948,8 @@
           <option value="Espèces">Espèces</option>
           <option value="Chèque">Chèque</option>
           <option value="Virement">Virement</option>
-          <option value="CB">Carte bancaire</option>
+          <option value="Pass">Pass</option>
+          <option value="Offert">Offert</option>
         </select></div>
       <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-part-reg')">Annuler</button><button
           class="btn btn-p" onclick="savePartReglement()">Enregistrer</button></div>
@@ -1975,7 +1976,8 @@
           <option value="Espèces">Espèces</option>
           <option value="Chèque">Chèque</option>
           <option value="Virement">Virement</option>
-          <option value="CB">Carte bancaire</option>
+          <option value="Pass">Pass</option>
+          <option value="Offert">Offert</option>
         </select></div>
       <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-exc')">Annuler</button><button class="btn btn-p"
           id="exc-btn" onclick="saveExc()">Ajouter</button></div>
@@ -3032,6 +3034,33 @@
       openMo('mo-ratt');
     }
 
+    // Marque automatiquement rattrapage_effectue=true sur l'absence dont la date de séance
+    // correspond à la date_cours_rattrape du rattrapage qu'on vient de sauvegarder
+    async function autoMarquerAbsenceRattrapee(cavId, dateCoursRattrape) {
+      if (!cavId || !dateCoursRattrape) return;
+      try {
+        // Charger toutes les absences du cavalier (sans filtre booléen pour éviter les problèmes Supabase)
+        const absences = await dbSel('affectations_seance', {
+          select: 'id,rattrapage_effectue,seances(date)',
+          filter: [
+            { col: 'cavalier_id', op: 'eq', val: cavId },
+            { col: 'absent', op: 'eq', val: 'true' },
+          ]
+        });
+        // Filtrer côté JS : la séance correspond à la date rattrapée et pas encore marquée effectuée
+        const cible = absences.find(a =>
+          a.seances?.date === dateCoursRattrape &&
+          !a.rattrapage_effectue
+        );
+        if (!cible) { console.log('autoRatt: aucune absence trouvée pour', dateCoursRattrape); return; }
+        await dbUpd('affectations_seance', { rattrapage_effectue: true }, [{ col: 'id', op: 'eq', val: cible.id }]);
+        // Mettre à jour le cache historique absences si chargé
+        const ha = _histAbsences.find(x => x.id === cible.id);
+        if (ha) ha.rattrapage_effectue = true;
+        console.log('autoRatt: absence marquée effectuée', cible.id);
+      } catch (e) { console.warn('autoMarquerAbsenceRattrapee erreur:', e); }
+    }
+
     async function saveRatt() {
       const seaId = v('ratt-sid'), cavId = v('ratt-cav'), chvId = v('ratt-chv') || null, dateCoursRattrape = v('ratt-date-cours') || null, affId = v('ratt-aff-id');
       if (!cavId) { toast('Choisissez un cavalier', 'err'); return; }
@@ -3051,10 +3080,14 @@
         // Mettre à jour le cache historique si chargé
         const hr = _histRattrapages.find(x => x.id === affId);
         if (hr) { hr.date_cours_rattrape = dateCoursRattrape; if (hr.cavaliers) hr.cavaliers.prenom = C.cav.find(c => c.id === cavId)?.prenom || hr.cavaliers.prenom; if (hr.equides) hr.equides.nom = chvId ? C.chv.find(c => c.id === chvId)?.nom : ''; else if (chvId) hr.equides = { nom: C.chv.find(c => c.id === chvId)?.nom || '?' }; }
+        // Marquer l'absence correspondante comme effectuée
+        await autoMarquerAbsenceRattrapee(cavId, dateCoursRattrape);
         toast('Rattrapage modifié', 'ok');
       } else {
         // Mode création
         await dbIns('affectations_seance', { seance_id: seaId, cavalier_id: cavId, equide_id: chvId, absent: false, rattrapage: true, date_cours_rattrape: dateCoursRattrape });
+        // Marquer l'absence correspondante comme effectuée
+        await autoMarquerAbsenceRattrapee(cavId, dateCoursRattrape);
         toast('Rattrapage ajouté', 'ok');
       }
       closeMo('mo-ratt'); await loadSeances(v('sea-date'));
