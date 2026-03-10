@@ -192,8 +192,11 @@ async function supabaseQuery({ url, anon, appKey, table, method, select, filter=
   let qs = [];
   if (select) qs.push(`select=${encodeURIComponent(select)}`);
 
-  // APP_KEY filter — toujours injecté côté serveur, jamais par le client
-  const allFilters = [{ col: 'app_key', op: 'eq', val: appKey }, ...(filter||[])];
+  // APP_KEY filter — injecté côté serveur sauf pour les tables sans cette colonne
+  const NO_APPKEY_TABLES = ['disciplines'];
+  const allFilters = NO_APPKEY_TABLES.includes(table)
+    ? (filter||[])
+    : [{ col: 'app_key', op: 'eq', val: appKey }, ...(filter||[])];
   for (const f of allFilters) {
     qs.push(`${f.col}=${f.op}.${encodeURIComponent(f.val)}`);
   }
@@ -212,10 +215,12 @@ async function supabaseQuery({ url, anon, appKey, table, method, select, filter=
   if (method === 'update') { fetchMethod = 'PATCH'; body = JSON.stringify(data); }
   if (method === 'delete') { fetchMethod = 'DELETE'; }
 
-  // Pour insert : injecter app_key côté serveur
+  // Pour insert : injecter app_key côté serveur (sauf tables sans cette colonne)
   if (method === 'insert') {
     const rows = Array.isArray(data)?data:[data];
-    body = JSON.stringify(rows.map(r => ({ ...r, app_key: appKey })));
+    body = JSON.stringify(NO_APPKEY_TABLES.includes(table)
+      ? rows
+      : rows.map(r => ({ ...r, app_key: appKey })));
   }
 
   const r = await fetch(endpoint, { method: fetchMethod, headers, body });
