@@ -53,6 +53,99 @@ export default async function handler(req, res) {
       return res.status(200).json({ hash });
     }
 
+    // ── Upload icône discipline vers Supabase Storage ─────────────────
+    // { action: 'upload-icon', token, discipline, fileBase64, mimeType }
+    if (body.action === 'upload-icon') {
+      if (!verifyToken(body.token, ADMIN_PWD))
+        return res.status(403).json({ error: 'Non autorisé' });
+
+      const { discipline, fileBase64, mimeType } = body;
+      if (!discipline || !fileBase64 || !mimeType)
+        return res.status(400).json({ error: 'Paramètres manquants' });
+
+      // Nom de fichier : slugify discipline
+      const slug = discipline.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const ext  = mimeType === 'image/svg+xml' ? 'svg'
+                 : mimeType === 'image/png'      ? 'png'
+                 : mimeType === 'image/jpeg'     ? 'jpg'
+                 : mimeType === 'image/webp'     ? 'webp'
+                 : 'png';
+      const fileName = `${slug}.${ext}`;
+
+      // Convertir base64 → binaire
+      const binary  = Buffer.from(fileBase64, 'base64');
+      const bucket  = 'discipline-icons';
+
+      // Upload vers Supabase Storage (upsert)
+      const storageUrl = `${SUPA_URL}/storage/v1/object/${bucket}/${fileName}`;
+      const upRes = await fetch(storageUrl, {
+        method:  'PUT',
+        headers: {
+          'apikey':        SUPA_ANON,
+          'Authorization': `Bearer ${SUPA_ANON}`,
+          'Content-Type':  mimeType,
+          'x-upsert':      'true',
+        },
+        body: binary,
+      });
+      if (!upRes.ok) {
+        const err = await upRes.text();
+        return res.status(500).json({ error: 'Storage upload failed: ' + err });
+      }
+
+      // URL publique
+      const publicUrl = `${SUPA_URL}/storage/v1/object/public/${bucket}/${fileName}`;
+
+      // Upsert dans la table discipline_icons
+      const upsertUrl = `${SUPA_URL}/rest/v1/discipline_icons?on_conflict=discipline,app_key`;
+      const upsertRes = await fetch(upsertUrl, {
+        method: 'POST',
+        headers: {
+          'apikey':        SUPA_ANON,
+          'Authorization': `Bearer ${SUPA_ANON}`,
+          'Content-Type':  'application/json',
+          'Prefer':        'resolution=merge-duplicates,return=representation',
+        },
+        body: JSON.stringify([{ discipline, icon_url: publicUrl, app_key: APP_KEY }]),
+      });
+      if (!upsertRes.ok) {
+        const err = await upsertRes.text();
+        return res.status(500).json({ error: 'DB upsert failed: ' + err });
+      }
+
+      return res.status(200).json({ ok: true, url: publicUrl });
+    }
+
+    // ── Suppression icône discipline ──────────────────────────────────
+    // { action: 'delete-icon', token, discipline, fileName }
+    if (body.action === 'delete-icon') {
+      if (!verifyToken(body.token, ADMIN_PWD))
+        return res.status(403).json({ error: 'Non autorisé' });
+
+      const { discipline, fileName } = body;
+      if (!discipline) return res.status(400).json({ error: 'discipline manquant' });
+
+      // Supprimer du Storage si fileName fourni
+      if (fileName) {
+        const delUrl = `${SUPA_URL}/storage/v1/object/discipline-icons/${fileName}`;
+        await fetch(delUrl, {
+          method:  'DELETE',
+          headers: { 'apikey': SUPA_ANON, 'Authorization': `Bearer ${SUPA_ANON}` },
+        });
+      }
+
+      // Supprimer de la table
+      const delDbUrl = `${SUPA_URL}/rest/v1/discipline_icons?discipline=eq.${encodeURIComponent(discipline)}&app_key=eq.${encodeURIComponent(APP_KEY)}`;
+      await fetch(delDbUrl, {
+        method:  'DELETE',
+        headers: { 'apikey': SUPA_ANON, 'Authorization': `Bearer ${SUPA_ANON}` },
+      });
+
+      return res.status(200).json({ ok: true });
+    }
+
     // ── Route : proxy Supabase (toutes les autres requêtes) ───────────
     // { action: 'query', table, method, filter, data, token }
     if (body.action === 'query') {
