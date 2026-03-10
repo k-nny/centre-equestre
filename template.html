@@ -2912,26 +2912,42 @@
         return (a.annee_naissance || 9999) - (b.annee_naissance || 9999);
       });
     }
-    // Charge les absences du cavalier sélectionné dans la modale rattrapage
+    // Charge les absences NON rattrapées du cavalier sélectionné
     async function onRattCavChange() {
       const cavId = v('ratt-cav');
       const fg = document.getElementById('ratt-abs-fg');
       const sel = document.getElementById('ratt-abs-select');
       document.getElementById('ratt-date-cours').value = '';
+      document.getElementById('ratt-date-cours').style.opacity = '1';
+      document.getElementById('ratt-date-cours').readOnly = false;
       if (!cavId) { fg.style.display = 'none'; return; }
-      // Charger les absences non rattrapées de ce cavalier
       try {
-        const absences = await dbSel('affectations_seance', {
-          select: 'id,date_rattrapage,motif_absence,seances(date,groupe_id)',
-          filter: [
-            { col: 'cavalier_id', op: 'eq', val: cavId },
-            { col: 'absent', op: 'eq', val: 'true' },
-          ],
-          order: [{ col: 'created_at', asc: false }]
-        });
-        const withDate = absences.filter(a => a.seances?.date);
-        if (!withDate.length) { fg.style.display = 'none'; return; }
-        sel.innerHTML = '<option value="">— Saisie libre —</option>' + withDate.map(a => {
+        // Charger absences + rattrapages du cavalier en parallèle
+        const [absences, rattrapages] = await Promise.all([
+          dbSel('affectations_seance', {
+            select: 'id,motif_absence,date_cours_rattrape,seances(date,groupe_id)',
+            filter: [{ col: 'cavalier_id', op: 'eq', val: cavId }, { col: 'absent', op: 'eq', val: 'true' }],
+            order: [{ col: 'created_at', asc: false }]
+          }),
+          dbSel('affectations_seance', {
+            select: 'date_cours_rattrape',
+            filter: [{ col: 'cavalier_id', op: 'eq', val: cavId }, { col: 'rattrapage', op: 'eq', val: 'true' }]
+          })
+        ]);
+        // Dates déjà rattrapées (date_cours_rattrape renseignée sur un rattrapage)
+        const datesDejaRatt = new Set(rattrapages.map(r => r.date_cours_rattrape).filter(Boolean));
+        // Garder uniquement les absences avec une date de séance et pas encore rattrapées
+        const nonRatt = absences.filter(a =>
+          a.seances?.date &&
+          !datesDejaRatt.has(a.seances.date) &&
+          !datesDejaRatt.has(a.date_cours_rattrape)
+        );
+        if (!nonRatt.length) {
+          sel.innerHTML = '<option value="">— Aucune absence en attente —</option>';
+          fg.style.display = 'block';
+          return;
+        }
+        sel.innerHTML = '<option value="">— Saisie libre —</option>' + nonRatt.map(a => {
           const g = C.grp.find(x => x.id === a.seances?.groupe_id);
           const label = fmtDate(a.seances.date) + (g ? ' — ' + g.nom : '') + (a.motif_absence ? ' (' + a.motif_absence + ')' : '');
           return `<option value="${a.seances.date}" data-aff="${a.id}">${label}</option>`;
