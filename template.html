@@ -1988,14 +1988,20 @@
   <div class="mo" id="mo-ratt">
     <div class="md" style="max-width:400px">
       <h3 id="ratt-title">➕ Rattrapage</h3><input type="hidden" id="ratt-sid"><input type="hidden" id="ratt-aff-id">
-      <div class="fg"><label>Cavalier *</label><select id="ratt-cav">
+      <div class="fg"><label>Cavalier *</label><select id="ratt-cav" onchange="onRattCavChange()">
           <option value="">— Sélectionner —</option>
         </select></div>
+      <div class="fg" id="ratt-abs-fg" style="display:none"><label>Absence à rattraper <span
+            style="color:var(--muted)">(optionnel)</span></label><select id="ratt-abs-select"
+          onchange="onRattAbsSelect()">
+          <option value="">— Saisie libre —</option>
+        </select></div>
+      <div class="fg"><label id="ratt-date-label">Date du cours rattrapé <span
+            style="color:var(--muted)">(optionnel)</span></label><input type="date" id="ratt-date-cours"
+          placeholder="Date du cours absent…"></div>
       <div class="fg"><label>Cheval</label><select id="ratt-chv">
           <option value="">— Non attribué —</option>
         </select></div>
-      <div class="fg"><label>Date du cours rattrapé <span style="color:var(--muted)">(optionnel)</span></label><input
-          type="date" id="ratt-date-cours" placeholder="Date du cours absent…"></div>
       <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-ratt')">Annuler</button><button class="btn btn-p"
           id="ratt-save-btn" onclick="saveRatt()">Ajouter</button></div>
     </div>
@@ -2906,6 +2912,41 @@
         return (a.annee_naissance || 9999) - (b.annee_naissance || 9999);
       });
     }
+    // Charge les absences du cavalier sélectionné dans la modale rattrapage
+    async function onRattCavChange() {
+      const cavId = v('ratt-cav');
+      const fg = document.getElementById('ratt-abs-fg');
+      const sel = document.getElementById('ratt-abs-select');
+      document.getElementById('ratt-date-cours').value = '';
+      if (!cavId) { fg.style.display = 'none'; return; }
+      // Charger les absences non rattrapées de ce cavalier
+      try {
+        const absences = await dbSel('affectations_seance', {
+          select: 'id,date_rattrapage,motif_absence,seances(date,groupe_id)',
+          filter: [
+            { col: 'cavalier_id', op: 'eq', val: cavId },
+            { col: 'absent', op: 'eq', val: 'true' },
+          ],
+          order: [{ col: 'created_at', asc: false }]
+        });
+        const withDate = absences.filter(a => a.seances?.date);
+        if (!withDate.length) { fg.style.display = 'none'; return; }
+        sel.innerHTML = '<option value="">— Saisie libre —</option>' + withDate.map(a => {
+          const g = C.grp.find(x => x.id === a.seances?.groupe_id);
+          const label = fmtDate(a.seances.date) + (g ? ' — ' + g.nom : '') + (a.motif_absence ? ' (' + a.motif_absence + ')' : '');
+          return `<option value="${a.seances.date}" data-aff="${a.id}">${label}</option>`;
+        }).join('');
+        fg.style.display = 'block';
+      } catch (e) { fg.style.display = 'none'; }
+    }
+    function onRattAbsSelect() {
+      const sel = document.getElementById('ratt-abs-select');
+      const val = sel.value;
+      document.getElementById('ratt-date-cours').value = val || '';
+      // Griser l'input date si une absence est sélectionnée (pour éviter la confusion)
+      document.getElementById('ratt-date-cours').style.opacity = val ? '0.5' : '1';
+      document.getElementById('ratt-date-cours').readOnly = !!val;
+    }
     function openRatt(seaId, heure, date) {
       document.getElementById('ratt-sid').value = seaId;
       document.getElementById('ratt-aff-id').value = '';
@@ -2937,6 +2978,10 @@
         return `<option value="${c.id}"${p ? ' disabled' : ''}>${c.nom}${suffix}`;
       }).join('');
       document.getElementById('ratt-date-cours').value = '';
+      document.getElementById('ratt-date-cours').style.opacity = '1';
+      document.getElementById('ratt-date-cours').readOnly = false;
+      document.getElementById('ratt-abs-fg').style.display = 'none';
+      document.getElementById('ratt-abs-select').innerHTML = '<option value="">— Saisie libre —</option>';
       openMo('mo-ratt');
     }
     function editRatt(affId, seaId, heure, date) {
@@ -2967,6 +3012,9 @@
         return `<option value="${c.id}"${aff.equide_id === c.id ? ' selected' : ''}${p ? ' disabled' : ''}>${c.nom}${suffix}`;
       }).join('');
       document.getElementById('ratt-date-cours').value = aff.date_cours_rattrape || '';
+      document.getElementById('ratt-date-cours').style.opacity = '1';
+      document.getElementById('ratt-date-cours').readOnly = false;
+      document.getElementById('ratt-abs-fg').style.display = 'none';
       openMo('mo-ratt');
     }
 
