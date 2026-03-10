@@ -1801,10 +1801,10 @@
       <h3 id="mo-cav-t">Nouveau cavalier</h3><input type="hidden" id="cav-id">
       <div class="fr">
         <div class="fg"><label>Prénom *</label><input type="text" id="cav-prenom" placeholder="Kenny"></div>
-        <div class="fg"><label>Nom de famille</label><input type="text" id="cav-nom" placeholder="Dupont"></div>
+        <div class="fg"><label>Nom de famille</label><input type="text" id="cav-nom" placeholder="DODEY"></div>
       </div>
       <div class="fg"><label>Téléphone <span style="color:var(--muted)">(admin)</span></label><input type="tel"
-          id="cav-tel" placeholder="06 12 34 56 78"></div>
+          id="cav-tel" placeholder="06 95 73 83 71"></div>
       <div class="fg"><label>Groupes assignés</label>
         <div class="cav-checkgrid" id="cav-grp-grid"></div>
       </div>
@@ -3736,7 +3736,7 @@
     function openEditReglExc(affId) {
       const a = (_histReglements?.exc || []).find(x => x.id === affId); if (!a) return;
       const date = a.seances?.date || '';
-      const heure = a.seances?.heure_debut || a.seances?.heure || '';
+      const heure = a.seances?.heure || a.seances?.heure || '';
       document.getElementById('exc-aff-id').value = affId;
       document.getElementById('exc-sea-id').value = a.seances?.id || a.seance_id || '';
       document.getElementById('exc-heure').value = heure;
@@ -3854,7 +3854,7 @@
       } else if (histTab === 'reglements') {
         // Cours exceptionnels avec montant
         const exc = await dbSel('affectations_seance', {
-          select: 'id,seance_id,equide_id,nom_exceptionnel,montant_exceptionnel,regle_exceptionnel,methode_paiement_exc,date_reglement_exc,seances(id,date,heure_debut,groupe_id)',
+          select: 'id,seance_id,equide_id,nom_exceptionnel,montant_exceptionnel,regle_exceptionnel,methode_paiement_exc,date_reglement_exc,seances(id,date,heure,groupe_id)',
           filter: [{ col: 'cours_exceptionnel', op: 'eq', val: 'true' }],
           order: [{ col: 'created_at', asc: false }]
         });
