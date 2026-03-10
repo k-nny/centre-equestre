@@ -2139,13 +2139,13 @@
 
     // Icônes disciplines (chargées depuis Supabase, surcharge les emojis)
     let DISC_ICONS = {}; // { 'DRESSAGE': 'https://...', ... }
+    const DEFAULT_DISC_ICON = 'data:image/png;base64,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';
 
     // Retourne le HTML visuel d'une discipline (img si icône custom, sinon emoji)
     function discIcon(d, { size = 22, cls = '' } = {}) {
       if (!d) return '';
-      const url = DISC_ICONS[d];
-      if (url) return `<img src="${url}" alt="${d}" style="width:${size}px;height:${size}px;object-fit:contain;vertical-align:middle;border-radius:3px" class="${cls}">`;
-      return ''; // pas d'icône custom → rien
+      const url = DISC_ICONS[d] || DEFAULT_DISC_ICON;
+      return `<img src="${url}" alt="${d}" style="width:${size}px;height:${size}px;object-fit:contain;vertical-align:middle;border-radius:3px" class="${cls}">`;
     }
 
     // Charge les icônes depuis Supabase
@@ -4016,7 +4016,7 @@
         return `<tr>
       <td style="padding:8px 12px;width:60px">
         <div style="width:44px;height:44px;border-radius:8px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;background:var(--surface2);overflow:hidden">
-          ${url ? `<img src="${url}" style="width:36px;height:36px;object-fit:contain">` : `<span style="font-size:18px;color:var(--muted)">—</span>`}
+          <img src="${url || DEFAULT_DISC_ICON}" style="width:36px;height:36px;object-fit:contain">
         </div>
       </td>
       <td><strong style="text-transform:uppercase;letter-spacing:.3px">${d}</strong></td>
@@ -4038,7 +4038,7 @@
       document.getElementById('disc-icon-file').value = '';
       document.getElementById('disc-icon-del').style.display = 'none';
       document.getElementById('disc-icon-btn').textContent = '⬆️ Choisir une image';
-      document.getElementById('disc-icon-preview').innerHTML = '<span style="font-size:22px;color:var(--muted)">—</span>';
+      document.getElementById('disc-icon-preview').innerHTML = `<img src="${DEFAULT_DISC_ICON}" style="width:44px;height:44px;object-fit:contain">`;
       openMo('mo-disc');
     }
 
@@ -4049,12 +4049,11 @@
       document.getElementById('disc-icon-file').value = '';
       const url = DISC_ICONS[nom];
       const prev = document.getElementById('disc-icon-preview');
+      prev.innerHTML = `<img src="${url || DEFAULT_DISC_ICON}" style="width:44px;height:44px;object-fit:contain">`;
       if (url) {
-        prev.innerHTML = `<img src="${url}" style="width:44px;height:44px;object-fit:contain">`;
         document.getElementById('disc-icon-del').style.display = '';
         document.getElementById('disc-icon-btn').textContent = '🔄 Remplacer';
       } else {
-        prev.innerHTML = '<span style="font-size:22px;color:var(--muted)">—</span>';
         document.getElementById('disc-icon-del').style.display = 'none';
         document.getElementById('disc-icon-btn').textContent = '⬆️ Choisir une image';
       }
@@ -4077,12 +4076,12 @@
       document.getElementById('disc-icon-file').value = '';
       const url = DISC_ICONS[nomOrig];
       const prev = document.getElementById('disc-icon-preview');
+      const imgSrc = url || DEFAULT_DISC_ICON;
+      prev.innerHTML = `<img src="${imgSrc}" style="width:44px;height:44px;object-fit:contain">`;
       if (url) {
-        prev.innerHTML = `<img src="${url}" style="width:44px;height:44px;object-fit:contain">`;
         document.getElementById('disc-icon-del').style.display = '';
         document.getElementById('disc-icon-btn').textContent = '🔄 Remplacer';
       } else {
-        prev.innerHTML = '<span style="font-size:22px;color:var(--muted)">—</span>';
         document.getElementById('disc-icon-del').style.display = 'none';
         document.getElementById('disc-icon-btn').textContent = '⬆️ Choisir une image';
       }
