@@ -3407,7 +3407,7 @@
       style="padding:8px 16px;border-top:2px dashed rgba(139,105,20,.2);background:rgba(139,105,20,.02);min-height:44px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;transition:background .15s"
       ondragover="onLibreDragOver(event)" ondragleave="onLibreDragLeave(event)" ondrop="onLibreDrop(event,'${st.id}')">
       <span style="color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">
-        🐎 Chevaux libres${chvs.length ? '' : ' — aucun pour l\'instant'}
+        🐎 Chevaux libres${chvs.length ? '' : ' — aucun pour l\u0027instant'}
       </span>
       ${chvs.map(c => `<span class="b bgo stg-chv-chip" draggable="true"
         data-chv-id="${c.equide_id}" data-chv-nom="${(c.equides?.nom || '?').replace(/"/g, '&quot;')}" data-chvs-id="${c.id}"
@@ -3713,7 +3713,50 @@
       const id = v('preg-id'), regle = document.getElementById('preg-regle').checked;
       const montant = parseFloat(v('preg-montant')) || null, date_reglement = v('preg-date') || null, methode_paiement = v('preg-methode') || null;
       await dbUpd('stage_participants', { regle, montant, date_reglement, methode_paiement }, [{ col: 'id', op: 'eq', val: id }]);
-      toast('Règlement mis à jour', 'ok'); closeMo('mo-part-reg'); await loadStages();
+      toast('Règlement mis à jour', 'ok'); closeMo('mo-part-reg');
+      // Rafraîchir la source : stages ET historique si on y est
+      await loadStages();
+      if (histTab === 'reglements') { _histReglements = null; await loadHistorique(); }
+    }
+
+    // Ouvre la modale règlement participant depuis l'historique
+    function openEditReglPart(partId) {
+      // Cherche dans le cache historique d'abord, sinon dans C.parts
+      const p = (_histReglements?.parts || []).find(x => x.id === partId) || C.parts.find(x => x.id === partId);
+      if (!p) return;
+      document.getElementById('preg-id').value = partId;
+      document.getElementById('preg-regle').checked = !!p.regle;
+      document.getElementById('preg-montant').value = p.montant != null ? p.montant : '';
+      document.getElementById('preg-date').value = p.date_reglement || '';
+      document.getElementById('preg-methode').value = p.methode_paiement || '';
+      openMo('mo-part-reg');
+    }
+
+    // Ouvre la modale cours exceptionnel en mode édition règlement depuis l'historique
+    function openEditReglExc(affId) {
+      const a = (_histReglements?.exc || []).find(x => x.id === affId); if (!a) return;
+      // Réutilise openExc en mode édition (sans avoir besoin de la séance dans la vue semaine)
+      document.getElementById('exc-aff-id').value = affId;
+      document.getElementById('exc-sea-id').value = a.seances?.id || '';
+      document.getElementById('exc-heure').value = '';
+      document.getElementById('exc-date').value = a.seances?.date || '';
+      document.getElementById('exc-title').textContent = '✏️ Modifier règlement';
+      document.getElementById('exc-nom').value = a.nom_exceptionnel || '';
+      document.getElementById('exc-montant').value = a.montant_exceptionnel != null ? a.montant_exceptionnel : '';
+      document.getElementById('exc-date-reg').value = a.date_reglement_exc || '';
+      document.getElementById('exc-methode').value = a.methode_paiement_exc || '';
+      document.getElementById('exc-regle').checked = !!a.regle_exceptionnel;
+      document.getElementById('exc-btn').textContent = 'Enregistrer';
+      // Override saveExc pour rafraîchir l'historique après save
+      const origOnclick = document.getElementById('exc-btn').onclick;
+      document.getElementById('exc-btn').onclick = async () => {
+        await saveExc();
+        _histReglements = null;
+        await loadHistorique();
+        document.getElementById('exc-btn').onclick = origOnclick;
+        document.getElementById('exc-title').textContent = '⭐ Cours exceptionnel';
+      };
+      openMo('mo-exc');
     }
 
     function _buildExcChvList(heure, date, currentChvId) {
@@ -4046,14 +4089,15 @@
           </div>`: ''}
         </div>
       </div>
-      <table><thead><tr><th>Participant</th><th>Montant</th><th>Statut</th><th>Méthode</th><th>Date règlement</th></tr></thead>
+      <table><thead><tr><th>Participant</th><th>Montant</th><th>Statut</th><th>Méthode</th><th>Date règlement</th><th style="width:40px"></th></tr></thead>
       <tbody>${partsFiltered.length ? [...partsFiltered].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(p => `<tr>
         <td><strong>${p.prenom}</strong></td>
         <td>${p.montant != null ? `<strong>${parseFloat(p.montant).toFixed(0)}€</strong>` : '<span style="color:var(--muted)">—</span>'}</td>
         <td>${p.regle ? '<span class="b bg">✅ Réglé</span>' : '<span class="b br">⏳ En attente</span>'}</td>
         <td>${p.methode_paiement || '<span style="color:var(--muted)">—</span>'}</td>
         <td>${p.date_reglement ? fmtDate(p.date_reglement) : '<span style="color:var(--muted)">—</span>'}</td>
-      </tr>`).join('') : '<tr class="er"><td colspan="5">Aucun participant</td></tr>'}</tbody>
+        <td><button class="btn btn-g sm" onclick="openEditReglPart('${p.id}')">✏️</button></td>
+      </tr>`).join('') : '<tr class="er"><td colspan="6">Aucun participant</td></tr>'}</tbody>
       </table>
     </div>`;
       }
@@ -4073,7 +4117,7 @@
         </div>`: ''}
       </div>
     </div>
-    <table><thead><tr><th>Nom</th><th>Date séance</th><th>Groupe</th><th>Montant</th><th>Statut</th><th>Méthode</th><th>Date règlement</th></tr></thead>
+    <table><thead><tr><th>Nom</th><th>Date séance</th><th>Groupe</th><th>Montant</th><th>Statut</th><th>Méthode</th><th>Date règlement</th><th style="width:40px"></th></tr></thead>
     <tbody>${excFiltered.length ? excFiltered.map(a => {
         const g = C.grp.find(x => x.id === a.seances?.groupe_id);
         const c = g?.couleur || '#c9a84c'; const il = g ? isLightColor(c) : false;
@@ -4085,8 +4129,9 @@
         <td>${a.regle_exceptionnel ? '<span class="b bg">✅ Réglé</span>' : '<span class="b br">⏳ En attente</span>'}</td>
         <td>${a.methode_paiement_exc || '<span style="color:var(--muted)">—</span>'}</td>
         <td>${a.date_reglement_exc ? fmtDate(a.date_reglement_exc) : '<span style="color:var(--muted)">—</span>'}</td>
+        <td><button class="btn btn-g sm" onclick="openEditReglExc('${a.id}')">✏️</button></td>
       </tr>`;
-      }).join('') : '<tr class="er"><td colspan="7">Aucun résultat</td></tr>'}</tbody>
+      }).join('') : '<tr class="er"><td colspan="8">Aucun résultat</td></tr>'}</tbody>
     </table>
   </div>`;
 
