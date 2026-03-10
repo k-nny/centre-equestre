@@ -2152,7 +2152,7 @@
     async function loadDiscIcons() {
       try {
         // Charger les disciplines (noms) depuis la table disciplines
-        const discs = await dbSel('disciplines', { select: 'nom', order: 'nom' });
+        const discs = await dbSel('disciplines', { select: 'nom', order: [{ col: 'nom' }] });
         DISC = discs.map(d => d.nom);
         // Charger les icônes
         const r = await dbSel('discipline_icons', { select: 'discipline,icon_url' });
