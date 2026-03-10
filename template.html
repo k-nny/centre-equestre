@@ -1948,8 +1948,7 @@
           <option value="Espèces">Espèces</option>
           <option value="Chèque">Chèque</option>
           <option value="Virement">Virement</option>
-          <option value="Pass">Pass</option>
-          <option value="Offert">Offert</option>
+          <option value="CB">Carte bancaire</option>
         </select></div>
       <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-part-reg')">Annuler</button><button
           class="btn btn-p" onclick="savePartReglement()">Enregistrer</button></div>
@@ -1976,8 +1975,7 @@
           <option value="Espèces">Espèces</option>
           <option value="Chèque">Chèque</option>
           <option value="Virement">Virement</option>
-          <option value="Pass">Pass</option>
-          <option value="Offert">Offert</option>
+          <option value="CB">Carte bancaire</option>
         </select></div>
       <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-exc')">Annuler</button><button class="btn btn-p"
           id="exc-btn" onclick="saveExc()">Ajouter</button></div>
@@ -2934,13 +2932,13 @@
             filter: [{ col: 'cavalier_id', op: 'eq', val: cavId }, { col: 'rattrapage', op: 'eq', val: 'true' }]
           })
         ]);
-        // Dates déjà rattrapées (date_cours_rattrape renseignée sur un rattrapage)
+        // Dates déjà rattrapées = toutes les date_cours_rattrape posées sur un rattrapage,
+        // qu'elles aient été choisies via le select OU saisies à la main
         const datesDejaRatt = new Set(rattrapages.map(r => r.date_cours_rattrape).filter(Boolean));
-        // Garder uniquement les absences avec une date de séance et pas encore rattrapées
+        // Une absence est "déjà rattrapée" si la date de sa séance figure dans datesDejaRatt
         const nonRatt = absences.filter(a =>
           a.seances?.date &&
-          !datesDejaRatt.has(a.seances.date) &&
-          !datesDejaRatt.has(a.date_cours_rattrape)
+          !datesDejaRatt.has(a.seances.date)
         );
         if (!nonRatt.length) {
           sel.innerHTML = '<option value="">— Aucune absence en attente —</option>';
