@@ -1829,21 +1829,22 @@
             placeholder="2015"></div>
       </div>
       <div class="fr">
-        <div class="fg"><label>Max heures / semaine</label><input type="number" id="chv-h-prev" value="0" min="0"
-            step="0.5"></div>
-      </div>
-      <div class="fg"><label>Note visible par tous</label><textarea id="chv-note"
-          placeholder="Informations, particularités…" rows="2"></textarea></div>
-      <div class="flag-box">
-        <div>
-          <div class="ftxt">🚫 Cheval hors cours</div>
-          <div class="fsub">Exclu des séances et des stages</div>
-        </div>
-        <label class="tog"><input type="checkbox" id="chv-hors-cours"><span class="ts"></span></label>
-      </div>
-      <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-chv')">Annuler</button><button class="btn btn-p"
-          onclick="saveCheval()">Enregistrer</button></div>
+        step="0.5"></div>
+      <div class="fg"><label>Max heures / semaine</label><input type="number" id="chv-h-prev" value="0" min="0"
+          step="0.5"></div>
     </div>
+    <div class="fg"><label>Note visible par tous</label><textarea id="chv-note"
+        placeholder="Informations, particularités…" rows="2"></textarea></div>
+    <div class="flag-box">
+      <div>
+        <div class="ftxt">🚫 Cheval hors cours</div>
+        <div class="fsub">Exclu des séances et des stages</div>
+      </div>
+      <label class="tog"><input type="checkbox" id="chv-hors-cours"><span class="ts"></span></label>
+    </div>
+    <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-chv')">Annuler</button><button class="btn btn-p"
+        onclick="saveCheval()">Enregistrer</button></div>
+  </div>
   </div>
 
   <!-- Statut spécial -->
@@ -2435,10 +2436,18 @@
     async function loadSeances(date) {
       if (!date) return;
       C.sea = await dbSel('seances', { select: '*,groupes(nom,heure,jour,moniteur_id,note,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)', filter: [{ col: 'date', op: 'eq', val: date }], order: [{ col: 'heure' }] });
-      if (C.sea.length) {
-        const iv = `(${C.sea.map(s => `"${s.id}"`).join(',')})`;
-        C.aff = await dbSel('affectations_seance', { select: '*,cavaliers(prenom,nom),equides(nom)', filter: [{ col: 'seance_id', op: 'in', val: iv }] });
-      } else C.aff = [];
+      const [affRes, rappRes] = await Promise.all([
+        C.sea.length
+          ? dbSel('affectations_seance', { select: '*,cavaliers(prenom,nom),equides(nom)', filter: [{ col: 'seance_id', op: 'in', val: `(${C.sea.map(s => `"${s.id}"`).join(',')})` }] })
+          : Promise.resolve([]),
+        // Absences d'autres dates avec date_rattrapage = date affichée
+        dbSel('affectations_seance', {
+          select: 'id,cavalier_id,date_rattrapage,motif_absence,cavaliers(prenom,nom),seances(date,groupe_id)',
+          filter: [{ col: 'absent', op: 'eq', val: 'true' }, { col: 'date_rattrapage', op: 'eq', val: date }, { col: 'rattrapage_effectue', op: 'eq', val: 'false' }]
+        }),
+      ]);
+      C.aff = C.sea.length ? affRes : [];
+      C.rappelsRatt = rappRes || [];
       renderSeances();
     }
     async function loadStages() {
@@ -2871,6 +2880,22 @@
       </div>
       <div class="skb" id="sk-${s.id}" style="${isOpen ? 'display:block' : 'display:none'}">
         ${rows || '<div style="color:var(--muted);padding:8px 14px;font-size:12px">Aucun cavalier</div>'}
+        ${(() => {
+            const rappels = (C.rappelsRatt || []).filter(r => r.seances?.groupe_id === g.id);
+            if (!rappels.length) return '';
+            const items = rappels.map(r => {
+              const cav = r.cavaliers ? cap(r.cavaliers.prenom || '') + (r.cavaliers.nom ? ' ' + r.cavaliers.nom.toUpperCase() : '') : '?';
+              const dateAbs = r.seances?.date ? ` (absent le ${fmtDate(r.seances.date)})` : '';
+              return `<div style="display:flex;align-items:center;gap:6px;font-size:12px">
+              <span style="font-size:14px">🔔</span>
+              <span><strong>${cav}</strong> doit rattraper son cours${dateAbs}</span>
+            </div>`;
+            }).join('');
+            return `<div style="margin:0 10px 6px;padding:10px 12px;background:rgba(251,146,60,0.08);border:1px solid rgba(251,146,60,0.3);border-radius:8px;display:flex;flex-direction:column;gap:6px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#b45309;margin-bottom:2px">📋 Rattrapages prévus aujourd'hui</div>
+            ${items}
+          </div>`;
+          })()}
         <div style="margin:9px 14px;padding-top:9px;border-top:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap">
           <button class="btn btn-o sm" onclick="openRatt('${s.id}','${h}','${date}')">➕ Rattrapage</button>
           <button class="btn btn-g sm" onclick="openExc('${s.id}','${h}','${date}')">⭐ Cours exceptionnel</button>
