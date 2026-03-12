@@ -1628,16 +1628,19 @@
           </div>
           <div class="tc" style="margin-bottom:16px">
             <div class="tt">
-              <h3>📋 Contact affiché pour les stages</h3>
+              <h3>🏕 Contact pour les stages</h3>
             </div>
-            <p style="font-size:12px;color:var(--muted);margin:0 0 12px">Ce moniteur apparaîtra dans le bandeau "Stages
-              à venir" du planning public.</p>
-            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-              <select id="stg-contact-mon"
-                style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:Arial,sans-serif;font-size:13px;outline:none;min-width:200px">
-                <option value="">— Aucun (bandeau masqué) —</option>
-              </select>
-              <button class="btn btn-p" onclick="saveStgContact()">Enregistrer</button>
+            <div class="fg" style="max-width:420px">
+              <label>Moniteur affiché dans le planning public</label>
+              <div style="display:flex;gap:10px;align-items:center">
+                <select id="stg-contact-mon"
+                  style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:Arial,sans-serif;font-size:13px;outline:none">
+                  <option value="">— Aucun (bandeau masqué) —</option>
+                </select>
+                <button class="btn btn-p" onclick="saveStgContact()">Enregistrer</button>
+              </div>
+              <p style="font-size:11px;color:var(--muted);margin:6px 0 0">Le nom apparaîtra dans le bandeau "Stages à
+                venir" visible par les clients.</p>
             </div>
           </div>
           <div class="tc">
@@ -1814,7 +1817,7 @@
           onclick="saveGroupe()">Enregistrer</button></div>
     </div>
   </div>
-  
+
   <!-- Cavalier -->
   <div class="mo" id="mo-cav">
     <div class="md">
@@ -3443,11 +3446,19 @@
       const txt = document.getElementById('stg-banner-txt');
       if (!banner || !txt) return;
       const contact = C.mon.find(m => m.contact_stages);
-      // Stages à venir (date_debut >= aujourd'hui)
-      const stagesAvenir = (C._stagesAvenir || C.stages || []);
+      const today = new Date().toISOString().slice(0, 10);
+      const stagesAvenir = (C._stagesAvenir || []).filter(s => s.date_debut >= today);
       if (!contact || stagesAvenir.length === 0) { banner.style.display = 'none'; return; }
-      const nb = stagesAvenir.length;
-      txt.innerHTML = `<strong>Stage${nb > 1 ? 's' : ''} à venir !</strong> Pour plus d'informations, renseignez-vous auprès de <strong>${contact.prenom}</strong>.`;
+      const liste = stagesAvenir.map(s => {
+        const d = s.date_debut === s.date_fin
+          ? `<em>${fmtDate(s.date_debut)}</em>`
+          : `<em>${fmtDate(s.date_debut)} → ${fmtDate(s.date_fin)}</em>`;
+        return `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(201,122,48,.12);border:1px solid rgba(201,122,48,.25);border-radius:20px;padding:3px 10px;font-size:12px;white-space:nowrap"><strong>${s.titre}</strong> ${d}</span>`;
+      }).join('');
+      txt.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px">
+    <div style="font-size:13px">🏕 <strong>Stage${stagesAvenir.length > 1 ? 's' : ''} à venir</strong> — Pour plus d'informations, renseignez-vous auprès de <strong>${contact.prenom}</strong>.</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">${liste}</div>
+  </div>`;
       banner.style.display = 'flex';
     }
 
