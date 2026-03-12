@@ -1626,23 +1626,7 @@
           <div class="ph">
             <h2>Moniteurs &amp; Élèves Moniteurs</h2>
           </div>
-          <div class="tc" style="margin-bottom:16px">
-            <div class="tt">
-              <h3>🏕 Contact pour les stages</h3>
-            </div>
-            <div class="fg" style="max-width:420px">
-              <label>Moniteur affiché dans le planning public</label>
-              <div style="display:flex;gap:10px;align-items:center">
-                <select id="stg-contact-mon"
-                  style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:Arial,sans-serif;font-size:13px;outline:none">
-                  <option value="">— Aucun (bandeau masqué) —</option>
-                </select>
-                <button class="btn btn-p" onclick="saveStgContact()">Enregistrer</button>
-              </div>
-              <p style="font-size:11px;color:var(--muted);margin:6px 0 0">Le nom apparaîtra dans le bandeau "Stages à
-                venir" visible par les clients.</p>
-            </div>
-          </div>
+
           <div class="tc">
             <div class="tt">
               <h3>Liste</h3><button class="btn btn-p" onclick="newMon()">+ Ajouter</button>
@@ -1909,6 +1893,12 @@
         <label style="margin-bottom:0;min-width:80px">Élève moniteur</label>
         <label class="tog"><input type="checkbox" id="mon-eleve"><span class="ts"></span></label>
       </div>
+      <div class="fg" style="display:flex;align-items:center;gap:14px">
+        <label style="margin-bottom:0;min-width:80px">Contact stages</label>
+        <label class="tog"><input type="checkbox" id="mon-contact"><span class="ts"></span></label>
+      </div>
+      <p id="mon-contact-hint" style="display:none;font-size:11px;color:var(--muted);margin:-6px 0 0">⚠️ Un autre
+        moniteur est déjà défini comme contact — il sera remplacé.</p>
       <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-mon')">Annuler</button><button class="btn btn-p"
           onclick="saveMoniteur()">Enregistrer</button></div>
     </div>
@@ -2514,7 +2504,7 @@
       const [seaAll, stgAll, stgAvenir] = await Promise.all([
         dbSel('seances', { select: '*,groupes(nom,heure,moniteur_id,eleve_moniteur_id,note,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)', filter: [{ col: 'date', op: 'eq', val: d }], order: [{ col: 'heure' }] }),
         dbSel('stages', { filter: [{ col: 'date_debut', op: 'lte', val: d }, { col: 'date_fin', op: 'gte', val: d }] }),
-        dbSel('stages', { filter: [{ col: 'date_debut', op: 'gte', val: today }], order: [{ col: 'date_debut', asc: true }] }),
+        dbSel('stages', { filter: [{ col: 'date_debut', op: 'gte', val: d }], order: [{ col: 'date_debut', asc: true }] }),
       ]);
       C._stagesAvenir = stgAvenir;
       updateStgBanner();
@@ -3417,15 +3407,32 @@
         sel.innerHTML = '<option value="">— Aucun (bandeau masqué) —</option>' + C.mon.map(m => `<option value="${m.id}"${cur?.id === m.id ? ' selected' : ''}>${m.prenom}</option>`).join('');
       }
     }
-    function newMon() { document.getElementById('mo-mon-t').textContent = 'Nouveau moniteur'; document.getElementById('mon-id').value = ''; document.getElementById('mon-prenom').value = ''; document.getElementById('mon-dispo').checked = true; document.getElementById('mon-eleve').checked = false; openMo('mo-mon'); }
+    function newMon() { document.getElementById('mo-mon-t').textContent = 'Nouveau moniteur'; document.getElementById('mon-id').value = ''; document.getElementById('mon-prenom').value = ''; document.getElementById('mon-dispo').checked = true; document.getElementById('mon-eleve').checked = false; document.getElementById('mon-contact').checked = false; document.getElementById('mon-contact-hint').style.display = 'none'; openMo('mo-mon'); }
     async function saveMoniteur() {
-      const prenom = v('mon-prenom').trim(), disponible = document.getElementById('mon-dispo').checked, est_eleve_moniteur = document.getElementById('mon-eleve').checked, id = v('mon-id');
+      const prenom = v('mon-prenom').trim(), disponible = document.getElementById('mon-dispo').checked, est_eleve_moniteur = document.getElementById('mon-eleve').checked, contact_stages = document.getElementById('mon-contact').checked, id = v('mon-id');
       if (!prenom) { toast('Le prénom est requis', 'err'); return; }
-      if (id) await dbUpd('moniteurs', { prenom, disponible, est_eleve_moniteur }, [{ col: 'id', op: 'eq', val: id }]);
-      else await dbIns('moniteurs', { prenom, disponible, est_eleve_moniteur });
-      toast(id ? 'Modifié' : 'Ajouté', 'ok'); closeMo('mo-mon'); await loadMon(); renderMoniteurs(); popSelects();
+      // Si on active contact_stages, désactiver l'ancien
+      if (contact_stages) {
+        const ancien = C.mon.find(m => m.contact_stages && m.id !== id);
+        if (ancien) await dbUpd('moniteurs', { contact_stages: false }, [{ col: 'id', op: 'eq', val: ancien.id }]);
+      }
+      if (id) await dbUpd('moniteurs', { prenom, disponible, est_eleve_moniteur, contact_stages }, [{ col: 'id', op: 'eq', val: id }]);
+      else await dbIns('moniteurs', { prenom, disponible, est_eleve_moniteur, contact_stages });
+      toast(id ? 'Modifié' : 'Ajouté', 'ok'); closeMo('mo-mon'); await loadMon(); renderMoniteurs(); popSelects(); updateStgBanner();
     }
-    function editMon(id) { const m = C.mon.find(x => x.id === id); document.getElementById('mo-mon-t').textContent = 'Modifier'; document.getElementById('mon-id').value = id; document.getElementById('mon-prenom').value = m.prenom; document.getElementById('mon-dispo').checked = m.disponible; document.getElementById('mon-eleve').checked = !!m.est_eleve_moniteur; openMo('mo-mon'); }
+    function editMon(id) {
+      const m = C.mon.find(x => x.id === id);
+      document.getElementById('mo-mon-t').textContent = 'Modifier';
+      document.getElementById('mon-id').value = id;
+      document.getElementById('mon-prenom').value = m.prenom;
+      document.getElementById('mon-dispo').checked = m.disponible;
+      document.getElementById('mon-eleve').checked = !!m.est_eleve_moniteur;
+      document.getElementById('mon-contact').checked = !!m.contact_stages;
+      // Avertissement si un autre moniteur est déjà contact
+      const autreContact = C.mon.find(x => x.contact_stages && x.id !== id);
+      document.getElementById('mon-contact-hint').style.display = autreContact ? 'block' : 'none';
+      openMo('mo-mon');
+    }
     async function delMon(id) { if (!confirm('Supprimer ?')) return; await dbDel('moniteurs', [{ col: 'id', op: 'eq', val: id }]); toast('Supprimé', 'ok'); await loadMon(); renderMoniteurs(); popSelects(); }
 
     async function saveStgContact() {
