@@ -2661,7 +2661,11 @@
       renderAlerts();
       const tc = C.sea.filter(s => s.date === today);
       document.getElementById('td-sea').innerHTML = !tc.length ? '<div class="ls">Aucune séance</div>' :
-        `<table><thead><tr><th>Groupe</th><th>Heure</th><th>Discipline</th><th>Moniteur</th></tr></thead><tbody>${tc.map(s => { const g = C.grp.find(x => x.id === s.groupe_id) || {}; return `<tr><td><strong>${isPonc ? (s.nom_ponctuel || 'Cours ponctuel') : (g.nom || 'Groupe')}</strong></td><td>${(s.heure || '').slice(0, 5)}</td><td>${s.discipline ? `<span style="display:inline-flex;align-items:center;gap:5px">${discIcon(s.discipline, { size: 18 })} ${s.discipline}</span>` : '—'}</td><td>${s.moniteur1?.prenom || '—'}</td></tr>`; }).join('')}</tbody></table>`;
+        `<table><thead><tr><th>Groupe</th><th>Heure</th><th>Discipline</th><th>Moniteur</th></tr></thead><tbody>${tc.map(s => {
+          const g = s.groupes || C.grp.find(x => x.id === s.groupe_id) || {};
+          const isPonc = !s.groupe_id;
+          return `<tr><td><strong>${isPonc ? (s.nom_ponctuel || 'Cours ponctuel') : (g.nom || 'Groupe')}</strong></td><td>${(s.heure || '').slice(0, 5)}</td><td>${s.discipline ? `<span style="display:inline-flex;align-items:center;gap:5px">${discIcon(s.discipline, { size: 18 })} ${s.discipline}</span>` : '—'}</td><td>${s.moniteur1?.prenom || '—'}</td></tr>`;
+        }).join('')}</tbody></table>`;
       loadImpayes();
     }
 
