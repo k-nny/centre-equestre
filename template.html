@@ -2892,7 +2892,8 @@
       let html = '';
       for (const s of C.sea) {
         const g = s.groupes || C.grp.find(x => x.id === s.groupe_id) || {};
-        const couleur = g.couleur || '#c9a84c';
+        const isPonc = !s.groupe_id;
+        const couleur = isPonc ? (s.couleur_ponctuel || '#6366f1') : g.couleur || '#c9a84c';
         const sa = C.aff.filter(a => a.seance_id === s.id);
         const pr = sa.filter(a => !a.absent).length, ab = sa.filter(a => a.absent).length, rt = sa.filter(a => a.rattrapage).length;
         const h = (s.heure || g.heure || '').slice(0, 5);
