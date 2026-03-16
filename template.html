@@ -2598,6 +2598,14 @@
         const isLight = isLightColor(couleur);
         const txtC = isLight ? '#2a1f00' : '#fff';
         const mutC = isLight ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.75)';
+        const sid = s.id;
+        const btnsBas = isPonc
+          ? ('<button class="btn btn-g sm" onclick="editPonctuel(\'' + sid + '\')">✏️ Modifier</button>'
+            + '<button class="btn btn-d sm" onclick="delPonctuel(\'' + sid + '\')">🗑 Supprimer</button>')
+          : ('<button class="btn btn-o sm" onclick="openRatt(\'' + sid + '\',\'' + h + '\',\'' + date + '\')">➕ Rattrapage</button>'
+            + '<button class="btn btn-g sm" onclick="openExc(\'' + sid + '\',\'' + h + '\',\'' + date + '\')">⭐ Cours exceptionnel</button>'
+            + '<button class="btn btn-pu sm" onclick="openMon2Modal(\'' + sid + '\',\'' + date + '\')">👤 + Intervenant</button>'
+            + (s.moniteur2_id ? '<button class="btn btn-d sm" onclick="removeMon2(\'' + sid + '\')">🗑 Intervenant</button>' : ''));
         blocs.push({
           h, html: `<div class="pcc" style="border:none;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.10)">
       <div class="pch" style="background:${couleur};border-bottom:none">
@@ -2960,6 +2968,14 @@
         const isLight = isLightColor(couleur);
         const txtC = isLight ? '#2a1f00' : '#fff';
         const mutC = isLight ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.75)';
+        const sid = s.id;
+        const btnsBas = isPonc
+          ? ('<button class="btn btn-g sm" onclick="editPonctuel(\'' + sid + '\')">✏️ Modifier</button>'
+            + '<button class="btn btn-d sm" onclick="delPonctuel(\'' + sid + '\')">🗑 Supprimer</button>')
+          : ('<button class="btn btn-o sm" onclick="openRatt(\'' + sid + '\',\'' + h + '\',\'' + date + '\')">➕ Rattrapage</button>'
+            + '<button class="btn btn-g sm" onclick="openExc(\'' + sid + '\',\'' + h + '\',\'' + date + '\')">⭐ Cours exceptionnel</button>'
+            + '<button class="btn btn-pu sm" onclick="openMon2Modal(\'' + sid + '\',\'' + date + '\')">👤 + Intervenant</button>'
+            + (s.moniteur2_id ? '<button class="btn btn-d sm" onclick="removeMon2(\'' + sid + '\')">🗑 Intervenant</button>' : ''));
         html += `<div class="sk" style="border:none;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.10)">
       <div class="skh" onclick="togSk('${s.id}')" style="background:${couleur};border-radius:0">
         <div class="skt" style="color:${txtC};font-weight:700">${isPonc ? (s.nom_ponctuel || 'Cours ponctuel') : (g.nom || 'Groupe')}${isPonc ? '<span style="margin-left:6px;font-size:10px;opacity:.8;font-weight:500;background:rgba(255,255,255,.2);padding:1px 6px;border-radius:10px">ponctuel</span>' : ''}</div>
@@ -2976,15 +2992,7 @@
       <div class="skb" id="sk-${s.id}" style="${isOpen ? 'display:block' : 'display:none'}">
         ${rows || '<div style="color:var(--muted);padding:8px 14px;font-size:12px">Aucun cavalier</div>'}
         <div style="margin:9px 14px;padding-top:9px;border-top:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap">
-  ${isPonc ? `
-  <button class="btn btn-g sm" onclick="editPonctuel('${s.id}')">✏️ Modifier</button>
-  <button class="btn btn-d sm" onclick="delPonctuel('${s.id}')">🗑 Supprimer</button>
-  `: `
-  <button class="btn btn-o sm" onclick="openRatt('${s.id}','${h}','${date}')">➕ Rattrapage</button>
-  <button class="btn btn-g sm" onclick="openExc('${s.id}','${h}','${date}')">⭐ Cours exceptionnel</button>
-  <button class="btn btn-pu sm" onclick="openMon2Modal('${s.id}','${date}')">👤 + Intervenant</button>
-  ${s.moniteur2_id ? `<button class="btn btn-d sm" onclick="removeMon2('${s.id}')">🗑 Intervenant</button>` : ''}
-  `}
+  ${btnsBas}
 </div>
       </div>
     </div>`;
