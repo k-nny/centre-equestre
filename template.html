@@ -1464,6 +1464,12 @@
               <h3>Séances d'aujourd'hui</h3>
             </div>
             <div id="td-sea"></div>
+            <div class="tc" id="td-impayes-wrap" style="display:none">
+              <div class="tt">
+                <h3>💳 Impayés</h3>
+              </div>
+              <div id="td-impayes"></div>
+            </div>
           </div>
         </div>
 
@@ -1591,10 +1597,6 @@
             <h2>Chevaux</h2>
           </div>
           <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
-            <span style="font-size:12px;color:var(--muted)">Seuil alerte :</span>
-            <input type="number" id="seuil" value="20" min="1" max="60" onchange="renderChevaux()"
-              style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-family:Arial,sans-serif;outline:none;width:62px">
-            <span style="font-size:12px;color:var(--muted)">h/semaine</span>
             <button class="btn btn-o sm" style="margin-left:auto" onclick="newStatut(null)">+ Statut spécial</button>
           </div>
           <div class="tc">
@@ -2660,6 +2662,87 @@
       const tc = C.sea.filter(s => s.date === today);
       document.getElementById('td-sea').innerHTML = !tc.length ? '<div class="ls">Aucune séance</div>' :
         `<table><thead><tr><th>Groupe</th><th>Heure</th><th>Discipline</th><th>Moniteur</th></tr></thead><tbody>${tc.map(s => { const g = C.grp.find(x => x.id === s.groupe_id) || {}; return `<tr><td><strong>${g.nom || '?'}</strong></td><td>${(s.heure || '').slice(0, 5)}</td><td>${s.discipline ? `<span style="display:inline-flex;align-items:center;gap:5px">${discIcon(s.discipline, { size: 18 })} ${s.discipline}</span>` : '—'}</td><td>${s.moniteur1?.prenom || '—'}</td></tr>`; }).join('')}</tbody></table>`;
+      loadImpayes();
+    }
+
+    async function loadImpayes() {
+      const wrap = document.getElementById('td-impayes-wrap');
+      const el = document.getElementById('td-impayes');
+      if (!wrap || !el) return;
+      el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
+      wrap.style.display = 'block';
+
+      const [partsImpayes, excImpayes] = await Promise.all([
+        // Participants stages avec montant et non réglés
+        dbSel('stage_participants', {
+          select: 'id,prenom,montant,stage_id',
+          filter: [{ col: 'regle', op: 'eq', val: 'false' }, { col: 'montant', op: 'gt', val: '0' }],
+          order: [{ col: 'created_at', asc: false }]
+        }),
+        // Cours exceptionnels avec montant et non réglés
+        dbSel('affectations_seance', {
+          select: 'id,nom_exceptionnel,montant_exceptionnel,seances(date,groupe_id)',
+          filter: [{ col: 'regle_exceptionnel', op: 'eq', val: 'false' }, { col: 'montant_exceptionnel', op: 'gt', val: '0' }, { col: 'cours_exceptionnel', op: 'eq', val: 'true' }],
+          order: [{ col: 'created_at', asc: false }]
+        })
+      ]);
+
+      if (!partsImpayes.length && !excImpayes.length) {
+        wrap.style.display = 'none';
+        return;
+      }
+
+      let html = '';
+
+      // Stages
+      if (partsImpayes.length) {
+        const byStage = new Map();
+        for (const p of partsImpayes) {
+          if (!byStage.has(p.stage_id)) byStage.set(p.stage_id, []);
+          byStage.get(p.stage_id).push(p);
+        }
+        for (const [sid, parts] of byStage) {
+          const st = C.stages.find(x => x.id === sid) || { titre: 'Stage inconnu' };
+          const total = parts.reduce((s, p) => s + (parseFloat(p.montant) || 0), 0);
+          html += `<div style="padding:10px 18px;border-bottom:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🏕 ${st.titre}${st.date_debut ? ' — ' + fmtDate(st.date_debut) : ''}</div>
+        <table style="width:100%;border-collapse:collapse">
+          ${parts.map(p => `<tr>
+            <td style="padding:4px 0;font-weight:700;font-size:13px">${p.prenom}</td>
+            <td style="padding:4px 0;text-align:right;font-weight:700;color:#b43728;font-size:13px">${parseFloat(p.montant).toFixed(0)}€</td>
+          </tr>`).join('')}
+          <tr style="border-top:1px solid var(--border)">
+            <td style="padding:6px 0;font-size:11px;color:var(--muted)">Total</td>
+            <td style="padding:6px 0;text-align:right;font-weight:700;color:#b43728">${total.toFixed(0)}€</td>
+          </tr>
+        </table>
+      </div>`;
+        }
+      }
+
+      // Cours exceptionnels
+      if (excImpayes.length) {
+        const total = excImpayes.reduce((s, a) => s + (parseFloat(a.montant_exceptionnel) || 0), 0);
+        html += `<div style="padding:10px 18px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">⭐ Cours exceptionnels</div>
+      <table style="width:100%;border-collapse:collapse">
+        ${excImpayes.map(a => {
+          const g = C.grp.find(x => x.id === a.seances?.groupe_id);
+          return `<tr>
+            <td style="padding:4px 0;font-weight:700;font-size:13px">${a.nom_exceptionnel || '?'}</td>
+            <td style="padding:4px 0;font-size:12px;color:var(--muted)">${a.seances?.date ? fmtDate(a.seances.date) : ''}${g ? ' — ' + g.nom : ''}</td>
+            <td style="padding:4px 0;text-align:right;font-weight:700;color:#b43728;font-size:13px">${parseFloat(a.montant_exceptionnel).toFixed(0)}€</td>
+          </tr>`;
+        }).join('')}
+        <tr style="border-top:1px solid var(--border)">
+          <td colspan="2" style="padding:6px 0;font-size:11px;color:var(--muted)">Total</td>
+          <td style="padding:6px 0;text-align:right;font-weight:700;color:#b43728">${total.toFixed(0)}€</td>
+        </tr>
+      </table>
+    </div>`;
+      }
+
+      el.innerHTML = html;
     }
 
     // ══════════════════════════════════════════════════
