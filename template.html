@@ -4293,7 +4293,7 @@
         });
         const tbody = document.getElementById('hist-tbody');
         if (tbody) {
-          tbody.innerHTML = filtered.length ? filtered.map(a => { const g = C.grp.find(x => x.id === a.seances?.groupe_id); const c = g?.couleur || '#c9a84c'; const il = g ? isLightColor(c) : false; return `<tr><td>${fmtDate(a.seances?.date || '')}</td><td><strong>${a.cavaliers ? cap(a.cavaliers.prenom || '') + (a.cavaliers.nom ? ' ' + a.cavaliers.nom.toUpperCase() : '') : '?'}</strong></td><td>🐎 ${a.equides?.nom || '?'}</td><td>${g ? `<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${il ? '#3a3028' : '#fff'}">${g.nom}</span>` : '—'}</td></tr>`; }).join('') : '<tr class="er"><td colspan="4">Aucun résultat</td></tr>';
+          tbody.innerHTML = filtered.length ? [...filtered].sort((a,b)=>(b.seances?.date||'').localeCompare(a.seances?.date||'')).map(a => { const g = C.grp.find(x => x.id === a.seances?.groupe_id); const c = g?.couleur || '#c9a84c'; const il = g ? isLightColor(c) : false; return `<tr><td>${fmtDate(a.seances?.date || '')}</td><td><strong>${a.cavaliers ? cap(a.cavaliers.prenom || '') + (a.cavaliers.nom ? ' ' + a.cavaliers.nom.toUpperCase() : '') : '?'}</strong></td><td>🐎 ${a.equides?.nom || '?'}</td><td>${g ? `<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${il ? '#3a3028' : '#fff'}">${g.nom}</span>` : '—'}</td></tr>`; }).join('') : '<tr class="er"><td colspan="4">Aucun résultat</td></tr>';
           return;
         }
         // Premier rendu : créer le squelette complet
