@@ -1518,8 +1518,8 @@
               <input type="date" id="sea-date" onchange="onSeaDate()"
                 style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px;color:var(--text);font-family:Arial,sans-serif;outline:none">
             </div>
-            <button class="btn btn-p" onclick="genSeances()">⚡ Générer séances</button>
-            <button class="btn btn-g" onclick="openPonctuel()">➕ Cours ponctuel</button>
+            <button class="btn btn-p" id="btn-gen" onclick="genSeances()">⚡ Générer séances</button> <button
+              class="btn btn-g" onclick="openPonctuel()">➕ Cours ponctuel</button>
           </div>
           <div id="sea-rappels" style="display:none"></div>
           <div id="sea-content"></div>
@@ -2493,6 +2493,8 @@
     function onSeaDate() {
       const date = v('sea-date');
       document.getElementById('sea-vac').style.display = estVac(date) ? 'flex' : 'none';
+      const btn = document.getElementById('btn-gen');
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = '⚡ Générer séances'; }
       loadSeances(date);
     }
 
@@ -2914,9 +2916,16 @@
     // ══════════════════════════════════════════════════
     async function genSeances() {
       const date = v('sea-date'); if (!date) { toast('Choisissez une date', 'err'); return; }
+      const btn = document.getElementById('btn-gen');
+      btn.disabled = true; btn.style.opacity = '.5'; btn.textContent = '⏳ Génération…';
+      document.getElementById('sea-content').innerHTML = '<div class="ls"><div class="spin"></div></div>';
       const jn = new Date(date + 'T00:00:00').getDay();
-      const gj = C.grp.filter(g => +g.jour === jn); if (!gj.length) { toast('Aucun groupe ce jour', 'err'); return; }
-      // charger les séances existantes pour ce jour
+      const gj = C.grp.filter(g => +g.jour === jn);
+      if (!gj.length) {
+        toast('Aucun groupe ce jour', 'err');
+        btn.disabled = false; btn.style.opacity = '1'; btn.textContent = '⚡ Générer séances';
+        return;
+      }
       const existantes = await dbSel('seances', { filter: [{ col: 'date', op: 'eq', val: date }], select: 'id,groupe_id' });
       let created = 0;
       for (const g of gj) {
@@ -2928,6 +2937,7 @@
         if (cavIds.length) await dbIns('affectations_seance', cavIds.map(cid => ({ seance_id: ns.id, cavalier_id: cid, equide_id: null, absent: false, rattrapage: false })));
       }
       await loadSeances(date);
+      btn.disabled = true; btn.style.opacity = '.5'; btn.textContent = '✅ Séances générées';
       toast(created > 0 ? `${created} séance${created > 1 ? 's' : ''} générée${created > 1 ? 's' : ''}` : 'Séances déjà existantes', 'ok');
     }
 
@@ -2962,7 +2972,6 @@
     function renderSeances() {
       const el = document.getElementById('sea-content'); if (!el) return;
       renderRappelsRatt();
-      if (!C.sea.length) { el.innerHTML = `<div class="ls">Aucune séance.<br><br><button class="btn btn-p" style="margin-top:10px" onclick="genSeances()">⚡ Générer</button></div>`; return; }
       const chvDispo = C.chv.filter(c => !c.hors_cours);
       const heurChv = new Map();
       for (const a of C.aff.filter(a => a.equide_id && !a.absent)) {
@@ -4292,7 +4301,7 @@
         });
         const tbody = document.getElementById('hist-tbody');
         if (tbody) {
-          tbody.innerHTML = filtered.length ? [...filtered].sort((a,b)=>(b.seances?.date||'').localeCompare(a.seances?.date||'')).map(a => { const g = C.grp.find(x => x.id === a.seances?.groupe_id); const c = g?.couleur || '#c9a84c'; const il = g ? isLightColor(c) : false; return `<tr><td>${fmtDate(a.seances?.date || '')}</td><td><strong>${a.cavaliers ? cap(a.cavaliers.prenom || '') + (a.cavaliers.nom ? ' ' + a.cavaliers.nom.toUpperCase() : '') : '?'}</strong></td><td>🐎 ${a.equides?.nom || '?'}</td><td>${g ? `<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${il ? '#3a3028' : '#fff'}">${g.nom}</span>` : '—'}</td></tr>`; }).join('') : '<tr class="er"><td colspan="4">Aucun résultat</td></tr>';
+          tbody.innerHTML = filtered.length ? [...filtered].sort((a, b) => (b.seances?.date || '').localeCompare(a.seances?.date || '')).map(a => { const g = C.grp.find(x => x.id === a.seances?.groupe_id); const c = g?.couleur || '#c9a84c'; const il = g ? isLightColor(c) : false; return `<tr><td>${fmtDate(a.seances?.date || '')}</td><td><strong>${a.cavaliers ? cap(a.cavaliers.prenom || '') + (a.cavaliers.nom ? ' ' + a.cavaliers.nom.toUpperCase() : '') : '?'}</strong></td><td>🐎 ${a.equides?.nom || '?'}</td><td>${g ? `<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${il ? '#3a3028' : '#fff'}">${g.nom}</span>` : '—'}</td></tr>`; }).join('') : '<tr class="er"><td colspan="4">Aucun résultat</td></tr>';
           return;
         }
         // Premier rendu : créer le squelette complet
