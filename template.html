@@ -4265,7 +4265,7 @@
           filter: [{ col: 'absent', op: 'eq', val: 'false' }],
           order: [{ col: 'created_at', asc: false }]
         });
-        _histCouples = aff.filter(a => a.seances && (a.cavaliers || a.nom_exceptionnel));
+        _histCouples = aff.filter(a => a.seances && (a.cavaliers || a.nom_exceptionnel) && a.equide_id && a.equides);
       } else if (histTab === 'absences') {
         _histAbsences = await dbSel('affectations_seance', { select: '*,cavaliers(prenom,nom),seances(date)', filter: [{ col: 'absent', op: 'eq', val: 'true' }], order: [{ col: 'created_at', asc: false }] });
       } else if (histTab === 'rattrapages') {
