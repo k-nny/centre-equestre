@@ -3136,7 +3136,7 @@
     }
 
     function openPonctuel() {
-      document.getElementById('mo-ponc-t').textContent = '➕ Cours ponctuel';
+      document.getElementById('mo-ponc-t').textContent = '➕ Cours ponctuel — ' + fmtDate(v('sea-date'));
       document.getElementById('ponc-id').value = '';
       document.getElementById('ponc-nom').value = '';
       document.getElementById('ponc-couleur').value = '#6366f1';
@@ -3150,7 +3150,7 @@
 
     async function editPonctuel(seaId) {
       const s = C.sea.find(x => x.id === seaId); if (!s) return;
-      document.getElementById('mo-ponc-t').textContent = '✏️ Modifier le cours';
+      document.getElementById('mo-ponc-t').textContent = '✏️ Modifier le cours — ' + fmtDate(s.date || v('sea-date'));
       document.getElementById('ponc-id').value = seaId;
       document.getElementById('ponc-nom').value = s.nom_ponctuel || '';
       document.getElementById('ponc-couleur').value = s.couleur_ponctuel || '#6366f1';
@@ -3205,7 +3205,7 @@
           cours_exceptionnel: !!p.nom_exceptionnel, nom_exceptionnel: p.nom_exceptionnel || null
         });
       }
-      toast(editId ? 'Cours modifié' : 'Cours créé', 'ok');
+      toast(`${editId ? 'Cours modifié' : 'Cours créé'} (${fmtDate(date)})`, 'ok');
       closeMo('mo-ponctuel');
       await loadSeances(date);
     }
