@@ -4262,10 +4262,15 @@
       if (histTab === 'couples') {
         const aff = await dbSel('affectations_seance', {
           select: '*,cavaliers(prenom,nom),equides(nom),seances(date,groupe_id,nom_ponctuel)',
-          filter: [{ col: 'absent', op: 'eq', val: 'false' }],
           order: [{ col: 'created_at', asc: false }]
         });
-        _histCouples = aff.filter(a => a.seances && (a.cavaliers || a.nom_exceptionnel) && a.equide_id && a.equides);
+        _histCouples = aff.filter(a =>
+          a.seances &&
+          a.equide_id &&
+          a.equides &&
+          !a.absent &&
+          (a.cavaliers || a.nom_exceptionnel)
+        );
       } else if (histTab === 'absences') {
         _histAbsences = await dbSel('affectations_seance', { select: '*,cavaliers(prenom,nom),seances(date)', filter: [{ col: 'absent', op: 'eq', val: 'true' }], order: [{ col: 'created_at', asc: false }] });
       } else if (histTab === 'rattrapages') {
