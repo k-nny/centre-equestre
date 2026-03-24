@@ -4260,8 +4260,12 @@
       const el = document.getElementById('hist-content'); if (!el) return;
       el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
       if (histTab === 'couples') {
-        const aff = await dbSel('affectations_seance', { select: '*,cavaliers(prenom,nom),equides(nom),seances(date,groupe_id)', order: [{ col: 'created_at', asc: false }] });
-        _histCouples = aff.filter(a => a.equide_id && a.cavaliers && a.equides && a.seances);
+        const aff = await dbSel('affectations_seance', {
+          select: '*,cavaliers(prenom,nom),equides(nom),seances(date,groupe_id,nom_ponctuel)',
+          filter: [{ col: 'absent', op: 'eq', val: 'false' }],
+          order: [{ col: 'created_at', asc: false }]
+        });
+        _histCouples = aff.filter(a => a.seances && (a.cavaliers || a.nom_exceptionnel));
       } else if (histTab === 'absences') {
         _histAbsences = await dbSel('affectations_seance', { select: '*,cavaliers(prenom,nom),seances(date)', filter: [{ col: 'absent', op: 'eq', val: 'true' }], order: [{ col: 'created_at', asc: false }] });
       } else if (histTab === 'rattrapages') {
@@ -4301,8 +4305,17 @@
         });
         const tbody = document.getElementById('hist-tbody');
         if (tbody) {
-          tbody.innerHTML = filtered.length ? [...filtered].sort((a, b) => (b.seances?.date || '').localeCompare(a.seances?.date || '')).map(a => { const g = C.grp.find(x => x.id === a.seances?.groupe_id); const c = g?.couleur || '#c9a84c'; const il = g ? isLightColor(c) : false; return `<tr><td>${fmtDate(a.seances?.date || '')}</td><td><strong>${a.cavaliers ? cap(a.cavaliers.prenom || '') + (a.cavaliers.nom ? ' ' + a.cavaliers.nom.toUpperCase() : '') : '?'}</strong></td><td>🐎 ${a.equides?.nom || '?'}</td><td>${g ? `<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${il ? '#3a3028' : '#fff'}">${g.nom}</span>` : '—'}</td></tr>`; }).join('') : '<tr class="er"><td colspan="4">Aucun résultat</td></tr>';
-          return;
+          tbody.innerHTML = filtered.length
+            ? [...filtered].sort((a, b) => (b.seances?.date || '').localeCompare(a.seances?.date || '')).map(a => {
+              const g = C.grp.find(x => x.id === a.seances?.groupe_id);
+              const c = g?.couleur || '#c9a84c'; const il = g ? isLightColor(c) : false;
+              return `<tr><td>${fmtDate(a.seances?.date || '')}</td>
+    <td><strong>${a.cavaliers ? cap(a.cavaliers.prenom || '') + (a.cavaliers.nom ? ' ' + a.cavaliers.nom.toUpperCase() : '') : a.nom_exceptionnel || '?'}</strong>${a.nom_exceptionnel ? '<span class="b bgo" style="margin-left:4px;font-size:10px">excep.</span>' : ''}${a.seances?.nom_ponctuel ? '<span class="b bb" style="margin-left:4px;font-size:10px">ponctuel</span>' : ''}</td>
+    <td>${a.equides?.nom ? `🐎 ${a.equides.nom}` : '<span style="color:var(--muted)">—</span>'}</td>
+    <td>${g ? `<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${il ? '#3a3028' : '#fff'}">${g.nom}</span>` : a.seances?.nom_ponctuel ? `<span style="color:var(--muted);font-size:12px">${a.seances.nom_ponctuel}</span>` : '—'}</td>
+    </tr>`;
+            }).join('')
+            : '<tr class="er"><td colspan="4">Aucun résultat</td></tr>'; return;
         }
         // Premier rendu : créer le squelette complet
         el.innerHTML = `
