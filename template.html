@@ -3450,30 +3450,31 @@
 
     function _refreshCavCarteInfo(cavId) {
       const carte = cavId ? C.cartes.find(c => c.cavalier_id === cavId) : null;
+
       const info = document.getElementById('cav-carte-info');
       const btn = document.getElementById('cav-carte-btn');
       const del = document.getElementById('cav-carte-del');
+
       if (!info) return;
+
       if (carte) {
         const rest = carteRestantes(carte);
         const col = rest === 0 ? '#b43728' : rest <= 2 ? '#b46414' : '#1e7a40';
-        info.style.display = 'block'; info.style.color = col;
-        info.innerHTML = `🎫 <strong>${rest}h restante${rest > 1 ? 's' : ''}</strong> sur ${carte.nb_heures}h${carte.prix_total ? ' · ' + carte.prix_total + '€' : ''}${carte.regle ? ' · <span style="color:#1e7a40">✅ Réglé</span>' : ' · <span style="color:#b43728">⏳ En attente</span>'}${carte.date_expiration ? ' · expire le ' + fmtDate(carte.date_expiration) : ''}`;
-        btn.textContent = '🔄 Modifier la carte'; del.style.display = '';
-        document.getElementById('cav-carte-heures').value = carte.nb_heures;
-        document.getElementById('cav-carte-exp').value = carte.date_expiration || '';
-        const phEl = document.getElementById('cav-carte-ph');
-        const totEl = document.getElementById('cav-carte-total');
-        if (phEl) phEl.value = carte.prix_heure != null ? carte.prix_heure : (APP_SETTINGS.prix_heure_carte || '');
-        if (totEl) totEl.value = carte.prix_total != null ? carte.prix_total : '';
+
+        info.style.display = 'block';
+        info.style.color = col;
+
+        info.innerHTML = `🎫 <strong>${rest}h restante${rest > 1 ? 's' : ''}</strong> sur ${carte.nb_heures}h`;
+
+        if (btn) btn.textContent = '🔄 Modifier la carte';
+        if (del) del.style.display = '';
+
       } else {
-        info.style.display = 'none'; btn.textContent = '🎫 Créer la carte'; del.style.display = 'none';
-        document.getElementById('cav-carte-heures').value = '';
-        document.getElementById('cav-carte-exp').value = '';
-        const phEl = document.getElementById('cav-carte-ph');
-        const totEl = document.getElementById('cav-carte-total');
-        if (phEl) phEl.value = APP_SETTINGS.prix_heure_carte || '';
-        if (totEl) totEl.value = '';
+
+        info.style.display = 'none';
+
+        if (btn) btn.textContent = '🎫 Créer la carte';
+        if (del) del.style.display = 'none';
       }
     }
 
