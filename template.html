@@ -1843,6 +1843,26 @@
       <div class="fg"><label>Groupes assignés</label>
         <div class="cav-checkgrid" id="cav-grp-grid"></div>
       </div>
+      <div style="border-top:1px solid var(--border);margin:10px 0;padding-top:12px">
+        <div
+          style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">
+          🎫 Carte d'heures</div>
+        <div id="cav-carte-info"
+          style="display:none;margin-bottom:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:12px">
+        </div>
+        <div class="fr">
+          <div class="fg"><label>Nombre d'heures</label><input type="number" id="cav-carte-heures" min="1" step="1"
+              placeholder="ex: 10"></div>
+          <div class="fg"><label>Date expiration <span style="color:var(--muted)">(opt.)</span></label><input
+              type="date" id="cav-carte-exp"></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="btn btn-g sm" id="cav-carte-btn" onclick="saveCarteFromCav()">🎫 Créer la
+            carte</button>
+          <button type="button" class="btn btn-d sm" id="cav-carte-del" style="display:none"
+            onclick="deleteCarteCav()">🗑 Supprimer</button>
+        </div>
+      </div>
       <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-cav')">Annuler</button><button class="btn btn-p"
           onclick="saveCavalier()">Enregistrer</button></div>
     </div>
@@ -1929,6 +1949,24 @@
         moniteur est déjà défini comme contact — il sera remplacé.</p>
       <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-mon')">Annuler</button><button class="btn btn-p"
           onclick="saveMoniteur()">Enregistrer</button></div>
+    </div>
+  </div>
+
+  <!-- Cours carte -->
+  <div class="mo" id="mo-carte">
+    <div class="md" style="max-width:400px">
+      <h3>🎫 Cours sur carte</h3><input type="hidden" id="carte-sea-id"><input type="hidden" id="carte-heure"><input
+        type="hidden" id="carte-date">
+      <div class="fg"><label>Cavalier *</label><select id="carte-cav">
+          <option value="">— Sélectionner —</option>
+        </select></div>
+      <div id="carte-cav-info"
+        style="display:none;margin:-6px 0 10px;padding:8px 10px;border-radius:8px;font-size:12px"></div>
+      <div class="fg"><label>Cheval <span style="color:var(--muted)">(opt.)</span></label><select id="carte-chv">
+          <option value="">— Non attribué —</option>
+        </select></div>
+      <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-carte')">Annuler</button><button class="btn btn-p"
+          id="carte-save-btn" onclick="saveCoursCarte()">Ajouter</button></div>
     </div>
   </div>
 
@@ -2208,8 +2246,7 @@
     const SBDG = { attache: 'bo', veto: 'br', marechal: 'bp', repos: 'b' };
 
     let isAdmin = false, sessionToken = '', histTab = 'couples';
-    let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [] };
-
+    let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [] };
     // ── Proxy ──
     async function dbReq(body) {
       let r, j;
@@ -2414,8 +2451,7 @@
 
     // ── Chargement ──
     async function loadAll() {
-      await Promise.all([loadGrp(), loadCav(), loadChv(), loadMon(), loadStatuts(), loadSemaine(), loadDiscIcons()]);
-      // Rendu final une fois toutes les données chargées (évite les 0 cavaliers / moniteurs manquants)
+      await Promise.all([loadGrp(), loadCav(), loadChv(), loadMon(), loadStatuts(), loadSemaine(), loadDiscIcons(), loadCartes()]);      // Rendu final une fois toutes les données chargées (évite les 0 cavaliers / moniteurs manquants)
       renderGroupes(); renderCavaliers(); renderMoniteurs(); renderChevaux(); popSelects();
     }
 
@@ -3029,7 +3065,7 @@
               : (rowIdx % 2 === 0 ? 'transparent' : couleur + '80');
           const cavNom = aff.cavaliers ? cap(aff.cavaliers.prenom || '') + (aff.cavaliers.nom ? ' ' + aff.cavaliers.nom.toUpperCase() : '') : '?';
           return `<div class="cr" style="background:${rowBg};${isRatt ? 'border-left:3px solid #f59e0b' : ''}">
-        <div class="cn ${aff.absent ? 'ab' : ''}">${cavNom}${isRatt ? `<span class="b bo" style="margin-left:4px;font-size:10px">↩ ${aff.date_cours_rattrape ? fmtDate(aff.date_cours_rattrape) : 'rattrap.'}</span>` : ''}</div>
+        <div class="cn ${aff.absent ? 'ab' : ''}">${cavNom}${isRatt ? `<span class="b bo" style="margin-left:4px;font-size:10px">↩ ${aff.date_cours_rattrape ? fmtDate(aff.date_cours_rattrape) : 'rattrap.'}${aff.cours_carte ? '<span class="b bb" style="font-size:10px">🎫 carte</span>' : ''}</span>` : ''}</div>
         <div style="flex:1;max-width:195px">${aff.absent ? `<span style="color:var(--muted);font-size:12px">Absent${aff.motif_absence ? ' — ' + aff.motif_absence : ''}${aff.date_rattrapage ? ' (rattrap. ' + fmtDate(aff.date_rattrapage) + ')' : ''}</span>` : `
           <select onchange="updChv('${aff.id}',this.value,'${s.id}','${h}','${date}')" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 7px;color:var(--text);font-family:Arial,sans-serif;font-size:12px;outline:none">
             <option value="">— Cheval —</option>
@@ -3070,6 +3106,7 @@
             + '<button class="btn btn-d sm" onclick="delPonctuel(\'' + sid + '\')">🗑 Supprimer</button>')
           : ('<button class="btn btn-o sm" onclick="openRatt(\'' + sid + '\',\'' + h + '\',\'' + date + '\')">➕ Rattrapage</button>'
             + '<button class="btn btn-g sm" onclick="openExc(\'' + sid + '\',\'' + h + '\',\'' + date + '\')">⭐ Cours exceptionnel</button>'
+            + '<button class="btn btn-g sm" onclick="openCoursCarte(\'' + sid + '\',\'' + h + '\',\'' + date + '\')">🎫 Cours carte</button>'
             + '<button class="btn btn-pu sm" onclick="openMon2Modal(\'' + sid + '\',\'' + date + '\')">👤 + Intervenant</button>'
             + (s.moniteur2_id ? '<button class="btn btn-d sm" onclick="removeMon2(\'' + sid + '\')">🗑 Intervenant</button>' : ''));
         html += `<div class="sk" style="border:none;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.10)">
@@ -3216,6 +3253,125 @@
       await dbDel('seances', [{ col: 'id', op: 'eq', val: seaId }]);
       toast('Supprimé', 'ok');
       await loadSeances(v('sea-date'));
+    }
+
+    // ══════════════════════════════════════════════════
+    //  CARTES D'HEURES
+    // ══════════════════════════════════════════════════
+    async function loadCartes() {
+      C.cartes = await dbSel('cartes_heures', { order: [{ col: 'created_at', asc: false }] });
+    }
+
+    function getCarteCav(cavId) {
+      const today = new Date().toISOString().slice(0, 10);
+      return C.cartes.find(c => c.cavalier_id === cavId && (!c.date_expiration || c.date_expiration >= today)) || null;
+    }
+
+    function carteRestantes(carte) {
+      return Math.max(0, (parseFloat(carte.nb_heures) || 0) - (parseFloat(carte.heures_utilisees) || 0));
+    }
+
+    function openCoursCarte(seaId, heure, date) {
+      document.getElementById('carte-sea-id').value = seaId;
+      document.getElementById('carte-heure').value = heure;
+      document.getElementById('carte-date').value = date;
+      const today = new Date().toISOString().slice(0, 10);
+      const cavAvecCarte = C.cartes.filter(c => (!c.date_expiration || c.date_expiration >= today) && carteRestantes(c) > 0).map(c => c.cavalier_id);
+      const ex = C.aff.filter(a => a.seance_id === seaId).map(a => a.cavalier_id);
+      const cavOpts = C.cav.filter(c => cavAvecCarte.includes(c.id) && !ex.includes(c.id))
+        .sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr'))
+        .map(c => {
+          const carte = getCarteCav(c.id);
+          const rest = carte ? carteRestantes(carte) : 0;
+          return `<option value="${c.id}">${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''} — ${rest}h restante${rest > 1 ? 's' : ''}`;
+        }).join('');
+      document.getElementById('carte-cav').innerHTML = '<option value="">— Sélectionner —</option>' + cavOpts;
+      document.getElementById('carte-cav-info').style.display = 'none';
+      const pris = new Set();
+      C.sea.filter(s => (s.heure || s.groupes?.heure || '').slice(0, 5) === heure)
+        .forEach(s => C.aff.filter(a => a.seance_id === s.id && a.equide_id && !a.absent).forEach(a => pris.add(a.equide_id)));
+      document.getElementById('carte-chv').innerHTML = '<option value="">— Non attribué —</option>' + getSortedChvDispo().map(c => `<option value="${c.id}"${pris.has(c.id) ? ' disabled' : ''} >${c.nom}${pris.has(c.id) ? ' ✗ pris' : ''}`).join('');
+      document.getElementById('carte-cav').onchange = function () {
+        const cav = C.cav.find(x => x.id === this.value);
+        const carte = cav ? getCarteCav(cav.id) : null;
+        const info = document.getElementById('carte-cav-info');
+        if (!carte) { info.style.display = 'none'; return; }
+        const rest = carteRestantes(carte);
+        info.style.display = 'block';
+        info.style.background = rest <= 2 ? 'rgba(180,100,20,.08)' : 'rgba(46,120,70,.06)';
+        info.style.border = '1px solid ' + (rest <= 2 ? 'rgba(180,100,20,.3)' : 'rgba(46,120,70,.25)');
+        info.innerHTML = `🎫 <strong>${rest}h</strong> restante${rest > 1 ? 's' : ''} sur ${carte.nb_heures}h${carte.date_expiration ? ' · expire le ' + fmtDate(carte.date_expiration) : ''}`;
+      };
+      openMo('mo-carte');
+    }
+
+    async function saveCoursCarte() {
+      const seaId = v('carte-sea-id'), cavId = v('carte-cav'), chvId = v('carte-chv') || null, date = v('carte-date');
+      if (!cavId) { toast('Choisissez un cavalier', 'err'); return; }
+      const carte = getCarteCav(cavId);
+      if (!carte) { toast('Ce cavalier n\'a pas de carte active', 'err'); return; }
+      const rest = carteRestantes(carte);
+      if (rest <= 0) { toast('Plus d\'heures sur cette carte', 'err'); return; }
+      await dbIns('affectations_seance', { seance_id: seaId, cavalier_id: cavId, equide_id: chvId, absent: false, rattrapage: false, cours_carte: true });
+      const newUsed = (parseFloat(carte.heures_utilisees) || 0) + 1;
+      await dbUpd('cartes_heures', { heures_utilisees: newUsed }, [{ col: 'id', op: 'eq', val: carte.id }]);
+      carte.heures_utilisees = newUsed;
+      const newRest = carteRestantes(carte);
+      if (newRest === 0) toast('⚠️ Carte épuisée !', 'err');
+      else if (newRest <= 2) toast(`⚠️ Plus que ${newRest}h sur la carte`, 'warn');
+      else toast('Cours carte ajouté', 'ok');
+      closeMo('mo-carte'); await loadSeances(date);
+    }
+
+    async function saveCarteFromCav() {
+      const cavId = v('cav-id'); if (!cavId) { toast('Enregistrez d\'abord le cavalier', 'err'); return; }
+      const nb = parseFloat(document.getElementById('cav-carte-heures').value) || null;
+      if (!nb) { toast('Entrez un nombre d\'heures', 'err'); return; }
+      const exp = document.getElementById('cav-carte-exp').value || null;
+      const existing = C.cartes.find(c => c.cavalier_id === cavId);
+      if (existing) {
+        await dbUpd('cartes_heures', { nb_heures: nb, date_expiration: exp }, [{ col: 'id', op: 'eq', val: existing.id }]);
+        existing.nb_heures = nb; existing.date_expiration = exp;
+        toast('Carte mise à jour', 'ok');
+      } else {
+        const r = await dbIns('cartes_heures', { cavalier_id: cavId, nb_heures: nb, heures_utilisees: 0, date_expiration: exp });
+        if (r.data?.[0]) C.cartes.push(r.data[0]);
+        toast('Carte créée', 'ok');
+      }
+      await loadCartes();
+      _refreshCavCarteInfo(cavId);
+    }
+
+    async function deleteCarteCav() {
+      const cavId = v('cav-id'); if (!cavId) return;
+      const existing = C.cartes.find(c => c.cavalier_id === cavId);
+      if (!existing) return;
+      if (!confirm('Supprimer la carte ?')) return;
+      await dbDel('cartes_heures', [{ col: 'id', op: 'eq', val: existing.id }]);
+      C.cartes = C.cartes.filter(c => c.id !== existing.id);
+      toast('Carte supprimée', 'ok');
+      _refreshCavCarteInfo(cavId);
+    }
+
+    function _refreshCavCarteInfo(cavId) {
+      const carte = cavId ? C.cartes.find(c => c.cavalier_id === cavId) : null;
+      const info = document.getElementById('cav-carte-info');
+      const btn = document.getElementById('cav-carte-btn');
+      const del = document.getElementById('cav-carte-del');
+      const hInput = document.getElementById('cav-carte-heures');
+      const expInput = document.getElementById('cav-carte-exp');
+      if (!info) return;
+      if (carte) {
+        const rest = carteRestantes(carte);
+        const col = rest === 0 ? '#b43728' : rest <= 2 ? '#b46414' : '#1e7a40';
+        info.style.display = 'block'; info.style.color = col;
+        info.innerHTML = `🎫 <strong>${rest}h restante${rest > 1 ? 's' : ''}</strong> sur ${carte.nb_heures}h${carte.date_expiration ? ' · expire le ' + fmtDate(carte.date_expiration) : ''}`;
+        btn.textContent = '🔄 Modifier la carte'; del.style.display = '';
+        hInput.value = carte.nb_heures; expInput.value = carte.date_expiration || '';
+      } else {
+        info.style.display = 'none'; btn.textContent = '🎫 Créer la carte'; del.style.display = 'none';
+        hInput.value = ''; expInput.value = '';
+      }
     }
 
     function togSk(id) {
@@ -3609,6 +3765,18 @@
     // ══════════════════════════════════════════════════
     function renderAlerts() {
       const el = document.getElementById('alerts'); if (!el) return;
+      const today = new Date().toISOString().slice(0, 10);
+      const cartesAlerts = C.cartes.filter(c => {
+        if (c.date_expiration && c.date_expiration < today) return false;
+        const rest = carteRestantes(c);
+        return rest <= 2;
+      }).map(c => {
+        const cav = C.cav.find(x => x.id === c.cavalier_id);
+        const nom = cav ? cap(cav.prenom || '') + (cav.nom ? ' ' + cav.nom.toUpperCase() : '') : '?';
+        const rest = carteRestantes(c);
+        if (rest === 0) return `<div class="alert-box" style="border-left:3px solid #c0392b">🎫 <div><strong>${nom}</strong> — carte épuisée</div></div>`;
+        return `<div class="alert-box" style="border-left:3px solid var(--gold);color:var(--gold)">⚠️ <div><strong>${nom}</strong> — ${rest}h restante${rest > 1 ? 's' : ''}</div></div>`;
+      }).join('');
       const alertsHtml = C.chv.map(c => {
         const hSem = C.affSem.filter(a => a.equide_id === c.id).length;
         if (!hSem && !c.heures_prev) return null; // pas d'activité, pas de max → skip
@@ -3619,7 +3787,7 @@
         if (hSem > 0 && maxH === 0) return `<div class="alert-box" style="border-left:3px solid var(--border);color:var(--muted)">ℹ️ <div><strong>${c.nom}</strong> — ${hSem}h cette semaine (pas de max défini)</div></div>`;
         return null;
       }).filter(Boolean).join('');
-      el.innerHTML = alertsHtml || '<div style="color:var(--muted);font-size:12px;padding:4px 0">✅ Aucune alerte cette semaine</div>';
+      el.innerHTML = cartesAlerts + alertsHtml || (cartesAlerts ? '' : '<div style="color:var(--muted);font-size:12px;padding:4px 0">✅ Aucune alerte cette semaine</div>');
     }
 
     // ══════════════════════════════════════════════════
@@ -3702,7 +3870,7 @@
       <span style="display:flex;align-items:center"><span class="grp-dot" style="background:${g.couleur || '#c9a84c'}"></span>${g.nom}</span>
     </label>`).join('');
     }
-    function newCav() { document.getElementById('mo-cav-t').textContent = 'Nouveau cavalier';['cav-id', 'cav-prenom', 'cav-nom', 'cav-tel'].forEach(i => document.getElementById(i).value = ''); buildCavGrpGrid(null); openMo('mo-cav'); }
+    function newCav() { document.getElementById('mo-cav-t').textContent = 'Nouveau cavalier';['cav-id', 'cav-prenom', 'cav-nom', 'cav-tel'].forEach(i => document.getElementById(i).value = ''); buildCavGrpGrid(null); _refreshCavCarteInfo(null); openMo('mo-cav'); }
     async function saveCavalier() {
       const prenom = v('cav-prenom').trim(), nom = v('cav-nom').trim() || null, telephone = v('cav-tel') || null, id = v('cav-id');
       if (!prenom) { toast('Le prénom est requis', 'err'); return; }
@@ -3727,7 +3895,10 @@
       }
       toast(id ? 'Modifié' : 'Ajouté', 'ok'); closeMo('mo-cav'); await loadCav(); renderCavaliers(); popSelects();
     }
-    function editCav(id) { const c = C.cav.find(x => x.id === id); document.getElementById('mo-cav-t').textContent = 'Modifier'; document.getElementById('cav-id').value = id; document.getElementById('cav-prenom').value = c.prenom; document.getElementById('cav-nom').value = c.nom || ''; document.getElementById('cav-tel').value = c.telephone || ''; buildCavGrpGrid(id); openMo('mo-cav'); }
+    function editCav(id) {
+      const c = C.cav.find(x => x.id === id); document.getElementById('mo-cav-t').textContent = 'Modifier'; document.getElementById('cav-id').value = id; document.getElementById('cav-prenom').value = c.prenom; document.getElementById('cav-nom').value = c.nom || ''; document.getElementById('cav-tel').value = c.telephone || ''; buildCavGrpGrid(id); _refreshCavCarteInfo(id);
+      openMo('mo-cav');
+    }
     async function delCav(id) { if (!confirm('Supprimer ?')) return; await dbDel('cavalier_groupes', [{ col: 'cavalier_id', op: 'eq', val: id }]); await dbDel('cavaliers', [{ col: 'id', op: 'eq', val: id }]); toast('Supprimé', 'ok'); await loadCav(); renderCavaliers(); popSelects(); }
 
     // ══════════════════════════════════════════════════
