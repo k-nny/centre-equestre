@@ -1407,6 +1407,7 @@
                 class="ic">📜</span>Historique</button>
             <button class="ni" data-p="disciplines" onclick="go('disciplines')"><span
                 class="ic">🎨</span>Disciplines</button>
+            <button class="ni" data-p="cartes" onclick="go('cartes')"><span class="ic">🎫</span>Cartes</button>
           </div>
         </div>
         <div class="sb-bot"><button class="atbtn" id="atbtn" onclick="handleAdminToggle()">🔑 Mode
@@ -1680,6 +1681,52 @@
           </div>
         </div>
 
+        <!-- CARTES -->
+        <div class="page" id="page-cartes">
+          <div class="ph">
+            <h2>Cartes d'heures</h2>
+          </div>
+          <div class="tc" style="margin-bottom:16px">
+            <div class="tt">
+              <h3>⚙️ Paramètre global</h3>
+            </div>
+            <div style="padding:14px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+              <div class="fg" style="margin:0;min-width:180px">
+                <label>Prix par heure (€)</label>
+                <input type="number" id="prix-heure-global" min="0" step="0.5" placeholder="0"
+                  style="width:120px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:Arial,sans-serif;font-size:14px;outline:none">
+              </div>
+              <button class="btn btn-p" onclick="savePrixHeureGlobal()" style="margin-top:18px">Enregistrer</button>
+            </div>
+          </div>
+          <div class="tc">
+            <div class="tt">
+              <h3>Liste des cartes</h3><button class="btn btn-p" onclick="newCarte()">+ Nouvelle carte</button>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Cavalier</th>
+                  <th>Heures</th>
+                  <th>Restantes</th>
+                  <th>Prix/h</th>
+                  <th>Total</th>
+                  <th>Statut</th>
+                  <th>Expiration</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tb-cartes">
+                <tr class="er">
+                  <td colspan="8">
+                    <div class="spin"></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- DISCIPLINES -->
         <div class="page" id="page-disciplines">
           <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
@@ -1852,15 +1899,15 @@
         </div>
         <div class="fr">
           <div class="fg"><label>Nombre d'heures</label><input type="number" id="cav-carte-heures" min="1" step="1"
-              placeholder="ex: 10"></div>
+              placeholder="ex: 10" oninput="calcPrixTotalCav()"></div>
           <div class="fg"><label>Date expiration <span style="color:var(--muted)">(opt.)</span></label><input
               type="date" id="cav-carte-exp"></div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button type="button" class="btn btn-g sm" id="cav-carte-btn" onclick="saveCarteFromCav()">🎫 Créer la
-            carte</button>
-          <button type="button" class="btn btn-d sm" id="cav-carte-del" style="display:none"
-            onclick="deleteCarteCav()">🗑 Supprimer</button>
+        <div class="fr">
+          <div class="fg"><label>Prix / heure (€)</label><input type="number" id="cav-carte-ph" min="0" step="0.5"
+              placeholder="0" oninput="calcPrixTotalCav()"></div>
+          <div class="fg"><label>Prix total (€)</label><input type="number" id="cav-carte-total" min="0" step="0.5"
+              placeholder="0"></div>
         </div>
       </div>
       <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-cav')">Annuler</button><button class="btn btn-p"
@@ -1949,6 +1996,50 @@
         moniteur est déjà défini comme contact — il sera remplacé.</p>
       <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-mon')">Annuler</button><button class="btn btn-p"
           onclick="saveMoniteur()">Enregistrer</button></div>
+    </div>
+  </div>
+
+  <!-- Modale carte standalone -->
+  <div class="mo" id="mo-carte-edit">
+    <div class="md" style="max-width:500px">
+      <h3 id="mo-carte-edit-t">Nouvelle carte</h3><input type="hidden" id="carte-edit-id">
+      <div class="fg"><label>Cavalier *</label><select id="carte-edit-cav">
+          <option value="">— Sélectionner —</option>
+        </select></div>
+      <div class="fr">
+        <div class="fg"><label>Nombre d'heures *</label><input type="number" id="carte-edit-nb" min="1" step="1"
+            placeholder="10" oninput="calcPrixTotal()"></div>
+        <div class="fg"><label>Date expiration <span style="color:var(--muted)">(opt.)</span></label><input type="date"
+            id="carte-edit-exp"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label>Prix / heure (€)</label><input type="number" id="carte-edit-ph" min="0" step="0.5"
+            placeholder="0" oninput="calcPrixTotal()"></div>
+        <div class="fg"><label>Prix total (€)</label><input type="number" id="carte-edit-total" min="0" step="0.5"
+            placeholder="0"></div>
+      </div>
+      <div style="border-top:1px solid var(--border);margin:10px 0;padding-top:12px">
+        <div
+          style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">
+          💳 Règlement</div>
+        <div class="fg" style="display:flex;align-items:center;gap:14px">
+          <label style="margin-bottom:0;min-width:80px">Réglé</label>
+          <label class="tog"><input type="checkbox" id="carte-edit-regle"><span class="ts"></span></label>
+        </div>
+        <div class="fr">
+          <div class="fg"><label>Méthode</label><select id="carte-edit-methode">
+              <option value="">— Non réglé —</option>
+              <option value="Espèces">Espèces</option>
+              <option value="Chèque">Chèque</option>
+              <option value="Virement">Virement</option>
+              <option value="CB">Carte bancaire</option>
+              <option value="Pass">Pass</option>
+            </select></div>
+          <div class="fg"><label>Date règlement</label><input type="date" id="carte-edit-date-reg"></div>
+        </div>
+      </div>
+      <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-carte-edit')">Annuler</button><button
+          class="btn btn-p" onclick="saveCarte()">Enregistrer</button></div>
     </div>
   </div>
 
@@ -2429,7 +2520,7 @@
 
     // ── Nav ──
     function go(p) {
-      const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines'];
+      const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes'];
       if (!isAdmin && adm.includes(p)) return;
       document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
       document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
@@ -2445,13 +2536,14 @@
       if (p === 'historique') loadHistorique();
       updateStgBanner();
       if (p === 'disciplines') renderDiscPage();
+      if (p === 'cartes') loadPageCartes();
       if (window.innerWidth <= 768) { document.getElementById('sb').classList.remove('open'); document.getElementById('sbo').classList.remove('open'); }
     }
     function toggleSB() { document.getElementById('sb').classList.toggle('open'); document.getElementById('sbo').classList.toggle('open'); }
 
     // ── Chargement ──
     async function loadAll() {
-      await Promise.all([loadGrp(), loadCav(), loadChv(), loadMon(), loadStatuts(), loadSemaine(), loadDiscIcons(), loadCartes()]);      // Rendu final une fois toutes les données chargées (évite les 0 cavaliers / moniteurs manquants)
+      await Promise.all([loadGrp(), loadCav(), loadChv(), loadMon(), loadStatuts(), loadSemaine(), loadDiscIcons(), loadCartes(), loadAppSettings()]);      // Rendu final une fois toutes les données chargées (évite les 0 cavaliers / moniteurs manquants)
       renderGroupes(); renderCavaliers(); renderMoniteurs(); renderChevaux(); popSelects();
     }
 
@@ -2693,18 +2785,21 @@
       document.getElementById('s-grp').textContent = C.grp.length;
       document.getElementById('s-cav').textContent = C.cav.length;
       document.getElementById('s-chv').textContent = C.chv.length;
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('s-sea').textContent = C.sea.filter(s => s.date === today).length;
       renderAlerts();
-      const tc = C.sea.filter(s => s.date === today);
-      document.getElementById('td-sea').innerHTML = !tc.length ? '<div class="ls">Aucune séance</div>' :
-        `<table><thead><tr><th>Groupe</th><th>Heure</th><th>Discipline</th><th>Moniteur</th></tr></thead><tbody>${tc.map(s => {
-          const g = s.groupes || C.grp.find(x => x.id === s.groupe_id) || {};
-          const isPonc = !s.groupe_id;
-          return `<tr><td><strong>${isPonc ? (s.nom_ponctuel || 'Cours ponctuel') : (g.nom || 'Groupe')}</strong></td><td>${(s.heure || '').slice(0, 5)}</td><td>${s.discipline ? `<span style="display:inline-flex;align-items:center;gap:5px">${discIcon(s.discipline, { size: 18 })} ${s.discipline}</span>` : '—'}</td><td>${s.moniteur1?.prenom || '—'}</td></tr>`;
-        }).join('')}</tbody></table>`;
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('s-sea').textContent = '…';
+      document.getElementById('td-sea').innerHTML = '<div class="ls"><div class="spin"></div></div>';
+      dbSel('seances', { select: '*,groupes(nom,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom)', filter: [{ col: 'date', op: 'eq', val: today }], order: [{ col: 'heure' }] }).then(tc => {
+        document.getElementById('s-sea').textContent = tc.length;
+        document.getElementById('td-sea').innerHTML = !tc.length ? '<div class="ls">Aucune séance</div>' :
+          `<table><thead><tr><th>Groupe</th><th>Heure</th><th>Discipline</th><th>Moniteur</th></tr></thead><tbody>${tc.map(s => {
+            const g = C.grp.find(x => x.id === s.groupe_id) || s.groupes || {};
+            return `<tr><td><strong>${g.nom || s.nom_ponctuel || '?'}</strong></td><td>${(s.heure || '').slice(0, 5)}</td><td>${s.discipline ? `<span style="display:inline-flex;align-items:center;gap:5px">${discIcon(s.discipline, { size: 18 })} ${s.discipline}</span>` : '—'}</td><td>${s.moniteur1?.prenom || '—'}</td></tr>`;
+          }).join('')}</tbody></table>`;
+      });
       loadImpayes();
     }
+
 
     async function loadImpayes() {
       const wrap = document.getElementById('td-impayes-wrap');
@@ -3358,20 +3453,163 @@
       const info = document.getElementById('cav-carte-info');
       const btn = document.getElementById('cav-carte-btn');
       const del = document.getElementById('cav-carte-del');
-      const hInput = document.getElementById('cav-carte-heures');
-      const expInput = document.getElementById('cav-carte-exp');
       if (!info) return;
       if (carte) {
         const rest = carteRestantes(carte);
         const col = rest === 0 ? '#b43728' : rest <= 2 ? '#b46414' : '#1e7a40';
         info.style.display = 'block'; info.style.color = col;
-        info.innerHTML = `🎫 <strong>${rest}h restante${rest > 1 ? 's' : ''}</strong> sur ${carte.nb_heures}h${carte.date_expiration ? ' · expire le ' + fmtDate(carte.date_expiration) : ''}`;
+        info.innerHTML = `🎫 <strong>${rest}h restante${rest > 1 ? 's' : ''}</strong> sur ${carte.nb_heures}h${carte.prix_total ? ' · ' + carte.prix_total + '€' : ''}${carte.regle ? ' · <span style="color:#1e7a40">✅ Réglé</span>' : ' · <span style="color:#b43728">⏳ En attente</span>'}${carte.date_expiration ? ' · expire le ' + fmtDate(carte.date_expiration) : ''}`;
         btn.textContent = '🔄 Modifier la carte'; del.style.display = '';
-        hInput.value = carte.nb_heures; expInput.value = carte.date_expiration || '';
+        document.getElementById('cav-carte-heures').value = carte.nb_heures;
+        document.getElementById('cav-carte-exp').value = carte.date_expiration || '';
+        const phEl = document.getElementById('cav-carte-ph');
+        const totEl = document.getElementById('cav-carte-total');
+        if (phEl) phEl.value = carte.prix_heure != null ? carte.prix_heure : (APP_SETTINGS.prix_heure_carte || '');
+        if (totEl) totEl.value = carte.prix_total != null ? carte.prix_total : '';
       } else {
         info.style.display = 'none'; btn.textContent = '🎫 Créer la carte'; del.style.display = 'none';
-        hInput.value = ''; expInput.value = '';
+        document.getElementById('cav-carte-heures').value = '';
+        document.getElementById('cav-carte-exp').value = '';
+        const phEl = document.getElementById('cav-carte-ph');
+        const totEl = document.getElementById('cav-carte-total');
+        if (phEl) phEl.value = APP_SETTINGS.prix_heure_carte || '';
+        if (totEl) totEl.value = '';
       }
+    }
+
+    let APP_SETTINGS = { prix_heure_carte: 0 };
+
+    async function loadAppSettings() {
+      try {
+        const r = await dbSel('app_settings', {});
+        r.forEach(s => { if (s.key === 'prix_heure_carte') APP_SETTINGS.prix_heure_carte = parseFloat(s.value) || 0; });
+      } catch (e) { console.warn('app_settings non chargé', e); }
+    }
+
+    async function savePrixHeureGlobal() {
+      const val = parseFloat(document.getElementById('prix-heure-global')?.value) || 0;
+      APP_SETTINGS.prix_heure_carte = val;
+      try { await dbUpd('app_settings', { value: String(val) }, [{ col: 'key', op: 'eq', val: 'prix_heure_carte' }]); }
+      catch (e) { await dbIns('app_settings', { key: 'prix_heure_carte', value: String(val) }); }
+      toast('Prix par heure mis à jour', 'ok');
+    }
+
+    async function loadPageCartes() {
+      const phEl = document.getElementById('prix-heure-global');
+      if (phEl) phEl.value = APP_SETTINGS.prix_heure_carte || '';
+      await loadCartes();
+      renderCartes();
+    }
+
+    function renderCartes() {
+      const t = document.getElementById('tb-cartes'); if (!t) return;
+      if (!C.cartes.length) { t.innerHTML = '<tr class="er"><td colspan="8">Aucune carte</td></tr>'; return; }
+      const today = new Date().toISOString().slice(0, 10);
+      t.innerHTML = C.cartes.map(c => {
+        const cav = C.cav.find(x => x.id === c.cavalier_id);
+        const nom = cav ? cap(cav.prenom || '') + (cav.nom ? ' ' + cav.nom.toUpperCase() : '') : '?';
+        const rest = carteRestantes(c);
+        const expired = c.date_expiration && c.date_expiration < today;
+        const pct = c.nb_heures > 0 ? Math.min(100, (1 - rest / c.nb_heures) * 100) : 0;
+        const restCol = expired || rest === 0 ? '#b43728' : rest <= 2 ? '#b46414' : '#1e7a40';
+        return `<tr style="${expired ? 'opacity:.55' : ''}">
+      <td><strong>${nom}</strong>${expired ? '<span class="b br" style="margin-left:4px;font-size:10px">Expirée</span>' : ''}</td>
+      <td>${c.nb_heures}h</td>
+      <td><strong style="color:${restCol}">${rest}h</strong>
+        <div class="hbb" style="margin-top:3px"><div class="hbf${rest === 0 ? ' d' : rest <= 2 ? ' w' : ''}" style="width:${pct}%"></div></div>
+      </td>
+      <td>${c.prix_heure != null ? c.prix_heure + '€/h' : '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${c.prix_total != null ? '<strong>' + c.prix_total + '€</strong>' : '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${c.regle ? '<span class="b bg">✅ Réglé</span>' : '<span class="b br">⏳ En attente</span>'}</td>
+      <td>${c.date_expiration ? fmtDate(c.date_expiration) : '<span style="color:var(--muted)">—</span>'}</td>
+      <td style="display:flex;gap:5px">
+        <button class="btn btn-g sm" onclick="editCarte('${c.id}')">✏️</button>
+        <button class="btn btn-d sm" onclick="delCarte('${c.id}')">🗑</button>
+      </td>
+    </tr>`;
+      }).join('');
+    }
+
+    function newCarte() {
+      document.getElementById('mo-carte-edit-t').textContent = 'Nouvelle carte';
+      document.getElementById('carte-edit-id').value = '';
+      document.getElementById('carte-edit-nb').value = '';
+      document.getElementById('carte-edit-exp').value = '';
+      document.getElementById('carte-edit-ph').value = APP_SETTINGS.prix_heure_carte || '';
+      document.getElementById('carte-edit-total').value = '';
+      document.getElementById('carte-edit-regle').checked = false;
+      document.getElementById('carte-edit-methode').value = '';
+      document.getElementById('carte-edit-date-reg').value = '';
+      document.getElementById('carte-edit-cav').innerHTML = '<option value="">— Sélectionner —</option>' +
+        [...C.cav].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(c =>
+          `<option value="${c.id}">${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}</option>`
+        ).join('');
+      openMo('mo-carte-edit');
+    }
+
+    function editCarte(id) {
+      const c = C.cartes.find(x => x.id === id); if (!c) return;
+      document.getElementById('mo-carte-edit-t').textContent = 'Modifier la carte';
+      document.getElementById('carte-edit-id').value = id;
+      document.getElementById('carte-edit-nb').value = c.nb_heures || '';
+      document.getElementById('carte-edit-exp').value = c.date_expiration || '';
+      document.getElementById('carte-edit-ph').value = c.prix_heure != null ? c.prix_heure : (APP_SETTINGS.prix_heure_carte || '');
+      document.getElementById('carte-edit-total').value = c.prix_total != null ? c.prix_total : '';
+      document.getElementById('carte-edit-regle').checked = !!c.regle;
+      document.getElementById('carte-edit-methode').value = c.methode_paiement || '';
+      document.getElementById('carte-edit-date-reg').value = c.date_reglement || '';
+      document.getElementById('carte-edit-cav').innerHTML = '<option value="">— Sélectionner —</option>' +
+        [...C.cav].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(cv =>
+          `<option value="${cv.id}"${cv.id === c.cavalier_id ? ' selected' : ''}>${cap(cv.prenom || '')}${cv.nom ? ' ' + cv.nom.toUpperCase() : ''}</option>`
+        ).join('');
+      openMo('mo-carte-edit');
+    }
+
+    async function saveCarte() {
+      const id = v('carte-edit-id'), cavId = v('carte-edit-cav');
+      const nb = parseFloat(v('carte-edit-nb')) || null;
+      if (!cavId) { toast('Sélectionnez un cavalier', 'err'); return; }
+      if (!nb) { toast('Entrez un nombre d\'heures', 'err'); return; }
+      const data = {
+        cavalier_id: cavId, nb_heures: nb,
+        date_expiration: v('carte-edit-exp') || null,
+        prix_heure: parseFloat(v('carte-edit-ph')) || null,
+        prix_total: parseFloat(v('carte-edit-total')) || null,
+        regle: document.getElementById('carte-edit-regle').checked,
+        methode_paiement: v('carte-edit-methode') || null,
+        date_reglement: v('carte-edit-date-reg') || null
+      };
+      if (id) {
+        await dbUpd('cartes_heures', data, [{ col: 'id', op: 'eq', val: id }]);
+        const idx = C.cartes.findIndex(x => x.id === id);
+        if (idx !== -1) C.cartes[idx] = { ...C.cartes[idx], ...data, id };
+      } else {
+        const r = await dbIns('cartes_heures', { ...data, heures_utilisees: 0 });
+        if (r.data?.[0]) C.cartes.unshift(r.data[0]);
+      }
+      toast(id ? 'Carte modifiée' : 'Carte créée', 'ok');
+      closeMo('mo-carte-edit');
+      renderCartes();
+      _refreshCavCarteInfo(cavId);
+    }
+
+    async function delCarte(id) {
+      if (!confirm('Supprimer cette carte ?')) return;
+      await dbDel('cartes_heures', [{ col: 'id', op: 'eq', val: id }]);
+      C.cartes = C.cartes.filter(c => c.id !== id);
+      toast('Carte supprimée', 'ok'); renderCartes();
+    }
+
+    function calcPrixTotal() {
+      const nb = parseFloat(document.getElementById('carte-edit-nb')?.value) || 0;
+      const ph = parseFloat(document.getElementById('carte-edit-ph')?.value) || 0;
+      if (nb && ph) document.getElementById('carte-edit-total').value = (nb * ph).toFixed(2);
+    }
+
+    function calcPrixTotalCav() {
+      const nb = parseFloat(document.getElementById('cav-carte-heures')?.value) || 0;
+      const ph = parseFloat(document.getElementById('cav-carte-ph')?.value) || 0;
+      if (nb && ph) document.getElementById('cav-carte-total').value = (nb * ph).toFixed(2);
     }
 
     function togSk(id) {
@@ -3892,6 +4130,21 @@
           await dbDel('cavalier_groupes', [{ col: 'cavalier_id', op: 'eq', val: cavId }, { col: 'groupe_id', op: 'eq', val: gid }]);
           await removeCavFromFutureSeances(cavId, gid);
         }
+      }
+      const carteNb = parseFloat(document.getElementById('cav-carte-heures')?.value) || null;
+      if (carteNb) {
+        const cartePh = parseFloat(document.getElementById('cav-carte-ph')?.value) || null;
+        const carteTotal = parseFloat(document.getElementById('cav-carte-total')?.value) || null;
+        const carteExp = document.getElementById('cav-carte-exp')?.value || null;
+        const existing = C.cartes.find(c => c.cavalier_id === cavId);
+        if (existing) {
+          await dbUpd('cartes_heures', { nb_heures: carteNb, prix_heure: cartePh, prix_total: carteTotal, date_expiration: carteExp }, [{ col: 'id', op: 'eq', val: existing.id }]);
+          Object.assign(existing, { nb_heures: carteNb, prix_heure: cartePh, prix_total: carteTotal, date_expiration: carteExp });
+        } else {
+          const r = await dbIns('cartes_heures', { cavalier_id: cavId, nb_heures: carteNb, heures_utilisees: 0, prix_heure: cartePh, prix_total: carteTotal, date_expiration: carteExp, regle: false });
+          if (r.data?.[0]) C.cartes.push(r.data[0]);
+        }
+        await loadCartes();
       }
       toast(id ? 'Modifié' : 'Ajouté', 'ok'); closeMo('mo-cav'); await loadCav(); renderCavaliers(); popSelects();
     }
