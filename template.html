@@ -2495,8 +2495,9 @@
       const pw = document.getElementById('pw-in').value;
       const btn = document.getElementById('pw-btn'); btn.textContent = '…'; btn.disabled = true;
       try {
-        const r = await dbReq({ action: 'auth', password: pw });
-        if (r.ok) { sessionToken = r.token || ''; localStorage.setItem('ce_admin_token', sessionToken); closeMo('mo-pw'); enableAdmin(); }
+        const res = await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'auth', password: pw }) });
+        const j = await res.json();
+        if (j && j.ok) { sessionToken = j.token || ''; localStorage.setItem('ce_admin_token', sessionToken); closeMo('mo-pw'); enableAdmin(); }
         else { document.getElementById('pw-err').style.display = 'block'; document.getElementById('pw-in').value = ''; document.getElementById('pw-in').focus(); }
       } catch { document.getElementById('pw-err').style.display = 'block'; }
       btn.textContent = 'Connexion'; btn.disabled = false;
@@ -3237,21 +3238,32 @@
       return DISC.map(d => `<option value="${d}"${d === val ? ' selected' : ''}>${d}</option>`).join('');
     }
 
-    function _buildPoncPartRow(idx, cavId = '', nomLibre = '', chvId = '') {
+    function _buildPoncPartRow(idx, cavId = '', nomLibre = '', chvId = '', isCarte = false) {
       const isLibre = cavId === '__libre__' || (!cavId && nomLibre);
-      const cavOptions = C.cav.map(c => `<option value="${c.id}"${c.id === cavId ? ' selected' : ''}>${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}</option>`).join('');
+      const today = new Date().toISOString().slice(0, 10);
+      const cavOptions = C.cav.map(c => {
+        const carte = C.cartes.find(x => x.cavalier_id === c.id && (!x.date_expiration || x.date_expiration >= today));
+        const rest = carte ? carteRestantes(carte) : 0;
+        return `<option value="${c.id}"${c.id === cavId ? ' selected' : ''}>${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}${carte && rest > 0 ? ` 🎫 ${rest}h` : ''}</option>`;
+      }).join('');
       const chvOptions = getSortedChvDispo().map(c => `<option value="${c.id}"${c.id === chvId ? ' selected' : ''}>${c.nom}</option>`).join('');
+      const selectedCav = cavId && cavId !== '__libre__' ? C.cav.find(c => c.id === cavId) : null;
+      const carte = selectedCav ? C.cartes.find(x => x.cavalier_id === selectedCav.id && (!x.date_expiration || x.date_expiration >= today)) : null;
+      const hasCarteDispo = carte && carteRestantes(carte) > 0;
       return `<div class="ponc-part-row" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap" data-idx="${idx}">
     <select class="ponc-cav-sel" onchange="onPoncCavChange(this)" style="flex:1;min-width:140px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 9px;color:var(--text);font-family:Arial,sans-serif;font-size:12px;outline:none">
       <option value="">— Cavalier —</option>
-      <option value="__libre__"${isLibre ? ' selected' : ''}>✏️ Nom libre…</option>
       ${cavOptions}
+      <option value="__libre__"${isLibre ? ' selected' : ''}>✏️ Nom libre…</option>
     </select>
     <input type="text" class="ponc-nom-libre" placeholder="Prénom / nom" value="${nomLibre}" style="flex:1;min-width:110px;display:${isLibre ? 'block' : 'none'};background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 9px;color:var(--text);font-family:Arial,sans-serif;font-size:12px;outline:none">
     <select class="ponc-chv-sel" style="flex:1;min-width:130px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 9px;color:var(--text);font-family:Arial,sans-serif;font-size:12px;outline:none">
       <option value="">— Cheval —</option>
       ${chvOptions}
     </select>
+    <label class="ponc-carte-label" style="display:${hasCarteDispo ? 'flex' : 'none'};align-items:center;gap:5px;font-size:12px;white-space:nowrap;cursor:pointer">
+      <input type="checkbox" class="ponc-carte-chk" ${isCarte ? 'checked' : ''} style="accent-color:var(--gold)"> 🎫 carte
+    </label>
     <button type="button" class="btn btn-d sm" onclick="this.closest('.ponc-part-row').remove()">🗑</button>
   </div>`;
     }
@@ -3259,12 +3271,17 @@
     function onPoncCavChange(sel) {
       const row = sel.closest('.ponc-part-row');
       row.querySelector('.ponc-nom-libre').style.display = sel.value === '__libre__' ? 'block' : 'none';
+      const today = new Date().toISOString().slice(0, 10);
+      const carte = sel.value && sel.value !== '__libre__' ? C.cartes.find(x => x.cavalier_id === sel.value && (!x.date_expiration || x.date_expiration >= today)) : null;
+      const hasCarteDispo = carte && carteRestantes(carte) > 0;
+      row.querySelector('.ponc-carte-label').style.display = hasCarteDispo ? 'flex' : 'none';
+      if (!hasCarteDispo) row.querySelector('.ponc-carte-chk').checked = false;
     }
 
-    function addPoncPart(cavId = '', nomLibre = '', chvId = '') {
+    function addPoncPart(cavId = '', nomLibre = '', chvId = '', isCarte = false) {
       const container = document.getElementById('ponc-parts');
       const idx = container.children.length;
-      container.insertAdjacentHTML('beforeend', _buildPoncPartRow(idx, cavId, nomLibre, chvId));
+      container.insertAdjacentHTML('beforeend', _buildPoncPartRow(idx, cavId, nomLibre, chvId, isCarte));
     }
 
     function openPonctuel() {
@@ -3296,7 +3313,7 @@
         for (const a of affs) {
           const cavId = a.cavalier_id || '';
           const nomLibre = !a.cavalier_id ? (a.nom_exceptionnel || '') : '';
-          addPoncPart(cavId || (!cavId && nomLibre ? '__libre__' : ''), nomLibre, a.equide_id || '');
+          addPoncPart(cavId || (!cavId && nomLibre ? '__libre__' : ''), nomLibre, chvId, !!a.cours_carte);
         }
       } else addPoncPart();
       openMo('mo-ponctuel');
@@ -3317,8 +3334,9 @@
         const cavSel = row.querySelector('.ponc-cav-sel').value;
         const nomLibre = row.querySelector('.ponc-nom-libre').value.trim();
         const chvId = row.querySelector('.ponc-chv-sel').value || null;
-        if (cavSel && cavSel !== '__libre__') return { cavalier_id: cavSel, nom_exceptionnel: null, equide_id: chvId };
-        if (nomLibre) return { cavalier_id: null, nom_exceptionnel: nomLibre, equide_id: chvId };
+        const isCarte = row.querySelector('.ponc-carte-chk')?.checked || false;
+        if (cavSel && cavSel !== '__libre__') return { cavalier_id: cavSel, nom_exceptionnel: null, equide_id: chvId, cours_carte: isCarte };
+        if (nomLibre) return { cavalier_id: null, nom_exceptionnel: nomLibre, equide_id: chvId, cours_carte: false };
         return null;
       }).filter(Boolean);
       let seaId = editId;
@@ -3330,13 +3348,24 @@
         seaId = r.data?.[0]?.id;
       }
       if (!seaId) { toast('Erreur création séance', 'err'); return; }
+      const today = new Date().toISOString().slice(0, 10);
       for (const p of parts) {
         await dbIns('affectations_seance', {
           seance_id: seaId, cavalier_id: p.cavalier_id || null, equide_id: p.equide_id || null,
           absent: false, rattrapage: false,
-          cours_exceptionnel: !!p.nom_exceptionnel, nom_exceptionnel: p.nom_exceptionnel || null
+          cours_exceptionnel: !!p.nom_exceptionnel, nom_exceptionnel: p.nom_exceptionnel || null,
+          cours_carte: !!p.cours_carte
         });
+        if (p.cours_carte && p.cavalier_id) {
+          const carte = C.cartes.find(x => x.cavalier_id === p.cavalier_id && (!x.date_expiration || x.date_expiration >= today));
+          if (carte && carteRestantes(carte) > 0) {
+            const newUsed = (parseFloat(carte.heures_utilisees) || 0) + 1;
+            await dbUpd('cartes_heures', { heures_utilisees: newUsed }, [{ col: 'id', op: 'eq', val: carte.id }]);
+            carte.heures_utilisees = newUsed;
+          }
+        }
       }
+      toast(editId ? `Cours modifié (${fmtDate(date)})` : `Cours créé (${fmtDate(date)})`, 'ok');
       toast(`${editId ? 'Cours modifié' : 'Cours créé'} (${fmtDate(date)})`, 'ok');
       closeMo('mo-ponctuel');
       await loadSeances(date);
