@@ -3241,19 +3241,41 @@
     function _buildPoncPartRow(idx, cavId = '', nomLibre = '', chvId = '', isCarte = false) {
       const isLibre = cavId === '__libre__' || (!cavId && nomLibre);
       const today = new Date().toISOString().slice(0, 10);
+
+      // --- AJOUT : Récupérer les IDs déjà sélectionnés dans les autres lignes ---
+      const allRows = document.querySelectorAll('.ponc-part-row');
+      const usedCavIds = Array.from(allRows).map(r => r.querySelector('.ponc-cav-sel').value).filter(id => id && id !== '__libre__');
+      const usedChvIds = Array.from(allRows).map(r => r.querySelector('.ponc-chv-sel').value).filter(id => id);
+      // --------------------------------------------------------------------------
+
       const cavOptions = C.cav.map(c => {
         const carte = C.cartes.find(x => x.cavalier_id === c.id && (!x.date_expiration || x.date_expiration >= today));
         const rest = carte ? carteRestantes(carte) : 0;
-        return `<option value="${c.id}"${c.id === cavId ? ' selected' : ''}>${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}${carte && rest > 0 ? ` 🎫 ${rest}h` : ''}</option>`;
+
+        // Si le cavalier est déjà utilisé ailleurs, on le désactive (sauf si c'est celui de la ligne actuelle)
+        const isDisabled = usedCavIds.includes(c.id) && c.id !== cavId;
+
+        return `<option value="${c.id}"${c.id === cavId ? ' selected' : ''}${isDisabled ? ' disabled' : ''}>
+      ${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}${carte && rest > 0 ? ` 🎫 ${rest}h` : ''} 
+      ${isDisabled ? ' (déjà ajouté)' : ''}
+    </option>`;
       }).join('');
-      const chvOptions = getSortedChvDispo().map(c => `<option value="${c.id}"${c.id === chvId ? ' selected' : ''}>${c.nom}</option>`).join('');
+
+      const chvOptions = getSortedChvDispo().map(c => {
+        // Si le cheval est déjà utilisé ailleurs, on le désactive (sauf si c'est celui de la ligne actuelle)
+        const isDisabled = usedChvIds.includes(c.id) && c.id !== chvId;
+
+        return `<option value="${c.id}"${c.id === chvId ? ' selected' : ''}${isDisabled ? ' disabled' : ''}>
+      ${c.nom}${isDisabled ? ' (déjà pris)' : ''}
+    </option>`;
+      }).join('');
+
       const selectedCav = cavId && cavId !== '__libre__' ? C.cav.find(c => c.id === cavId) : null;
       const carte = selectedCav ? C.cartes.find(x => x.cavalier_id === selectedCav.id && (!x.date_expiration || x.date_expiration >= today)) : null;
       const hasCarteDispo = carte && carteRestantes(carte) > 0;
-      // Badge carte auto (affiché si carte dispo, pas de checkbox)
-      const carteBadge = hasCarteDispo
-        ? `<span class="ponc-carte-badge b bb" style="font-size:10px;white-space:nowrap">🎫 carte (${carteRestantes(carte)}h)</span>`
-        : `<span class="ponc-carte-badge" style="display:none"></span>`;
+
+      const carteBadge = hasCarteDispo ? `<span class="ponc-carte-badge b bb" style="font-size:10px;white-space:nowrap">🎫 carte (${carteRestantes(carte)}h)</span>` : `<span class="ponc-carte-badge" style="display:none"></span>`;
+
       return `<div class="ponc-part-row" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap" data-idx="${idx}">
     <select class="ponc-cav-sel" onchange="onPoncCavChange(this)" style="flex:1;min-width:140px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 9px;color:var(--text);font-family:Arial,sans-serif;font-size:12px;outline:none">
       <option value="">— Cavalier —</option>
@@ -3261,13 +3283,42 @@
       ${cavOptions}
     </select>
     <input type="text" class="ponc-nom-libre" placeholder="Prénom / nom" value="${nomLibre}" style="flex:1;min-width:110px;display:${isLibre ? 'block' : 'none'};background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 9px;color:var(--text);font-family:Arial,sans-serif;font-size:12px;outline:none">
-    <select class="ponc-chv-sel" style="flex:1;min-width:130px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 9px;color:var(--text);font-family:Arial,sans-serif;font-size:12px;outline:none">
+    <select class="ponc-chv-sel" onchange="onPoncChvChange(this)" style="flex:1;min-width:130px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 9px;color:var(--text);font-family:Arial,sans-serif;font-size:12px;outline:none">
       <option value="">— Cheval —</option>
       ${chvOptions}
     </select>
     ${carteBadge}
     <button type="button" class="btn btn-d sm" onclick="removePoncPartRow(this)">🗑</button>
   </div>`;
+    }
+
+    // Fonction à appeler pour rafraîchir toutes les listes de la modale
+    function refreshAllPoncSelects() {
+      const rows = document.querySelectorAll('.ponc-part-row');
+      const data = Array.from(rows).map(r => ({
+        cavId: r.querySelector('.ponc-cav-sel').value,
+        nomLibre: r.querySelector('.ponc-nom-libre').value,
+        chvId: r.querySelector('.ponc-chv-sel').value
+      }));
+
+      const container = document.getElementById('ponc-parts');
+      container.innerHTML = '';
+      data.forEach((d, i) => {
+        container.insertAdjacentHTML('beforeend', _buildPoncPartRow(i, d.cavId, d.nomLibre, d.chvId));
+      });
+    }
+
+    // Modifiez onPoncCavChange pour inclure le rafraîchissement
+    function onPoncCavChange(sel) {
+      const row = sel.closest('.ponc-part-row');
+      row.querySelector('.ponc-nom-libre').style.display = sel.value === '__libre__' ? 'block' : 'none';
+      // On rafraîchit les autres lignes pour désactiver ce cavalier ailleurs
+      refreshAllPoncSelects();
+    }
+
+    // Créez cette fonction pour les chevaux
+    function onPoncChvChange(sel) {
+      refreshAllPoncSelects();
     }
 
     function onPoncCavChange(sel) {
