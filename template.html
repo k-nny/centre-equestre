@@ -3250,6 +3250,10 @@
       const selectedCav = cavId && cavId !== '__libre__' ? C.cav.find(c => c.id === cavId) : null;
       const carte = selectedCav ? C.cartes.find(x => x.cavalier_id === selectedCav.id && (!x.date_expiration || x.date_expiration >= today)) : null;
       const hasCarteDispo = carte && carteRestantes(carte) > 0;
+      // Badge carte auto (affiché si carte dispo, pas de checkbox)
+      const carteBadge = hasCarteDispo
+        ? `<span class="ponc-carte-badge b bb" style="font-size:10px;white-space:nowrap">🎫 carte (${carteRestantes(carte)}h)</span>`
+        : `<span class="ponc-carte-badge" style="display:none"></span>`;
       return `<div class="ponc-part-row" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap" data-idx="${idx}">
     <select class="ponc-cav-sel" onchange="onPoncCavChange(this)" style="flex:1;min-width:140px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 9px;color:var(--text);font-family:Arial,sans-serif;font-size:12px;outline:none">
       <option value="">— Cavalier —</option>
@@ -3261,10 +3265,8 @@
       <option value="">— Cheval —</option>
       ${chvOptions}
     </select>
-    <label class="ponc-carte-label" style="display:${hasCarteDispo ? 'flex' : 'none'};align-items:center;gap:5px;font-size:12px;white-space:nowrap;cursor:pointer">
-      <input type="checkbox" class="ponc-carte-chk" ${isCarte ? 'checked' : ''} style="accent-color:var(--gold)"> 🎫 carte
-    </label>
-    <button type="button" class="btn btn-d sm" onclick="this.closest('.ponc-part-row').remove()">🗑</button>
+    ${carteBadge}
+    <button type="button" class="btn btn-d sm" onclick="removePoncPartRow(this)">🗑</button>
   </div>`;
     }
 
@@ -3274,14 +3276,48 @@
       const today = new Date().toISOString().slice(0, 10);
       const carte = sel.value && sel.value !== '__libre__' ? C.cartes.find(x => x.cavalier_id === sel.value && (!x.date_expiration || x.date_expiration >= today)) : null;
       const hasCarteDispo = carte && carteRestantes(carte) > 0;
-      row.querySelector('.ponc-carte-label').style.display = hasCarteDispo ? 'flex' : 'none';
-      if (!hasCarteDispo) row.querySelector('.ponc-carte-chk').checked = false;
+      const badge = row.querySelector('.ponc-carte-badge');
+      if (badge) {
+        if (hasCarteDispo) {
+          badge.className = 'ponc-carte-badge b bb';
+          badge.style.display = '';
+          badge.style.fontSize = '10px';
+          badge.style.whiteSpace = 'nowrap';
+          badge.textContent = `🎫 carte (${carteRestantes(carte)}h)`;
+        } else {
+          badge.style.display = 'none';
+          badge.textContent = '';
+        }
+      }
     }
 
     function addPoncPart(cavId = '', nomLibre = '', chvId = '', isCarte = false) {
       const container = document.getElementById('ponc-parts');
       const idx = container.children.length;
       container.insertAdjacentHTML('beforeend', _buildPoncPartRow(idx, cavId, nomLibre, chvId, isCarte));
+    }
+
+    // Suppression d'une ligne depuis le modal : rembourse la carte si le cours est en mode édition
+    function removePoncPartRow(btn) {
+      const row = btn.closest('.ponc-part-row');
+      const editId = v('ponc-id'); // id de la séance en édition
+      if (editId) {
+        const cavSel = row.querySelector('.ponc-cav-sel')?.value;
+        if (cavSel && cavSel !== '__libre__') {
+          const today = new Date().toISOString().slice(0, 10);
+          // Vérifier si ce cavalier avait une affectation carte existante dans cette séance
+          const affExistante = C.aff.find(a => a.seance_id === editId && a.cavalier_id === cavSel && a.cours_carte);
+          if (affExistante) {
+            const carte = C.cartes.find(x => x.cavalier_id === cavSel);
+            if (carte) {
+              const newUsed = Math.max(0, (parseFloat(carte.heures_utilisees) || 0) - 1);
+              dbUpd('cartes_heures', { heures_utilisees: newUsed }, [{ col: 'id', op: 'eq', val: carte.id }])
+                .then(() => { carte.heures_utilisees = newUsed; toast('Heure rendue sur la carte 🎫', 'ok'); });
+            }
+          }
+        }
+      }
+      row.remove();
     }
 
     function openPonctuel() {
@@ -3330,18 +3366,51 @@
       const discipline = v('ponc-disc') || null;
       const date = v('sea-date');
       const editId = v('ponc-id');
+      const today = new Date().toISOString().slice(0, 10);
       const rows = [...document.querySelectorAll('#ponc-parts .ponc-part-row')];
       const parts = rows.map(row => {
         const cavSel = row.querySelector('.ponc-cav-sel').value;
         const nomLibre = row.querySelector('.ponc-nom-libre').value.trim();
         const chvId = row.querySelector('.ponc-chv-sel').value || null;
-        const isCarte = row.querySelector('.ponc-carte-chk')?.checked || false;
+        // Auto-détection carte : si le cavalier a une carte dispo, on l'utilise
+        let isCarte = false;
+        if (cavSel && cavSel !== '__libre__') {
+          const carte = C.cartes.find(x => x.cavalier_id === cavSel && (!x.date_expiration || x.date_expiration >= today));
+          isCarte = !!(carte && carteRestantes(carte) > 0);
+        }
         if (cavSel && cavSel !== '__libre__') return { cavalier_id: cavSel, nom_exceptionnel: null, equide_id: chvId, cours_carte: isCarte };
         if (nomLibre) return { cavalier_id: null, nom_exceptionnel: nomLibre, equide_id: chvId, cours_carte: false };
         return null;
       }).filter(Boolean);
       let seaId = editId;
       if (editId) {
+        // Récupérer les anciennes affectations carte AVANT de les supprimer
+        const oldAffs = C.aff.filter(a => a.seance_id === editId);
+        const oldCarteIds = new Set(oldAffs.filter(a => a.cours_carte && a.cavalier_id).map(a => a.cavalier_id));
+        // Nouvelles affectations carte
+        const newCarteIds = new Set(parts.filter(p => p.cours_carte && p.cavalier_id).map(p => p.cavalier_id));
+        // Rembourser les cartes des cavaliers supprimés ou retirés de la carte
+        for (const cavId of oldCarteIds) {
+          if (!newCarteIds.has(cavId)) {
+            const carte = C.cartes.find(x => x.cavalier_id === cavId);
+            if (carte) {
+              const newUsed = Math.max(0, (parseFloat(carte.heures_utilisees) || 0) - 1);
+              await dbUpd('cartes_heures', { heures_utilisees: newUsed }, [{ col: 'id', op: 'eq', val: carte.id }]);
+              carte.heures_utilisees = newUsed;
+            }
+          }
+        }
+        // Débiter les cartes des NOUVEAUX cavaliers carte (pas ceux qui l'étaient déjà)
+        for (const cavId of newCarteIds) {
+          if (!oldCarteIds.has(cavId)) {
+            const carte = C.cartes.find(x => x.cavalier_id === cavId && (!x.date_expiration || x.date_expiration >= today));
+            if (carte && carteRestantes(carte) > 0) {
+              const newUsed = (parseFloat(carte.heures_utilisees) || 0) + 1;
+              await dbUpd('cartes_heures', { heures_utilisees: newUsed }, [{ col: 'id', op: 'eq', val: carte.id }]);
+              carte.heures_utilisees = newUsed;
+            }
+          }
+        }
         await dbUpd('seances', { nom_ponctuel: nom, couleur_ponctuel, heure, heure_fin, discipline }, [{ col: 'id', op: 'eq', val: editId }]);
         await dbDel('affectations_seance', [{ col: 'seance_id', op: 'eq', val: editId }]);
       } else {
@@ -3349,7 +3418,6 @@
         seaId = r.data?.[0]?.id;
       }
       if (!seaId) { toast('Erreur création séance', 'err'); return; }
-      const today = new Date().toISOString().slice(0, 10);
       for (const p of parts) {
         await dbIns('affectations_seance', {
           seance_id: seaId, cavalier_id: p.cavalier_id || null, equide_id: p.equide_id || null,
@@ -3357,7 +3425,8 @@
           cours_exceptionnel: !!p.nom_exceptionnel, nom_exceptionnel: p.nom_exceptionnel || null,
           cours_carte: !!p.cours_carte
         });
-        if (p.cours_carte && p.cavalier_id) {
+        // Débiter la carte seulement lors d'une CRÉATION (pas d'édition, déjà géré ci-dessus)
+        if (!editId && p.cours_carte && p.cavalier_id) {
           const carte = C.cartes.find(x => x.cavalier_id === p.cavalier_id && (!x.date_expiration || x.date_expiration >= today));
           if (carte && carteRestantes(carte) > 0) {
             const newUsed = (parseFloat(carte.heures_utilisees) || 0) + 1;
@@ -3367,16 +3436,25 @@
         }
       }
       toast(editId ? `Cours modifié (${fmtDate(date)})` : `Cours créé (${fmtDate(date)})`, 'ok');
-      toast(`${editId ? 'Cours modifié' : 'Cours créé'} (${fmtDate(date)})`, 'ok');
       closeMo('mo-ponctuel');
       await loadSeances(date);
     }
 
     async function delPonctuel(seaId) {
       if (!confirm('Supprimer ce cours ponctuel ?')) return;
+      // Rembourser les cartes des cavaliers affectés à ce cours
+      const affsCartes = C.aff.filter(a => a.seance_id === seaId && a.cours_carte && a.cavalier_id);
+      for (const aff of affsCartes) {
+        const carte = C.cartes.find(x => x.cavalier_id === aff.cavalier_id);
+        if (carte) {
+          const newUsed = Math.max(0, (parseFloat(carte.heures_utilisees) || 0) - 1);
+          await dbUpd('cartes_heures', { heures_utilisees: newUsed }, [{ col: 'id', op: 'eq', val: carte.id }]);
+          carte.heures_utilisees = newUsed;
+        }
+      }
       await dbDel('affectations_seance', [{ col: 'seance_id', op: 'eq', val: seaId }]);
       await dbDel('seances', [{ col: 'id', op: 'eq', val: seaId }]);
-      toast('Supprimé', 'ok');
+      toast('Supprimé' + (affsCartes.length ? ` · ${affsCartes.length} heure(s) rendue(s) 🎫` : ''), 'ok');
       await loadSeances(v('sea-date'));
     }
 
