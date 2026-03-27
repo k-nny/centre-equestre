@@ -4888,7 +4888,7 @@
         const cavF = (document.getElementById('hist-cav-f')?.value || '').toLowerCase();
         const chvF = (document.getElementById('hist-chv-f')?.value || '').toLowerCase();
         const filtered = _histCouples.filter(a => {
-          if (cavF && !(a.cavaliers?.nom || '').toLowerCase().includes(cavF)) return false;
+          if (cavF && !((a.cavaliers?.prenom || '').toLowerCase().includes(cavF) || (a.cavaliers?.nom || '').toLowerCase().includes(cavF))) return false;
           if (chvF && !(a.equides?.nom || '').toLowerCase().includes(chvF)) return false;
           return true;
         });
