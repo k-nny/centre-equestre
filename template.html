@@ -4881,102 +4881,84 @@
     }
 
     function renderHistorique() {
-      const el = document.getElementById('hist-content'); if (!el) return;
-      if (histTab === 'reglements') { renderReglements(); return; }
-      if (histTab === 'rattrapages') { renderRattrapages(); return; }
+      const el = document.getElementById('hist-content');
+      if (!el) return;
+
+      // Gestion spécifique de l'onglet règlements
+      if (histTab === 'reglements') {
+        renderReglements();
+        return;
+      }
+
+      // Récupération des valeurs des filtres
+      const searchQ = (document.getElementById('hist-cav-f')?.value || '').toLowerCase();
+      const chvF = (document.getElementById('hist-chv-f')?.value || '').toLowerCase();
+
+      let filtered = [];
+      let htmlTable = '';
+
+      // --- LOGIQUE DE FILTRAGE PAR ONGLET ---
       if (histTab === 'couples') {
-        const cavF = (document.getElementById('hist-cav-f')?.value || '').toLowerCase();
-        const chvF = (document.getElementById('hist-chv-f')?.value || '').toLowerCase();
-        const filtered = _histCouples.filter(a => {
-          if (cavF && !(a.cavaliers?.prenom || a.cavaliers?.nom || '').toLowerCase().includes(cavF)) return false;
+        filtered = _histCouples.filter(a => {
+          if (searchQ) {
+            const nomComplet = `${a.cavaliers?.prenom || ''} ${a.cavaliers?.nom || ''} ${a.nom_exceptionnel || ''}`.toLowerCase();
+            if (!nomComplet.includes(searchQ)) return false;
+          }
           if (chvF && !(a.equides?.nom || '').toLowerCase().includes(chvF)) return false;
           return true;
         });
-        const tbody = document.getElementById('hist-tbody');
-        if (tbody) {
-          tbody.innerHTML = filtered.length
-            ? [...filtered].sort((a, b) => (b.seances?.date || '').localeCompare(a.seances?.date || '')).map(a => {
-              const g = C.grp.find(x => x.id === a.seances?.groupe_id);
-              const c = g?.couleur || '#c9a84c'; const il = g ? isLightColor(c) : false;
-              return `<tr><td>${fmtDate(a.seances?.date || '')}</td>
-    <td><strong>${a.cavaliers ? cap(a.cavaliers.prenom || '') + (a.cavaliers.nom ? ' ' + a.cavaliers.nom.toUpperCase() : '') : a.nom_exceptionnel || '?'}</strong>${a.nom_exceptionnel ? '<span class="b bgo" style="margin-left:4px;font-size:10px">excep.</span>' : ''}${a.seances?.nom_ponctuel ? '<span class="b bb" style="margin-left:4px;font-size:10px">ponctuel</span>' : ''}</td>
-    <td>${a.equides?.nom ? `🐎 ${a.equides.nom}` : '<span style="color:var(--muted)">—</span>'}</td>
-    <td>${g ? `<span style="display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${il ? '#3a3028' : '#fff'}">${g.nom}</span>` : a.seances?.nom_ponctuel ? `<span style="color:var(--muted);font-size:12px">${a.seances.nom_ponctuel}</span>` : '—'}</td>
-    </tr>`;
-            }).join('')
-            : '<tr class="er"><td colspan="4">Aucun résultat</td></tr>'; return;
-        }
-        // Premier rendu : créer le squelette complet
-        el.innerHTML = `
-      <div class="hist-filters">
-        <input id="hist-cav-f" placeholder="Filtrer cavalier…" oninput="renderHistorique()" style="width:180px">
-        <input id="hist-chv-f" placeholder="Filtrer cheval…" oninput="renderHistorique()" style="width:180px">
-      </div>
-      <div class="tc"><table><thead><tr><th>Date</th><th>Cavalier</th><th>Cheval</th><th>Groupe</th></tr></thead>
-      <tbody id="hist-tbody"></tbody></table></div>`;
-        renderHistorique();
-      } else {
-        const absF = (document.getElementById('hist-abs-cav-f')?.value || '').toLowerCase();
-        const motifF = (document.getElementById('hist-abs-motif-f')?.value || '').toLowerCase();
-        const rattF = (document.getElementById('hist-abs-ratt-f')?.value || '');
-        const sortF = (document.getElementById('hist-abs-sort')?.value || 'date-desc');
-        let filtered = _histAbsences.filter(a => {
-          if (absF && !(a.cavaliers?.prenom || a.cavaliers?.nom || '').toLowerCase().includes(absF)) return false;
-          if (motifF && !(a.motif_absence || '').toLowerCase().includes(motifF)) return false;
-          if (rattF && a.date_rattrapage !== rattF) return false;
-          const effF = (document.getElementById('hist-abs-effectue')?.value || 'all');
-          if (effF === 'oui' && !a.rattrapage_effectue) return false;
-          if (effF === 'non' && a.rattrapage_effectue) return false;
+      } else if (histTab === 'absences') {
+        filtered = _histAbsences.filter(a => {
+          if (searchQ) {
+            const nomComplet = `${a.cavaliers?.prenom || ''} ${a.cavaliers?.nom || ''}`.toLowerCase();
+            if (!nomComplet.includes(searchQ)) return false;
+          }
           return true;
         });
-        // Tri
-        filtered = [...filtered].sort((a, b) => {
-          if (sortF === 'date-asc') return (a.seances?.date || '').localeCompare(b.seances?.date || '');
-          if (sortF === 'date-desc') return (b.seances?.date || '').localeCompare(a.seances?.date || '');
-          if (sortF === 'ratt-asc') return (a.date_rattrapage || 'zzz').localeCompare(b.date_rattrapage || 'zzz');
-          if (sortF === 'ratt-desc') return (b.date_rattrapage || '').localeCompare(a.date_rattrapage || '');
-          if (sortF === 'motif') return (a.motif_absence || '').localeCompare(b.motif_absence || '', 'fr');
-
-          return 0;
+      } else if (histTab === 'rattrapages') {
+        filtered = _histRattrapages.filter(a => {
+          if (searchQ) {
+            const nomComplet = `${a.cavaliers?.prenom || ''} ${a.cavaliers?.nom || ''}`.toLowerCase();
+            if (!nomComplet.includes(searchQ)) return false;
+          }
+          if (chvF && !(a.equides?.nom || '').toLowerCase().includes(chvF)) return false;
+          return true;
         });
-        const tbody = document.getElementById('hist-abs-tbody');
-        if (tbody) {
-          tbody.innerHTML = filtered.length ? filtered.map(a => `<tr>
-        <td>${fmtDate(a.seances?.date || '')}</td>
-        <td><strong>${a.cavaliers ? cap(a.cavaliers.prenom || '') + (a.cavaliers.nom ? ' ' + a.cavaliers.nom.toUpperCase() : '') : '?'}</strong></td>
-        <td>${a.motif_absence || '<span style="color:var(--muted)">—</span>'}</td>
-        <td>${a.date_rattrapage ? fmtDate(a.date_rattrapage) : '<span style="color:var(--muted)">—</span>'}</td>
-        <td>${a.rattrapage_effectue
-              ? `<span class="b bg">✅ Oui</span> <button class="btn btn-g sm" onclick="toggleRattEffectue('${a.id}',false)">↩</button>`
-              : `<button class="btn btn-o sm" onclick="toggleRattEffectue('${a.id}',true)">Marquer effectué</button>`}
-        </td>
-        <td><button class="btn btn-g sm" onclick="openEditAbsHist('${a.id}')">✏️</button></td>
-        </tr>`).join('') : '<tr class="er"><td colspan="6">Aucune absence</td></tr>';
-          return;
-        }
-        // Premier rendu
-        el.innerHTML = `
-      <div class="hist-filters">
-        <input id="hist-abs-cav-f" placeholder="Filtrer cavalier…" oninput="renderHistorique()" style="width:160px">
-        <input id="hist-abs-motif-f" placeholder="Filtrer motif…" oninput="renderHistorique()" style="width:150px">
-        <input type="date" id="hist-abs-ratt-f" onchange="renderHistorique()" title="Filtrer par date de rattrapage" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:Arial,sans-serif;font-size:12px;outline:none">
-        <select id="hist-abs-effectue" onchange="renderHistorique()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:Arial,sans-serif;font-size:12px;outline:none">
-          <option value="all">Tous</option>
-          <option value="oui">✅ Effectué</option>
-          <option value="non">⏳ Non effectué</option>
-        </select>
-        <select id="hist-abs-sort" onchange="renderHistorique()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:Arial,sans-serif;font-size:12px;outline:none">
-          <option value="date-desc">Date (récent → ancien)</option>
-          <option value="date-asc">Date (ancien → récent)</option>
-          <option value="ratt-asc">Rattrapage (proche → loin)</option>
-          <option value="ratt-desc">Rattrapage (loin → proche)</option>
-          <option value="motif">Motif (A → Z)</option>
-        </select>
-      </div>
-      <div class="tc"><table><thead><tr><th>Date</th><th>Cavalier</th><th>Motif</th><th>Rattrapage prévu</th><th>Effectué ?</th><th></th></tr></thead>
-      <tbody id="hist-abs-tbody"></tbody></table></div>`;
-        renderHistorique();
       }
+
+      // --- RENDU DU TABLEAU ---
+      const tbody = document.getElementById('hist-tbody');
+      if (tbody) {
+        if (histTab === 'couples') {
+          tbody.innerHTML = filtered.length ? filtered.map(a => {
+            const g = C.grp.find(x => x.id === a.seances?.groupe_id);
+            const c = g?.couleur || '#c9a84c';
+            const il = g ? isLightColor(c) : false;
+            return `<tr><td>${fmtDate(a.seances?.date || '')}</td> 
+          <td><strong>${a.cavaliers ? cap(a.cavaliers.prenom || '') + ' ' + (a.cavaliers.nom || '').toUpperCase() : a.nom_exceptionnel || '?'}</strong></td> 
+          <td>${a.equides?.nom ? `🐎 ${a.equides.nom}` : '—'}</td> 
+          <td>${g ? `<span class="b" style="background:${c};color:${il ? '#3a3028' : '#fff'}">${g.nom}</span>` : '—'}</td></tr>`;
+          }).join('') : '<tr><td colspan="4">Aucun résultat</td></tr>';
+        } else {
+          // Rendu simplifié pour Absences / Rattrapages
+          tbody.innerHTML = filtered.length ? filtered.map(a => `<tr><td>${fmtDate(a.seances?.date || '')}</td><td>${cap(a.cavaliers?.prenom || '')} ${(a.cavaliers?.nom || '').toUpperCase()}</td><td>${a.motif_absence || '—'}</td></tr>`).join('') : '<tr><td colspan="3">Aucun résultat</td></tr>';
+        }
+        return;
+      }
+
+      // Premier rendu (Squelette avec l'input unique)
+      el.innerHTML = `
+    <div class="hist-filters">
+      <input id="hist-cav-f" placeholder="Cavalier (Nom ou Prénom)…" oninput="renderHistorique()" style="width:250px">
+      ${(histTab === 'couples' || histTab === 'rattrapages') ? `<input id="hist-chv-f" placeholder="Filtrer cheval…" oninput="renderHistorique()" style="width:180px">` : ''}
+    </div>
+    <div class="tc">
+      <table>
+        <thead><tr><th>Date</th><th>Cavalier</th><th>${histTab === 'absences' ? 'Motif' : 'Cheval'}</th>${histTab === 'couples' ? '<th>Groupe</th>' : ''}</tr></thead>
+        <tbody id="hist-tbody"></tbody>
+      </table>
+    </div>`;
+      renderHistorique();
     }
 
     function renderRattrapages() {
@@ -4986,7 +4968,7 @@
       const sortF = (document.getElementById('ratt-hist-sort')?.value || 'date-desc');
 
       let filtered = [..._histRattrapages].filter(a => {
-        if (cavF && !(a.cavaliers?.prenom || a.cavaliers?.nom || '').toLowerCase().includes(cavF)) return false;
+        if (cavF && !(a.cavaliers?.prenom || '').toLowerCase().includes(cavF)) return false;
         if (dateF && a.date_cours_rattrape !== dateF) return false;
         return true;
       });
