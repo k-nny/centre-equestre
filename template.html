@@ -3313,6 +3313,7 @@
         for (const a of affs) {
           const cavId = a.cavalier_id || '';
           const nomLibre = !a.cavalier_id ? (a.nom_exceptionnel || '') : '';
+          const chvId = a.equide_id || '';
           addPoncPart(cavId || (!cavId && nomLibre ? '__libre__' : ''), nomLibre, chvId, !!a.cours_carte);
         }
       } else addPoncPart();
