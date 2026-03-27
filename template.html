@@ -4986,7 +4986,7 @@
       const sortF = (document.getElementById('ratt-hist-sort')?.value || 'date-desc');
 
       let filtered = [..._histRattrapages].filter(a => {
-        if (cavF && !(a.cavaliers?.prenom || '').toLowerCase().includes(cavF)) return false;
+        if (cavF && !(a.cavaliers?.prenom || a.cavaliers?.nom || '').toLowerCase().includes(cavF)) return false;
         if (dateF && a.date_cours_rattrape !== dateF) return false;
         return true;
       });
