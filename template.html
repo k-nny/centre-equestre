@@ -3186,11 +3186,12 @@
           </select>`}
         </div>
         <div style="display:flex;gap:4px;margin-left:auto">
-          ${aff.absent
+  ${aff.absent
               ? `<button class="btn btn-g sm" onclick="togAbs('${aff.id}',false,'${s.id}')">✅</button><button class="btn btn-g sm" onclick="editAbsModal('${aff.id}')">✏️</button>`
               : `<button class="btn btn-o sm" onclick="openAbsModal('${aff.id}','${s.id}')">❌</button>`}
-          ${isRatt ? `<button class="btn btn-g sm" onclick="editRatt('${aff.id}','${s.id}','${h}','${date}')">✏️</button><button class="btn btn-d sm" onclick="delAff('${aff.id}','${s.id}')">🗑</button>` : ''}
-        </div>
+  ${isRatt ? `<button class="btn btn-g sm" onclick="editRatt('${aff.id}','${s.id}','${h}','${date}')">✏️</button><button class="btn btn-d sm" onclick="delAff('${aff.id}','${s.id}')">🗑</button>` : ''}
+  ${aff.cours_carte && !isRatt ? `<button class="btn btn-d sm" onclick="delCartAff('${aff.id}','${aff.cavalier_id}','${s.id}')">🗑</button>` : ''}
+</div>
       </div>`;
         }).join('');
         const isLight = isLightColor(couleur);
@@ -3855,6 +3856,22 @@
       toast('Présent', 'ok'); await loadSeances(v('sea-date'));
     }
     async function delAff(id, seaId) { if (!confirm('Supprimer ce rattrapage ?')) return; await dbDel('affectations_seance', [{ col: 'id', op: 'eq', val: id }]); toast('Supprimé', 'ok'); await loadSeances(v('sea-date')); }
+
+    async function delCartAff(affId, cavId, seaId) {
+      if (!confirm('Supprimer ce cours carte et rembourser 1h sur la carte ?')) return;
+      await dbDel('affectations_seance', [{ col: 'id', op: 'eq', val: affId }]);
+      // Rembourser 1h sur la carte
+      if (cavId) {
+        const carte = C.cartes.find(x => x.cavalier_id === cavId);
+        if (carte) {
+          const newUsed = Math.max(0, (parseFloat(carte.heures_utilisees) || 0) - 1);
+          await dbUpd('cartes_heures', { heures_utilisees: newUsed }, [{ col: 'id', op: 'eq', val: carte.id }]);
+          carte.heures_utilisees = newUsed;
+          toast('Cours supprimé · 1h rendue sur la carte 🎫', 'ok');
+        } else toast('Supprimé', 'ok');
+      } else toast('Supprimé', 'ok');
+      await loadSeances(v('sea-date'));
+    }
 
     // Chevaux disponibles triés comme l'onglet Chevaux (catégorie, année)
     function getSortedChvDispo() {
