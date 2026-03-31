@@ -3209,13 +3209,12 @@
             + '<button class="btn btn-pu sm" onclick="openMon2Modal(\'' + sid + '\',\'' + date + '\')">👤 + Intervenant</button>'
             + (s.moniteur2_id ? '<button class="btn btn-d sm" onclick="removeMon2(\'' + sid + '\')">🗑 Intervenant</button>' : ''));
         const dateObj = new Date(date + 'T00:00:00');
-        const jourNom = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][dateObj.getDay()];
         const numSem = (() => { const d = new Date(date); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7); const w = new Date(d.getFullYear(), 0, 4); return 1 + Math.round(((d - w) / 86400000 - 3 + (w.getDay() + 6) % 7) / 7); })();
         html += `<div class="sk" style="border:none;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.10)">
       <div class="skh" onclick="togSk('${s.id}')" style="background:${couleur};border-radius:0">
         <div>
           <div class="skt" style="color:${txtC};font-weight:700">${isPonc ? (s.nom_ponctuel || 'Cours ponctuel') : (g.nom || 'Groupe')}${isPonc ? '<span style="margin-left:6px;font-size:10px;opacity:.8;font-weight:500;background:rgba(255,255,255,.2);padding:1px 6px;border-radius:10px">ponctuel</span>' : ''}</div>
-<span style="font-size:10px;opacity:.75;margin-right:4px">${jourNom} S${numSem}</span>${h}${s.heure_fin ? ' → ' + (s.heure_fin || '').slice(0, 5) : ''}        </div>
+          <div style="font-size:11px;color:${mutC};margin-top:2px">${dateObj} Semaine ${numSem} | ${h}${s.heure_fin ? ' → ' + (s.heure_fin || '').slice(0, 5) : ''} · ${pr} prés.${isPonc ? '' : ' · ' + ab + ' abs.'}${rt ? ' · ' + rt + ' ratt.' : ''}${mon2 ? ' · 👤 ' + mon2 + (chv2 ? ' + 🐎 ' + chv2 : '') : ''}</div>
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <div style="display:flex;align-items:center;gap:5px">
             <span id="disc-icon-${s.id}">${s.discipline ? discIcon(s.discipline, { size: 22 }) : ''}</span>
