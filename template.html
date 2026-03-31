@@ -1514,9 +1514,10 @@
           <div id="sea-vac" class="vac-banner" style="display:none">🏖 Vacances scolaires (Zone A) — séances invisibles
             dans la vue publique.</div>
           <div style="display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;align-items:flex-end">
-            <div><label
-                style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:4px">Date</label>
-              <input type="date" id="sea-date" onchange="onSeaDate()"
+            <div><label <label
+                style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:4px">Date
+                <span id="sea-semaine" style="color:var(--gold)"></span></label> <input type="date" id="sea-date"
+                onchange="onSeaDate()"
                 style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px;color:var(--text);font-family:Arial,sans-serif;outline:none">
             </div>
             <button class="btn btn-p" id="btn-gen" onclick="genSeances()">⚡ Générer séances</button> <button
@@ -2621,6 +2622,7 @@
     }
     function onSeaDate() {
       const date = v('sea-date');
+      const _d = new Date(date + 'T00:00:00'); _d.setDate(_d.getDate() + 3 - (_d.getDay() + 6) % 7); const _w = new Date(_d.getFullYear(), 0, 4); const _n = 1 + Math.round(((_d - _w) / 86400000 - 3 + (_w.getDay() + 6) % 7) / 7); const semEl = document.getElementById('sea-semaine'); if (semEl) semEl.textContent = '— Semaine ' + _n;
       document.getElementById('sea-vac').style.display = estVac(date) ? 'flex' : 'none';
       const btn = document.getElementById('btn-gen');
       if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = '⚡ Générer séances'; }
@@ -3206,12 +3208,14 @@
             + '<button class="btn btn-g sm" onclick="openCoursCarte(\'' + sid + '\',\'' + h + '\',\'' + date + '\')">🎫 Cours carte</button>'
             + '<button class="btn btn-pu sm" onclick="openMon2Modal(\'' + sid + '\',\'' + date + '\')">👤 + Intervenant</button>'
             + (s.moniteur2_id ? '<button class="btn btn-d sm" onclick="removeMon2(\'' + sid + '\')">🗑 Intervenant</button>' : ''));
+        const dateObj = new Date(date + 'T00:00:00');
+        const jourNom = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][dateObj.getDay()];
+        const numSem = (() => { const d = new Date(date); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7); const w = new Date(d.getFullYear(), 0, 4); return 1 + Math.round(((d - w) / 86400000 - 3 + (w.getDay() + 6) % 7) / 7); })();
         html += `<div class="sk" style="border:none;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.10)">
       <div class="skh" onclick="togSk('${s.id}')" style="background:${couleur};border-radius:0">
         <div>
           <div class="skt" style="color:${txtC};font-weight:700">${isPonc ? (s.nom_ponctuel || 'Cours ponctuel') : (g.nom || 'Groupe')}${isPonc ? '<span style="margin-left:6px;font-size:10px;opacity:.8;font-weight:500;background:rgba(255,255,255,.2);padding:1px 6px;border-radius:10px">ponctuel</span>' : ''}</div>
-          <div style="font-size:11px;color:${mutC};margin-top:2px">${h}${s.heure_fin ? ' → ' + (s.heure_fin || '').slice(0, 5) : ''} · ${pr} prés.${isPonc ? '' : ' · ' + ab + ' abs.'}${rt ? ' · ' + rt + ' ratt.' : ''}${mon2 ? ' · 👤 ' + mon2 + (chv2 ? ' + 🐎 ' + chv2 : '') : ''}</div>
-        </div>
+<span style="font-size:10px;opacity:.75;margin-right:4px">${jourNom} S${numSem}</span>${h}${s.heure_fin ? ' → ' + (s.heure_fin || '').slice(0, 5) : ''}        </div>
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <div style="display:flex;align-items:center;gap:5px">
             <span id="disc-icon-${s.id}">${s.discipline ? discIcon(s.discipline, { size: 22 }) : ''}</span>
@@ -3413,6 +3417,8 @@
       if (!nom) { toast('Le nom est requis', 'err'); return; }
       const heure = v('ponc-hdeb');
       if (!heure) { toast("L'heure de début est requise", 'err'); return; }
+      const saveBtn = document.querySelector('#mo-ponctuel .btn-p');
+      if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '⏳ Enregistrement…'; }
       const couleur_ponctuel = v('ponc-couleur') || '#6366f1';
       const heure_fin = v('ponc-hfin') || null;
       const discipline = v('ponc-disc') || null;
@@ -3488,6 +3494,7 @@
         }
       }
       toast(editId ? `Cours modifié (${fmtDate(date)})` : `Cours créé (${fmtDate(date)})`, 'ok');
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Enregistrer'; }
       closeMo('mo-ponctuel');
       await loadSeances(date);
     }
