@@ -4912,7 +4912,7 @@
         const cavF = (document.getElementById('hist-cav-f')?.value || '').toLowerCase();
         const chvF = (document.getElementById('hist-chv-f')?.value || '').toLowerCase();
         const filtered = _histCouples.filter(a => {
-          if (cavF && !((a.cavaliers?.prenom || '').toLowerCase().includes(cavF) || (a.cavaliers?.nom || '').toLowerCase().includes(cavF))) return false;
+          if (cavF && !((a.cavaliers?.prenom || '').toLowerCase().includes(cavF) || (a.cavaliers?.nom || '').toLowerCase().includes(cavF) || (a.nom_exceptionnel || '').toLowerCase().includes(cavF))) return false;
           if (chvF && !(a.equides?.nom || '').toLowerCase().includes(chvF)) return false;
           return true;
         });
@@ -4945,7 +4945,7 @@
         const rattF = (document.getElementById('hist-abs-ratt-f')?.value || '');
         const sortF = (document.getElementById('hist-abs-sort')?.value || 'date-desc');
         let filtered = _histAbsences.filter(a => {
-          if (absF && !((a.cavaliers?.prenom || '').toLowerCase().includes(absF) || (a.cavaliers?.nom || '').toLowerCase().includes(absF))) return false;
+          if (absF && !((a.cavaliers?.prenom || '').toLowerCase().includes(absF) || (a.cavaliers?.nom || '').toLowerCase().includes(absF) || (a.nom_exceptionnel || '').toLowerCase().includes(absF))) return false;
           if (motifF && !(a.motif_absence || '').toLowerCase().includes(motifF)) return false;
           if (rattF && a.date_rattrapage !== rattF) return false;
           const effF = (document.getElementById('hist-abs-effectue')?.value || 'all');
@@ -5010,7 +5010,7 @@
       const sortF = (document.getElementById('ratt-hist-sort')?.value || 'date-desc');
 
       let filtered = [..._histRattrapages].filter(a => {
-        if (cavF && !((a.cavaliers?.prenom || '').toLowerCase().includes(cavF) || (a.cavaliers?.nom || '').toLowerCase().includes(cavF))) return false;
+        if (cavF && !((a.cavaliers?.prenom || '').toLowerCase().includes(cavF) || (a.cavaliers?.nom || '').toLowerCase().includes(cavF) || (a.nom_exceptionnel || '').toLowerCase().includes(cavF))) return false;
         if (dateF && a.date_cours_rattrape !== dateF) return false;
         return true;
       });
