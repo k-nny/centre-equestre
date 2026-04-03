@@ -25,6 +25,7 @@ export default async function handler(req, res) {
   const SUPA_ANON = process.env.SUPABASE_ANON || '';
   const APP_KEY = process.env.APP_KEY || '';
   const ADMIN_PWD = process.env.ADMIN_PASSWORD || '';
+  const DEV_PASSWORD = process.env.DEV_PASSWORD || '';
 
   // [DANS LE HANDLER, APRES LES CONST SUPA_URL, etc.]
 
