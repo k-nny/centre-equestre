@@ -1408,6 +1408,9 @@
             <button class="ni" data-p="disciplines" onclick="go('disciplines')"><span
                 class="ic">🎨</span>Disciplines</button>
             <button class="ni" data-p="cartes" onclick="go('cartes')"><span class="ic">🎫</span>Cartes</button>
+            <button class="ni" id="ni-tickets" onclick="go('tickets')">
+              <span class="ic">📝</span> Améliorations & Retours
+            </button>
           </div>
         </div>
         <div class="sb-bot"><button class="atbtn" id="atbtn" onclick="handleAdminToggle()">🔑 Mode
@@ -1765,13 +1768,64 @@
           </div>
           <div id="hist-content"></div>
         </div>
+        <div id="p-tickets" class="page">
+          <div class="ph">
+            <h2>🎫 Tickets & Améliorations</h2>
+            <p>Signalez un bug ou proposez une évolution pour l'outil.</p>
+          </div>
 
+          <div class="tc">
+            <div class="tt">
+              <h3>Liste des tickets</h3>
+              <button class="btn btn-p sm" onclick="openTicketMo()">+ Nouveau ticket</button>
+            </div>
+            <table id="tickets-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Titre</th>
+                  <th>Type</th>
+                  <th>Prio.</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tickets-tbody"></tbody>
+            </table>
+          </div>
+        </div>
       </main>
     </div>
   </div>
 
   <!-- ═══════════════ MODALS ═══════════════ -->
-
+  <div class="mo" id="mo-ticket">
+    <div class="md">
+      <h3>🎫 Nouveau Ticket</h3>
+      <div class="fg"><label>Titre</label><input type="text" id="t-titre"></div>
+      <div class="fr">
+        <div class="fg"><label>Type</label>
+          <select id="t-type">
+            <option value="bug">Bug 🐞</option>
+            <option value="evolution">Évolution ✨</option>
+            <option value="autre">Autre 💬</option>
+          </select>
+        </div>
+        <div class="fg"><label>Priorité</label>
+          <select id="t-prio">
+            <option value="basse">Basse</option>
+            <option value="normale" selected>Normale</option>
+            <option value="haute">Haute 🔥</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label>Description</label><textarea id="t-desc" rows="4"></textarea></div>
+      <div class="mf">
+        <button class="btn btn-g" onclick="closeMo('mo-ticket')">Annuler</button>
+        <button class="btn btn-p" onclick="saveTicket()">Envoyer</button>
+      </div>
+    </div>
+  </div>
   <!-- Discipline -->
   <div class="mo" id="mo-disc">
     <div class="md" style="max-width:420px">
@@ -2337,7 +2391,7 @@
     const statutsActifsADate = (date) => C.statuts.filter(s => statutActifADate(s, date));
     const SBDG = { attache: 'bo', veto: 'br', marechal: 'bp', repos: 'b' };
 
-    let isAdmin = false, sessionToken = '', histTab = 'couples';
+    let isAdmin = false, isDev = false, sessionToken = '', histTab = 'couples';
     let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [] };
     // ── Proxy ──
     async function dbReq(body) {
@@ -2497,9 +2551,16 @@
       const btn = document.getElementById('pw-btn'); btn.textContent = '…'; btn.disabled = true;
       try {
         const res = await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'auth', password: pw }) });
-        const j = await res.json();
-        if (j && j.ok) { sessionToken = j.token || ''; localStorage.setItem('ce_admin_token', sessionToken); closeMo('mo-pw'); enableAdmin(); }
-        else { document.getElementById('pw-err').style.display = 'block'; document.getElementById('pw-in').value = ''; document.getElementById('pw-in').focus(); }
+        const j = await r.json();
+        if (j && j.ok) {
+          sessionToken = j.token;
+          isAdmin = (j.role === 'admin' || j.role === 'dev');
+          isDev = (j.role === 'dev');
+          localStorage.setItem('ce_admin_active', '1');
+          localStorage.setItem('ce_role', j.role); // Optionnel pour persister le rôle
+          enableAdmin();
+          closeMo('mo-pw');
+        } else { document.getElementById('pw-err').style.display = 'block'; document.getElementById('pw-in').value = ''; document.getElementById('pw-in').focus(); }
       } catch { document.getElementById('pw-err').style.display = 'block'; }
       btn.textContent = 'Connexion'; btn.disabled = false;
     }
@@ -2522,7 +2583,7 @@
 
     // ── Nav ──
     function go(p) {
-      const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes'];
+      const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets'];
       if (!isAdmin && adm.includes(p)) return;
       document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
       document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
@@ -2539,6 +2600,7 @@
       updateStgBanner();
       if (p === 'disciplines') renderDiscPage();
       if (p === 'cartes') loadPageCartes();
+      if (p === 'tickets') renderTicketsPage();
       if (window.innerWidth <= 768) { document.getElementById('sb').classList.remove('open'); document.getElementById('sbo').classList.remove('open'); }
     }
     function toggleSB() { document.getElementById('sb').classList.toggle('open'); document.getElementById('sbo').classList.toggle('open'); }
@@ -5423,6 +5485,58 @@
         popSelects();
         renderDiscPage();
       } catch (e) { toast('Erreur : ' + e.message, 'err'); }
+    }
+
+    async function renderTicketsPage() {
+      const ts = await dbSel('tickets', { order: [{ col: 'created_at', desc: true }] });
+      const bdy = document.getElementById('tickets-tbody');
+
+      bdy.innerHTML = ts.map(t => {
+        const canValidate = isDev && t.statut !== 'valide';
+        return `<tr>
+      <td>${new Date(t.created_at).toLocaleDateString('fr-FR')}</td>
+      <td><strong>${t.titre}</strong><div style="font-size:10px; color:var(--muted)">${t.description || ''}</div></td>
+      <td><span class="b ${t.type === 'bug' ? 'br' : 'bb'}">${t.type}</span></td>
+      <td><span class="b ${t.priorite === 'haute' ? 'bo' : ''}">${t.priorite}</span></td>
+      <td><span class="b ${t.statut === 'valide' ? 'bg' : 'bgo'}">${t.statut.replace('_', ' ')}</span></td>
+      <td>
+        ${canValidate ? `<button class="btn btn-p sm" onclick="validateTicket('${t.id}')">Valider</button>` : ''}
+      </td>
+    </tr>`;
+      }).join('') || '<tr><td colspan="6" style="text-align:center; padding:20px">Aucun ticket</td></tr>';
+    }
+
+    function openTicketMo() {
+      ['t-titre', 't-desc'].forEach(id => document.getElementById(id).value = '');
+      openMo('mo-ticket');
+    }
+
+    async function saveTicket() {
+      const ticket = {
+        titre: v('t-titre'),
+        description: v('t-desc'),
+        type: v('t-type'),
+        priorite: v('t-prio'),
+        statut: 'nouveau'
+      };
+
+      if (!ticket.titre) return toast('Titre requis', 'err');
+
+      try {
+        await dbIns('tickets', ticket);
+        // Envoi de l'email via le proxy
+        await dbReq({ action: 'send-ticket-email', ticket, token: sessionToken });
+
+        toast('Ticket envoyé !', 'ok');
+        closeMo('mo-ticket');
+        renderTicketsPage();
+      } catch (e) { toast(e.message, 'err'); }
+    }
+
+    async function validateTicket(id) {
+      if (!confirm('Marquer comme traité ?')) return;
+      await dbUpd('tickets', { statut: 'valide' }, [{ col: 'id', op: 'eq', val: id }]);
+      renderTicketsPage();
     }
   </script>
 </body>
