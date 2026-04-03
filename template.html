@@ -5492,19 +5492,33 @@
       const ts = await dbSel('tickets', { order: [{ col: 'created_at', desc: true }] });
       const bdy = document.getElementById('tickets-tbody');
 
+      // Dans renderTicketsPage() ...
       bdy.innerHTML = ts.map(t => {
-        const canValidate = isDev && t.statut !== 'valide';
+        const isClosed = t.statut === 'termine';
+
+        // Menu de changement de statut réservé au DEV
+        let actionsHtml = '';
+        if (isDev && !isClosed) {
+          actionsHtml = `
+      <select class="sm" onchange="updateTicketStatus('${t.id}', this.value)" style="font-size:11px; padding:2px">
+        <option value="nouveau" ${t.statut === 'nouveau' ? 'selected' : ''}>Nouveau</option>
+        <option value="en_cours" ${t.statut === 'en_cours' ? 'selected' : ''}>En cours</option>
+        <option value="termine">Terminé (Clôturer)</option>
+      </select>
+    `;
+        } else if (isClosed) {
+          actionsHtml = '<span style="color:var(--muted); font-size:11px">Archive</span>';
+        }
+
         return `<tr>
-      <td>${new Date(t.created_at).toLocaleDateString('fr-FR')}</td>
-      <td><strong>${t.titre}</strong><div style="font-size:10px; color:var(--muted)">${t.description || ''}</div></td>
-      <td><span class="b ${t.type === 'bug' ? 'br' : 'bb'}">${t.type}</span></td>
-      <td><span class="b ${t.priorite === 'haute' ? 'bo' : ''}">${t.priorite}</span></td>
-      <td><span class="b ${t.statut === 'valide' ? 'bg' : 'bgo'}">${t.statut.replace('_', ' ')}</span></td>
-      <td>
-        ${canValidate ? `<button class="btn btn-p sm" onclick="validateTicket('${t.id}')">Valider</button>` : ''}
-      </td>
-    </tr>`;
-      }).join('') || '<tr><td colspan="6" style="text-align:center; padding:20px">Aucun ticket</td></tr>';
+    <td>${new Date(t.created_at).toLocaleDateString('fr-FR')}</td>
+    <td><strong>${t.titre}</strong><div style="font-size:10px; color:var(--muted)">${t.description || ''}</div></td>
+    <td><span class="b ${t.type === 'bug' ? 'br' : 'bb'}">${t.type}</span></td>
+    <td><span class="b ${t.priorite === 'haute' ? 'bo' : ''}">${t.priorite}</span></td>
+    <td><span class="b ${t.statut === 'termine' ? 'bg' : (t.statut === 'en_cours' ? 'bp' : 'bgo')}">${t.statut.replace('_', ' ')}</span></td>
+    <td>${actionsHtml}</td>
+  </tr>`;
+      }).join('');
     }
 
     function openTicketMo() {
@@ -5534,10 +5548,28 @@
       } catch (e) { toast(e.message, 'err'); }
     }
 
-    async function validateTicket(id) {
-      if (!confirm('Marquer comme traité ?')) return;
-      await dbUpd('tickets', { statut: 'valide' }, [{ col: 'id', op: 'eq', val: id }]);
-      renderTicketsPage();
+    async function updateTicketStatus(id, newStatus) {
+      if (newStatus === 'termine' && !confirm('Clôturer définitivement ce ticket ?')) {
+        renderTicketsPage(); // Reset l'affichage si annulation
+        return;
+      }
+
+      try {
+        // On met à jour la table tickets
+        // Note: l'app_key est gérée automatiquement par ton db.js si configuré
+        await dbUpd('tickets',
+          { statut: newStatus },
+          [{ col: 'id', op: 'eq', val: id }]
+        );
+
+        toast('Statut mis à jour', 'ok');
+        renderTicketsPage();
+      } catch (e) {
+        console.error(e);
+        toast('Erreur de droits ou réseau', 'err');
+        // On ne déconnecte pas, on rafraîchit juste pour annuler le changement visuel
+        renderTicketsPage();
+      }
     }
   </script>
 </body>
