@@ -2555,7 +2555,7 @@
         console.log('Auth response:', j);
         if (j && j.ok) {
           sessionToken = j.token;
-          isAdmin = (j.role === 'admin' || j.role === 'dev');
+          isAdmin = true;
           isDev = (j.role === 'dev');
           localStorage.setItem('ce_admin_active', '1');
           localStorage.setItem('ce_role', j.role); // Optionnel pour persister le rôle
