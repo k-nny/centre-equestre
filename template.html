@@ -2552,7 +2552,7 @@
       try {
         const res = await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'auth', password: pw }) });
         const j = await r.json();
-        console.log('Auth response:', j);
+        const test = await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ j: j }) });
         if (j && j.ok) {
           sessionToken = j.token;
           isAdmin = true;
