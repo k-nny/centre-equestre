@@ -2552,16 +2552,14 @@
       try {
         const res = await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'auth', password: pw }) });
         const j = await r.json();
-        const test = await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ j: j }) });
         if (j && j.ok) {
           sessionToken = j.token;
-          isAdmin = true;
           isDev = (j.role === 'dev');
           localStorage.setItem('ce_admin_active', '1');
           localStorage.setItem('ce_role', j.role); // Optionnel pour persister le rôle
           enableAdmin();
           closeMo('mo-pw');
-        } else { document.getElementById('pw-err').style.display = 'block'; document.getElementById('pw-in').value = ''; document.getElementById('pw-in').focus(); }
+        } else { document.getElementById('pw-err').style.display = 'block'; document.getElementById('pw-in').value = j; document.getElementById('pw-in').focus(); }
       } catch { document.getElementById('pw-err').style.display = 'block'; }
       btn.textContent = 'Connexion'; btn.disabled = false;
     }
