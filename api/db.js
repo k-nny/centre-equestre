@@ -92,7 +92,7 @@ export default async function handler(req, res) {
     // ── Upload icône discipline vers Supabase Storage ─────────────────
     // { action: 'upload-icon', token, discipline, fileBase64, mimeType }
     if (body.action === 'upload-icon') {
-      if (!verifyToken(body.token, ADMIN_PWD))
+      if (!verifyToken(body.token, ADMIN_PWD) && !verifyToken(body.token, DEV_PASSWORD))
         return res.status(403).json({ error: 'Non autorisé' });
 
       const { discipline, fileBase64, mimeType } = body;
@@ -157,7 +157,7 @@ export default async function handler(req, res) {
     // ── Suppression icône discipline ──────────────────────────────────
     // { action: 'delete-icon', token, discipline, fileName }
     if (body.action === 'delete-icon') {
-      if (!verifyToken(body.token, ADMIN_PWD))
+      if (!verifyToken(body.token, ADMIN_PWD) && !verifyToken(body.token, DEV_PASSWORD))
         return res.status(403).json({ error: 'Non autorisé' });
 
       const { discipline, fileName } = body;
@@ -187,8 +187,13 @@ export default async function handler(req, res) {
     if (body.action === 'query') {
       // Vérifier le token pour les mutations (insert/update/delete)
       const isMutation = ['insert', 'update', 'delete'].includes(body.method);
-      if (isMutation && !verifyToken(body.token, ADMIN_PWD)) {
-        return res.status(403).json({ error: 'Non autorisé' });
+      if (isMutation) {
+        const isAdmin = verifyToken(body.token, ADMIN_PWD);
+        const isDev = verifyToken(body.token, DEV_PASSWORD);
+
+        if (!isAdmin && !isDev) {
+          return res.status(403).json({ error: 'Session invalide ou expirée' });
+        }
       }
 
       try {
