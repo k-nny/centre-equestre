@@ -1360,6 +1360,13 @@
     </div>
     <button class="bbtn" onclick="logoutAdmin()">Quitter →</button>
   </div>
+  <!-- Bouton Annuler flottant -->
+  <div id="undo-btn" onclick="doUndo()" title="Annuler"
+    style="display:none;position:fixed;bottom:20px;left:20px;z-index:1500;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 13px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.13);align-items:center;gap:7px;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:var(--text);transition:all .15s;max-width:220px">
+    <span style="font-size:15px">↩</span>
+    <span class="undo-lbl" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+    <span style="font-size:10px;color:var(--muted);flex-shrink:0">Ctrl+Z</span>
+  </div>
   <div class="hb" id="hb" onclick="toggleSB()"><span></span><span></span><span></span></div>
   <div class="sbo" id="sbo" onclick="toggleSB()"></div>
   <div id="site-login"
@@ -2395,6 +2402,50 @@
 
     let isAdmin = false, isDev = false, sessionToken = '', histTab = 'couples';
     let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [] };
+    // ── Historique d'annulation (undo) ──
+    let _undoStack = []; // [{ label, fn }]
+    const MAX_UNDO = 15;
+
+    function pushUndo(label, fn) {
+      _undoStack.push({ label, fn });
+      if (_undoStack.length > MAX_UNDO) _undoStack.shift();
+      renderUndoBtn();
+    }
+
+    function renderUndoBtn() {
+      const btn = document.getElementById('undo-btn');
+      if (!btn) return;
+      if (_undoStack.length === 0) {
+        btn.style.display = 'none';
+      } else {
+        btn.style.display = 'flex';
+        const last = _undoStack[_undoStack.length - 1];
+        btn.title = `Annuler : ${last.label}`;
+        btn.querySelector('.undo-lbl').textContent = last.label;
+      }
+    }
+
+    async function doUndo() {
+      if (!_undoStack.length) return;
+      const { label, fn } = _undoStack.pop();
+      renderUndoBtn();
+      try {
+        await fn();
+        toast(`↩ Annulé : ${label}`, 'ok');
+      } catch (e) {
+        toast('Impossible d\'annuler : ' + e.message, 'err');
+      }
+    }
+
+    // Raccourci clavier Ctrl+Z
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        const active = document.activeElement;
+        if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+        e.preventDefault();
+        doUndo();
+      }
+    });
     // ── Proxy ──
     async function dbReq(body) {
       let r, j;
@@ -2573,12 +2624,12 @@
       btn.textContent = 'Connexion'; btn.disabled = false;
     }
     function enableAdmin(targetPage = 'dash') {
-  isAdmin = true; document.getElementById('admin-banner').classList.add('show');
-  document.getElementById('mc').classList.add('wb'); document.getElementById('anav').style.display = 'block';
-  document.getElementById('atbtn').textContent = '🔒 Quitter admin'; document.getElementById('atbtn').classList.add('on');
-  localStorage.setItem('ce_admin_active', '1');
-  renderCavaliers(); go(targetPage); toast('Mode admin activé', 'ok');
-}
+      isAdmin = true; document.getElementById('admin-banner').classList.add('show');
+      document.getElementById('mc').classList.add('wb'); document.getElementById('anav').style.display = 'block';
+      document.getElementById('atbtn').textContent = '🔒 Quitter admin'; document.getElementById('atbtn').classList.add('on');
+      localStorage.setItem('ce_admin_active', '1');
+      renderCavaliers(); go(targetPage); toast('Mode admin activé', 'ok');
+    }
     function logoutAdmin() {
       isAdmin = false; sessionToken = '';
       localStorage.removeItem('ce_admin_active'); // effacer le flag admin
@@ -3091,6 +3142,10 @@
       for (const cid of checked) C.cavGrp.push({ cavalier_id: cid, groupe_id: grpId });
 
       toast(id ? 'Groupe modifié' : 'Groupe créé', 'ok'); closeMo('mo-grp'); await loadGrp(); await loadCav(); renderGroupes(); renderCavaliers(); popSelects();
+      if (id) pushUndo(`Modifier groupe "${nom}"`, async () => {
+        await dbUpd('groupes', { nom: g.nom, jour: g.jour, heure: g.heure, moniteur_id: g.moniteur_id, eleve_moniteur_id: g.eleve_moniteur_id, note: g.note, couleur: g.couleur }, [{ col: 'id', op: 'eq', val: id }]);
+        await loadGrp(); renderGroupes();
+      });
     }
 
     function editGrp(id) {
@@ -3584,9 +3639,17 @@
           carte.heures_utilisees = newUsed;
         }
       }
+      const seaCopy = C.sea.find(s => s.id === seaId);
+      const affsCopy = C.aff.filter(a => a.seance_id === seaId).map(a => ({ ...a }));
       await dbDel('affectations_seance', [{ col: 'seance_id', op: 'eq', val: seaId }]);
       await dbDel('seances', [{ col: 'id', op: 'eq', val: seaId }]);
       toast('Supprimé' + (affsCartes.length ? ` · ${affsCartes.length} heure(s) rendue(s) 🎫` : ''), 'ok');
+      pushUndo(`Supprimer cours "${seaCopy?.nom_ponctuel || 'ponctuel'}"`, async () => {
+        const r = await dbIns('seances', { groupe_id: null, date: seaCopy.date, heure: seaCopy.heure, heure_fin: seaCopy.heure_fin, discipline: seaCopy.discipline, nom_ponctuel: seaCopy.nom_ponctuel, couleur_ponctuel: seaCopy.couleur_ponctuel });
+        const newId = r.data?.[0]?.id;
+        if (newId) for (const a of affsCopy) await dbIns('affectations_seance', { seance_id: newId, cavalier_id: a.cavalier_id, equide_id: a.equide_id, absent: a.absent, rattrapage: a.rattrapage, cours_carte: a.cours_carte, nom_exceptionnel: a.nom_exceptionnel, cours_exceptionnel: a.cours_exceptionnel });
+        await loadSeances(v('sea-date'));
+      });
       await loadSeances(v('sea-date'));
     }
 
@@ -3933,6 +3996,10 @@
     async function togAbs(id, val, seaId) {
       if (val) { openAbsModal(id, seaId); return; }
       await dbUpd('affectations_seance', { absent: false, motif_absence: null, date_rattrapage: null }, [{ col: 'id', op: 'eq', val: id }]);
+      pushUndo(val ? `Absent : ${C.aff.find(a => a.id === id)?.cavaliers?.prenom || '?'}` : `Présence restaurée`, async () => {
+        await dbUpd('affectations_seance', { absent: !val }, [{ col: 'id', op: 'eq', val: id }]);
+        await loadSeances(v('sea-date'));
+      });
       toast('Présent', 'ok'); await loadSeances(v('sea-date'));
     }
     async function delAff(id, seaId) { if (!confirm('Supprimer ce rattrapage ?')) return; await dbDel('affectations_seance', [{ col: 'id', op: 'eq', val: id }]); toast('Supprimé', 'ok'); await loadSeances(v('sea-date')); }
@@ -4332,6 +4399,15 @@
       if (id) await dbUpd('equides', data, [{ col: 'id', op: 'eq', val: id }]);
       else await dbIns('equides', data);
       toast(id ? 'Modifié' : 'Ajouté', 'ok'); closeMo('mo-chv'); await loadChv(); renderChevaux();
+      if (id) pushUndo(`Modifier cheval "${nom}"`, async () => {
+        const old = C.chv.find(c => c.id === id);
+        if (old) await dbUpd('equides', { nom: old.nom, categorie: old.categorie, annee_naissance: old.annee_naissance, heures_prev: old.heures_prev, hors_cours: old.hors_cours, note: old.note }, [{ col: 'id', op: 'eq', val: id }]);
+        await loadChv(); renderChevaux();
+      });
+      else pushUndo(`Créer cheval "${nom}"`, async () => {
+        const created = C.chv.find(c => c.nom === nom);
+        if (created) { await dbDel('equides', [{ col: 'id', op: 'eq', val: created.id }]); await loadChv(); renderChevaux(); }
+      });
     }
     function editChv(id) { const c = C.chv.find(x => x.id === id); document.getElementById('mo-chv-t').textContent = 'Modifier'; document.getElementById('chv-id').value = id; document.getElementById('chv-nom').value = c.nom; document.getElementById('chv-cat').value = c.categorie || ''; document.getElementById('chv-annee').value = c.annee_naissance || ''; 0; document.getElementById('chv-h-prev').value = c.heures_prev || 0; document.getElementById('chv-hors-cours').checked = !!c.hors_cours; document.getElementById('chv-note').value = c.note || ''; openMo('mo-chv'); }
     async function delChv(id) { if (!confirm('Supprimer ?')) return; await dbDel('equides', [{ col: 'id', op: 'eq', val: id }]); toast('Supprimé', 'ok'); await loadChv(); renderChevaux(); }
@@ -4404,6 +4480,11 @@
         await loadCartes();
       }
       toast(id ? 'Modifié' : 'Ajouté', 'ok'); closeMo('mo-cav'); await loadCav(); renderCavaliers(); popSelects();
+      if (!id) pushUndo(`Créer cavalier "${prenom}"`, async () => {
+        await loadCav();
+        const created = C.cav.find(c => c.prenom === prenom && c.nom === nom);
+        if (created) { await dbDel('cavalier_groupes', [{ col: 'cavalier_id', op: 'eq', val: created.id }]); await dbDel('cavaliers', [{ col: 'id', op: 'eq', val: created.id }]); await loadCav(); renderCavaliers(); }
+      });
     }
     function editCav(id) {
       const c = C.cav.find(x => x.id === id); document.getElementById('mo-cav-t').textContent = 'Modifier'; document.getElementById('cav-id').value = id; document.getElementById('cav-prenom').value = c.prenom; document.getElementById('cav-nom').value = c.nom || ''; document.getElementById('cav-tel').value = c.telephone || ''; buildCavGrpGrid(id); _refreshCavCarteInfo(id);
