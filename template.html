@@ -1829,6 +1829,25 @@
         </div>
       </div>
       <div class="fg"><label>Description</label><textarea id="t-desc" rows="4"></textarea></div>
+      <!-- Champ screenshot dans la modale ticket -->
+      <div class="fg">
+        <label>Capture d'écran <span style="font-weight:400;color:var(--muted)">(coller Ctrl+V ou choisir un
+            fichier)</span></label>
+        <div id="ticket-screenshot-zone"
+          style="border:2px dashed var(--border);border-radius:10px;padding:18px;text-align:center;color:var(--muted);font-size:12px;cursor:pointer;transition:all .2s;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px"
+          onclick="document.getElementById('ticket-screenshot-file').click()">
+          <span style="font-size:22px">📋</span>
+          <span>Coller une capture (Ctrl+V) ou cliquer pour choisir un fichier</span>
+          <input type="file" id="ticket-screenshot-file" accept="image/*" style="display:none"
+            onchange="loadTicketScreenshot(this.files[0])">
+        </div>
+        <div id="ticket-screenshot-preview" style="display:none;margin-top:8px;position:relative">
+          <img id="ticket-screenshot-img"
+            style="max-width:100%;max-height:220px;border-radius:8px;border:1px solid var(--border)">
+          <button type="button" onclick="clearTicketScreenshot()"
+            style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:13px;line-height:1">×</button>
+        </div>
+      </div>
       <div class="mf">
         <button class="btn btn-g" onclick="closeMo('mo-ticket')">Annuler</button>
         <button class="btn btn-p" onclick="saveTicket()">Envoyer</button>
@@ -5618,25 +5637,23 @@
     }
 
     async function saveTicket() {
-      const ticket = {
-        titre: v('t-titre'),
-        description: v('t-desc'),
-        type: v('t-type'),
-        priorite: v('t-prio'),
-        statut: 'nouveau'
+      const titre = v('ticket-titre').trim();
+      if (!titre) { toast('Le titre est requis', 'err'); return; }
+      const data = {
+        titre,
+        description: v('ticket-desc') || null,
+        type: v('ticket-type'),
+        priorite: v('ticket-priorite'),
+        statut: 'nouveau',
+        screenshot: _ticketScreenshotB64 || null,  // ← ici
       };
+      await dbIns('tickets', data);
+      // Envoi de l'email via le proxy
+      await dbReq({ action: 'send-ticket-email', data, token: sessionToken });
 
-      if (!ticket.titre) return toast('Titre requis', 'err');
-
-      try {
-        await dbIns('tickets', ticket);
-        // Envoi de l'email via le proxy
-        await dbReq({ action: 'send-ticket-email', ticket, token: sessionToken });
-
-        toast('Ticket envoyé !', 'ok');
-        closeMo('mo-ticket');
-        renderTicketsPage();
-      } catch (e) { toast(e.message, 'err'); }
+      toast('Ticket envoyé !', 'ok');
+      closeMo('mo-ticket');
+      renderTicketsPage(); clearTicketScreenshot();
     }
 
     async function updateTicketStatus(id, newStatus) {
@@ -5662,6 +5679,45 @@
         renderTicketsPage();
       }
     }
+
+    // ── Screenshot tickets ──
+    let _ticketScreenshotB64 = null;
+
+    function loadTicketScreenshot(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        _ticketScreenshotB64 = e.target.result; // data:image/...;base64,...
+        document.getElementById('ticket-screenshot-img').src = _ticketScreenshotB64;
+        document.getElementById('ticket-screenshot-preview').style.display = 'block';
+        document.getElementById('ticket-screenshot-zone').style.borderColor = 'var(--gold)';
+        document.getElementById('ticket-screenshot-zone').querySelector('span:last-of-type').textContent = '✅ Image chargée — cliquer pour remplacer';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearTicketScreenshot() {
+      _ticketScreenshotB64 = null;
+      document.getElementById('ticket-screenshot-file').value = '';
+      document.getElementById('ticket-screenshot-preview').style.display = 'none';
+      document.getElementById('ticket-screenshot-zone').style.borderColor = '';
+      document.getElementById('ticket-screenshot-zone').querySelector('span:last-of-type').textContent = 'Coller une capture (Ctrl+V) ou cliquer pour choisir un fichier';
+    }
+
+    // Écoute le presse-papier quand la modale ticket est ouverte
+    document.addEventListener('paste', e => {
+      const moOpen = document.getElementById('mo-ticket')?.classList.contains('open');
+      if (!moOpen) return;
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          loadTicketScreenshot(file);
+          break;
+        }
+      }
+    });
   </script>
 </body>
 
