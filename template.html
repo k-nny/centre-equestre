@@ -1360,6 +1360,13 @@
     </div>
     <button class="bbtn" onclick="logoutAdmin()">Quitter →</button>
   </div>
+  <!-- Bouton Annuler flottant -->
+  <div id="undo-btn" onclick="doUndo()" title="Annuler"
+    style="display:none;position:fixed;bottom:20px;left:20px;z-index:1500;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 13px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.13);align-items:center;gap:7px;font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:var(--text);transition:all .15s;max-width:220px">
+    <span style="font-size:15px">↩</span>
+    <span class="undo-lbl" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+    <span style="font-size:10px;color:var(--muted);flex-shrink:0">Ctrl+Z</span>
+  </div>
   <div class="hb" id="hb" onclick="toggleSB()"><span></span><span></span><span></span></div>
   <div class="sbo" id="sbo" onclick="toggleSB()"></div>
   <div id="site-login"
@@ -2395,6 +2402,50 @@
 
     let isAdmin = false, isDev = false, sessionToken = '', histTab = 'couples';
     let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [] };
+    // ── Historique d'annulation (undo) ──
+    let _undoStack = []; // [{ label, fn }]
+    const MAX_UNDO = 15;
+
+    function pushUndo(label, fn) {
+      _undoStack.push({ label, fn });
+      if (_undoStack.length > MAX_UNDO) _undoStack.shift();
+      renderUndoBtn();
+    }
+
+    function renderUndoBtn() {
+      const btn = document.getElementById('undo-btn');
+      if (!btn) return;
+      if (_undoStack.length === 0) {
+        btn.style.display = 'none';
+      } else {
+        btn.style.display = 'flex';
+        const last = _undoStack[_undoStack.length - 1];
+        btn.title = `Annuler : ${last.label}`;
+        btn.querySelector('.undo-lbl').textContent = last.label;
+      }
+    }
+
+    async function doUndo() {
+      if (!_undoStack.length) return;
+      const { label, fn } = _undoStack.pop();
+      renderUndoBtn();
+      try {
+        await fn();
+        toast(`↩ Annulé : ${label}`, 'ok');
+      } catch (e) {
+        toast('Impossible d\'annuler : ' + e.message, 'err');
+      }
+    }
+
+    // Raccourci clavier Ctrl+Z
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        const active = document.activeElement;
+        if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+        e.preventDefault();
+        doUndo();
+      }
+    });
     // ── Proxy ──
     async function dbReq(body) {
       let r, j;
@@ -2500,13 +2551,20 @@
         document.getElementById('app').style.display = 'block';
         // Restaurer le mode admin seulement si l'utilisateur l'avait explicitement activé
         // (flag posé par enableAdmin, effacé par logoutAdmin — indépendant du token site)
+        // Restaurer la dernière page visitée
+        const lastPage = localStorage.getItem('ce_last_page') || 'vue';
+        const adminPages = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets'];
         if (localStorage.getItem('ce_admin_active') === '1') {
           sessionToken = siteToken;
-          enableAdmin();
+          enableAdmin(lastPage); // on passe la page à restaurer
           return;
         }
-        // Sinon : vue planning normale, sans admin
-        go('vue');
+        if (localStorage.getItem('ce_dev_active') === '1') {
+          sessionToken = siteToken;
+          enableDev(lastPage);
+          return;
+        }
+        go(adminPages.includes(lastPage) ? 'vue' : lastPage);
       } catch (e) {
         const s = document.getElementById('ld-sub'); s.textContent = 'Erreur : ' + (e.message || e); s.style.color = '#b43728';
         document.querySelector('#ld .spin').style.display = 'none'; console.error(e);
@@ -2565,12 +2623,12 @@
       } catch { document.getElementById('pw-err').style.display = 'block'; }
       btn.textContent = 'Connexion'; btn.disabled = false;
     }
-    function enableAdmin() {
+    function enableAdmin(targetPage = 'dash') {
       isAdmin = true; document.getElementById('admin-banner').classList.add('show');
       document.getElementById('mc').classList.add('wb'); document.getElementById('anav').style.display = 'block';
       document.getElementById('atbtn').textContent = '🔒 Quitter admin'; document.getElementById('atbtn').classList.add('on');
-      localStorage.setItem('ce_admin_active', '1'); // flag : admin était actif
-      renderCavaliers(); go('dash'); toast('Mode admin activé', 'ok');
+      localStorage.setItem('ce_admin_active', '1');
+      renderCavaliers(); go(targetPage); toast('Mode admin activé', 'ok');
     }
     function logoutAdmin() {
       isAdmin = false; sessionToken = '';
@@ -2585,11 +2643,14 @@
     // ── Nav ──
     function go(p) {
       const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets'];
-      if (!isAdmin && adm.includes(p)) return;
+      if (!isAdmin && !isDev && adm.includes(p)) return;
+      if (!isAdmin && isDev && !['tickets'].includes(p) && adm.includes(p)) return;
       document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
       document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
-      document.getElementById('page-' + p).classList.add('active');
+      document.getElementById('page-' + p)?.classList.add('active');
       const b = document.querySelector('[data-p="' + p + '"]'); if (b) b.classList.add('active');
+      // 💾 Persistance de la page active
+      try { localStorage.setItem('ce_last_page', p); } catch { }
       if (p === 'vue') loadVue();
       else stopVueRefresh();
       if (p === 'dashboard') { if (!C.affSem.length) loadSemaine().then(() => renderAlerts()); else renderAlerts(); }
