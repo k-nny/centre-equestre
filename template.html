@@ -5637,23 +5637,26 @@
     }
 
     async function saveTicket() {
-      const titre = v('ticket-titre').trim();
-      if (!titre) { toast('Le titre est requis', 'err'); return; }
-      const data = {
-        titre,
-        description: v('ticket-desc') || null,
-        type: v('ticket-type'),
-        priorite: v('ticket-priorite'),
-        statut: 'nouveau',
+      const ticket = {
+        titre: v('t-titre'),
+        description: v('t-desc'),
+        type: v('t-type'),
+        priorite: v('t-prio'),
+        statut: 'nouveau', 
         screenshot: _ticketScreenshotB64 || null,  // ← ici
       };
-      await dbIns('tickets', data);
-      // Envoi de l'email via le proxy
-      await dbReq({ action: 'send-ticket-email', data, token: sessionToken });
 
-      toast('Ticket envoyé !', 'ok');
-      closeMo('mo-ticket');
-      renderTicketsPage(); clearTicketScreenshot();
+      if (!ticket.titre) return toast('Titre requis', 'err');
+
+      try {
+        await dbIns('tickets', ticket);
+        // Envoi de l'email via le proxy
+        await dbReq({ action: 'send-ticket-email', ticket, token: sessionToken });
+
+        toast('Ticket envoyé !', 'ok');
+        closeMo('mo-ticket');
+        renderTicketsPage(); clearTicketScreenshot();
+      } catch (e) { toast(e.message, 'err'); }
     }
 
     async function updateTicketStatus(id, newStatus) {
