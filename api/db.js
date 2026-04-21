@@ -57,7 +57,7 @@ export default async function handler(req, res) {
         subject: `[Nouveau Ticket] ${ticket.titre}`,
         html: `<p><strong>Type:</strong> ${ticket.type} | <strong>Priorité:</strong> ${ticket.priorite}</p>
              <p><strong>Description:</strong> ${ticket.description}</p>
-             <p>Screenshot: ${ticket.screenshot ? `<a href="${ticket.screenshot}" target="_blank">Voir</a>` : 'Aucun'}</p>
+             <p>Screenshot: ${ticket.screenshot ? `<img src="${ticket.screenshot}"/>` : 'Aucun'}</p>
              <p><em>Envoyé depuis l'application de gestion des écuries</em></p>`,
       })
     });
