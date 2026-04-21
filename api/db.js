@@ -47,6 +47,7 @@ export default async function handler(req, res) {
 
     const resendKey = process.env.RESEND_API_KEY;
     const toEmail = process.env.NOTIF_EMAIL;
+    const base64Data = ticket.screenshot ? ticket.screenshot.replace(/^data:image\/png;base64,/, "") : null;
 
     const emailRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -57,8 +58,16 @@ export default async function handler(req, res) {
         subject: `[Nouveau Ticket] ${ticket.titre}`,
         html: `<p><strong>Type:</strong> ${ticket.type} | <strong>Priorité:</strong> ${ticket.priorite}</p>
              <p><strong>Description:</strong> ${ticket.description}</p>
-             <p>Screenshot: ${ticket.screenshot ? `<img src="${ticket.screenshot}"/>` : 'Aucun'}</p>
+             <p>Screenshot: <img src="cid:my-image" /></p>
              <p><em>Envoyé depuis l'application de gestion des écuries</em></p>`,
+        attachments: [
+          {
+            filename: "image.png",
+            content: base64Data,
+            encoding: "base64",
+            cid: "my-image", // 👈 correspond au src
+          },
+        ],
       })
     });
     return res.json({ ok: emailRes.ok });
