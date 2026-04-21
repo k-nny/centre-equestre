@@ -2500,20 +2500,13 @@
         document.getElementById('app').style.display = 'block';
         // Restaurer le mode admin seulement si l'utilisateur l'avait explicitement activé
         // (flag posé par enableAdmin, effacé par logoutAdmin — indépendant du token site)
-        // Restaurer la dernière page visitée
-        const lastPage = localStorage.getItem('ce_last_page') || 'vue';
-        const adminPages = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets'];
         if (localStorage.getItem('ce_admin_active') === '1') {
           sessionToken = siteToken;
-          enableAdmin(lastPage); // on passe la page à restaurer
+          enableAdmin();
           return;
         }
-        if (localStorage.getItem('ce_dev_active') === '1') {
-          sessionToken = siteToken;
-          enableDev(lastPage);
-          return;
-        }
-        go(adminPages.includes(lastPage) ? 'vue' : lastPage);
+        // Sinon : vue planning normale, sans admin
+        go('vue');
       } catch (e) {
         const s = document.getElementById('ld-sub'); s.textContent = 'Erreur : ' + (e.message || e); s.style.color = '#b43728';
         document.querySelector('#ld .spin').style.display = 'none'; console.error(e);
@@ -2572,13 +2565,13 @@
       } catch { document.getElementById('pw-err').style.display = 'block'; }
       btn.textContent = 'Connexion'; btn.disabled = false;
     }
-    function enableAdmin(targetPage = 'dash') {
-  isAdmin = true; document.getElementById('admin-banner').classList.add('show');
-  document.getElementById('mc').classList.add('wb'); document.getElementById('anav').style.display = 'block';
-  document.getElementById('atbtn').textContent = '🔒 Quitter admin'; document.getElementById('atbtn').classList.add('on');
-  localStorage.setItem('ce_admin_active', '1');
-  renderCavaliers(); go(targetPage); toast('Mode admin activé', 'ok');
-}
+    function enableAdmin() {
+      isAdmin = true; document.getElementById('admin-banner').classList.add('show');
+      document.getElementById('mc').classList.add('wb'); document.getElementById('anav').style.display = 'block';
+      document.getElementById('atbtn').textContent = '🔒 Quitter admin'; document.getElementById('atbtn').classList.add('on');
+      localStorage.setItem('ce_admin_active', '1'); // flag : admin était actif
+      renderCavaliers(); go('dash'); toast('Mode admin activé', 'ok');
+    }
     function logoutAdmin() {
       isAdmin = false; sessionToken = '';
       localStorage.removeItem('ce_admin_active'); // effacer le flag admin
@@ -2592,14 +2585,11 @@
     // ── Nav ──
     function go(p) {
       const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets'];
-      if (!isAdmin && !isDev && adm.includes(p)) return;
-      if (!isAdmin && isDev && !['tickets'].includes(p) && adm.includes(p)) return;
+      if (!isAdmin && adm.includes(p)) return;
       document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
       document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
-      document.getElementById('page-' + p)?.classList.add('active');
+      document.getElementById('page-' + p).classList.add('active');
       const b = document.querySelector('[data-p="' + p + '"]'); if (b) b.classList.add('active');
-      // 💾 Persistance de la page active
-      try { localStorage.setItem('ce_last_page', p); } catch { }
       if (p === 'vue') loadVue();
       else stopVueRefresh();
       if (p === 'dashboard') { if (!C.affSem.length) loadSemaine().then(() => renderAlerts()); else renderAlerts(); }
@@ -2611,7 +2601,7 @@
       updateStgBanner();
       if (p === 'disciplines') renderDiscPage();
       if (p === 'cartes') loadPageCartes();
-      if (p === 'tickets') loadTickets();
+      if (p === 'tickets') renderTicketsPage();
       if (window.innerWidth <= 768) { document.getElementById('sb').classList.remove('open'); document.getElementById('sbo').classList.remove('open'); }
     }
     function toggleSB() { document.getElementById('sb').classList.toggle('open'); document.getElementById('sbo').classList.toggle('open'); }
