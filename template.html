@@ -1943,21 +1943,28 @@
         </div>
         <input type="hidden" id="grp-couleur" value="#c9a84c">
       </div>
-      <div class="fg"><label>Note visible par tous</label><textarea id="grp-note"
-          placeholder="Informations, niveau requis…" rows="2"></textarea></div>
-      <div class="fg">
-        <label>Assigner des cavaliers — <span class="cav-count" id="grp-cav-count">0 sélectionné(s)</span></label>
-        <div style="display:flex;gap:6px;margin-bottom:6px">
-          <button type="button" class="btn btn-g sm" onclick="toggleAllCav(false)">Tout décocher</button>
-          <button type="button" class="btn btn-g sm" onclick="toggleAllCav(true)">Tout cocher</button>
-        </div>
-        <div class="cav-checkgrid" id="grp-cav-grid">
-          <div style="color:var(--muted);font-size:12px;padding:4px">Chargement…</div>
+      <div class="fg"><label>Icône de niveau <span style="color:var(--muted);font-size:11px">(emoji : 🟢 🔵 🟠 🔴
+            ⭐…)</span></label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="text" id="grp-icone-niveau" placeholder="🟢" maxlength="4"
+            style="width:70px;font-size:20px;text-align:center">
+          <div id="niveau-emoji-btns" style="display:flex;gap:4px;flex-wrap:wrap"></div>
         </div>
       </div>
-      <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-grp')">Annuler</button><button class="btn btn-p"
-          onclick="saveGroupe()">Enregistrer</button></div>
+      <div class="fg"><label>Note visible par tous</label><textarea id="grp-note"
+          placeholder="Informations, niveau requis…" rows="2"></textarea></div>
+      <label>Assigner des cavaliers — <span class="cav-count" id="grp-cav-count">0 sélectionné(s)</span></label>
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <button type="button" class="btn btn-g sm" onclick="toggleAllCav(false)">Tout décocher</button>
+        <button type="button" class="btn btn-g sm" onclick="toggleAllCav(true)">Tout cocher</button>
+      </div>
+      <div class="cav-checkgrid" id="grp-cav-grid">
+        <div style="color:var(--muted);font-size:12px;padding:4px">Chargement…</div>
+      </div>
     </div>
+    <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-grp')">Annuler</button><button class="btn btn-p"
+        onclick="saveGroupe()">Enregistrer</button></div>
+  </div>
   </div>
 
   <!-- Cavalier -->
@@ -2620,6 +2627,16 @@
       document.getElementById('grp-couleur-hex').value = hex.toUpperCase();
       document.getElementById('grp-couleur-rgb').value = hexToRgbStr(hex);
       document.getElementById('grp-couleur-preview').style.background = hex;
+      (function () {
+        const btns = document.getElementById('niveau-emoji-btns');
+        if (btns) ['🟢', '🔵', '🟠', '🔴', '⭐', '🏅', '🥇', '🐣', '🌱', '🔥'].forEach(e => {
+          const b = document.createElement('button');
+          b.type = 'button'; b.textContent = e;
+          b.style.cssText = 'font-size:18px;background:none;border:1px solid var(--border);border-radius:6px;padding:2px 5px;cursor:pointer';
+          b.onclick = () => document.getElementById('grp-icone-niveau').value = e;
+          btns.appendChild(b);
+        });
+      })();
     }
     function hexToRgbStr(h) { const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h); return r ? `${parseInt(r[1], 16)}, ${parseInt(r[2], 16)}, ${parseInt(r[3], 16)}` : '0, 0, 0'; }
 
@@ -2737,7 +2754,7 @@
     }
     async function loadSeances(date) {
       if (!date) return;
-      C.sea = await dbSel('seances', { select: '*,groupes(nom,heure,jour,moniteur_id,note,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)', filter: [{ col: 'date', op: 'eq', val: date }], order: [{ col: 'heure' }] });
+      C.sea = await dbSel('seances', { select: '*,groupes(nom,heure,jour,moniteur_id,note,couleur, icone_niveau),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)', filter: [{ col: 'date', op: 'eq', val: date }], order: [{ col: 'heure' }] });
       const [affRes, rappRes] = await Promise.all([
         C.sea.length
           ? dbSel('affectations_seance', { select: '*,cavaliers(prenom,nom),equides(nom)', filter: [{ col: 'seance_id', op: 'in', val: `(${C.sea.map(s => `"${s.id}"`).join(',')})` }] })
@@ -2814,7 +2831,7 @@
       document.getElementById('vac-pub').style.display = estVac(base) && !isAdmin ? 'flex' : 'none';
       const today = new Date().toISOString().slice(0, 10);
       const [seaAll, stgAll, stgAvenir] = await Promise.all([
-        dbSel('seances', { select: '*,groupes(nom,heure,moniteur_id,eleve_moniteur_id,note,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)', filter: [{ col: 'date', op: 'eq', val: date }], order: [{ col: 'heure' }] }),
+        dbSel('seances', { select: '*,groupes(nom,heure,moniteur_id,eleve_moniteur_id,note,couleur, icone_niveau),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)', filter: [{ col: 'date', op: 'eq', val: date }], order: [{ col: 'heure' }] }),
         dbSel('stages', { filter: [{ col: 'date_debut', op: 'lte', val: date }, { col: 'date_fin', op: 'gte', val: date }] }),
         dbSel('stages', { filter: [{ col: 'date_debut', op: 'gte', val: date }], order: [{ col: 'date_debut', asc: true }] }),
       ]);
@@ -3129,7 +3146,7 @@
 
     function newGrp() {
       document.getElementById('mo-grp-t').textContent = 'Nouveau groupe';
-      ['grp-id', 'grp-nom', 'grp-heure', 'grp-note'].forEach(i => document.getElementById(i).value = '');
+      ['grp-id', 'grp-nom', 'grp-heure', 'grp-note', 'grp-icone-niveau'].forEach(i => document.getElementById(i).value = '');
       document.getElementById('grp-mon').value = '';
       document.getElementById('grp-elmon').value = '';
       setColorPickerVal('#c9a84c');
@@ -3180,14 +3197,13 @@
     }
 
     async function saveGroupe() {
-      const nom = v('grp-nom').trim(), jour = +v('grp-jour'), heure = v('grp-heure'), moniteur_id = v('grp-mon') || null, eleve_moniteur_id = v('grp-elmon') || null, note = v('grp-note') || null, couleur = v('grp-couleur') || '#c9a84c', id = v('grp-id');
-      if (!nom) { toast('Le nom est requis', 'err'); return; }
+      const nom = v('grp-nom').trim(), jour = +v('grp-jour'), heure = v('grp-heure'), moniteur_id = v('grp-mon') || null, eleve_moniteur_id = v('grp-elmon') || null, note = v('grp-note') || null, couleur = v('grp-couleur') || '#c9a84c', icone_niveau = v('grp-icone-niveau') || null, id = v('grp-id'); if (!nom) { toast('Le nom est requis', 'err'); return; }
       if (!heure) { toast("L'heure est requise", 'err'); return; }
       let grpId = id;
       if (id) {
-        await dbUpd('groupes', { nom, jour, heure, moniteur_id, eleve_moniteur_id, note, couleur }, [{ col: 'id', op: 'eq', val: id }]);
+        await dbUpd('groupes', { nom, jour, heure, moniteur_id, eleve_moniteur_id, note, couleur, icone_niveau }, [{ col: 'id', op: 'eq', val: id }]);
       } else {
-        const r = await dbIns('groupes', { nom, jour, heure, moniteur_id, eleve_moniteur_id, note, couleur });
+        const r = await dbIns('groupes', { nom, jour, heure, moniteur_id, eleve_moniteur_id, note, couleur, icone_niveau });
         grpId = r.data?.[0]?.id;
       }
       if (!grpId) { toast('Erreur création groupe', 'err'); return; }
@@ -3231,6 +3247,7 @@
       document.getElementById('grp-couleur').value = g.couleur || '#c9a84c';
       setColorPickerVal(g.couleur || '#c9a84c');
       document.getElementById('grp-note').value = g.note || '';
+      document.getElementById('grp-icone-niveau').value = g.icone_niveau || '';
       buildCavGrid(id, false);
       openMo('mo-grp');
     }
@@ -3412,9 +3429,7 @@
         html += `<div class="sk" style="border:none;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.10)">
       <div class="skh" onclick="togSk('${s.id}')" style="background:${couleur};border-radius:0">
         <div>
-          <div class="skt" style="color:${txtC};font-weight:700">${isPonc ? (s.nom_ponctuel || 'Cours ponctuel') : (g.nom || 'Groupe')}${isPonc ? '<span style="margin-left:6px;font-size:10px;opacity:.8;font-weight:500;background:rgba(255,255,255,.2);padding:1px 6px;border-radius:10px">ponctuel</span>' : ''}</div>
-          <div style="font-size:11px;color:${mutC};margin-top:2px">${dateObj.toLocaleDateString('fr-FR')} Semaine ${numSem} | ${h}${s.heure_fin ? ' → ' + (s.heure_fin || '').slice(0, 5) : ''} · ${pr} prés.${isPonc ? '' : ' · ' + ab + ' abs.'}${rt ? ' · ' + rt + ' ratt.' : ''}${mon2 ? ' · 👤 ' + mon2 + (chv2 ? ' + 🐎 ' + chv2 : '') : ''}</div>
-        </div>
+<div class="pgn" style="color:${txtC}">${isPonc ? (s.nom_ponctuel || 'Cours ponctuel') : (g.nom || 'Groupe')}${!isPonc && g.icone_niveau ? `<span style="margin-left:5px">${g.icone_niveau}</span>` : ''}</div>        </div>
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <div style="display:flex;align-items:center;gap:5px">
             <span id="disc-icon-${s.id}">${s.discipline ? discIcon(s.discipline, { size: 22 }) : ''}</span>
