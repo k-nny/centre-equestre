@@ -2867,8 +2867,14 @@
             : a.absent
               ? 'rgba(220,38,38,0.04)'
               : (i % 2 === 0 ? 'transparent' : couleur + '80');
+          // Badge paiement (cours exceptionnels uniquement) — visible seulement si montant défini
+          const paieBadge = a.cours_exceptionnel && a.montant_exceptionnel
+            ? (a.regle_exceptionnel
+              ? `<span style="margin-left:5px;font-size:13px" title="Réglé">👍</span>`
+              : `<span style="margin-left:5px;font-size:11px;background:#fef3c7;color:#92400e;border-radius:5px;padding:1px 6px;font-weight:700">💳 ${parseFloat(a.montant_exceptionnel).toFixed(0)}€</span>`)
+            : '';
           return `<div class="pcr ${a.absent ? 'abr' : ''}" style="background:${rowBg};${isRatt ? 'border-left:3px solid #f59e0b' : ''}">
-        <div class="pcn">${a.cavaliers ? cap(a.cavaliers.prenom || '') : a.nom_exceptionnel || '?'}${a.cours_exceptionnel ? '<span class="rtag" style="background:var(--gold);color:#fff">excep.</span>' : ''}${isRatt ? `<span class="rtag">↩ ${a.date_cours_rattrape ? fmtDate(a.date_cours_rattrape) : 'rattrap.'}</span>` : ''}${a.absent ? '<span class="b br" style="margin-left:5px;font-size:10px">absent</span>' : ''}</div>
+        <div class="pcn">${a.cavaliers ? cap(a.cavaliers.prenom || '') : a.nom_exceptionnel || '?'}${a.cours_exceptionnel ? '<span class="rtag" style="background:var(--gold);color:#fff">excep.</span>' : ''}${isRatt ? `<span class="rtag">↩ ${a.date_cours_rattrape ? fmtDate(a.date_cours_rattrape) : 'rattrap.'}</span>` : ''}${a.absent ? '<span class="b br" style="margin-left:5px;font-size:10px">absent</span>' : ''}${paieBadge}</div>
         <div class="pch2">${a.absent ? '<span style="color:var(--muted)">—</span>' : `🐎 <strong>${a.equides?.nom || 'Non attribué'}</strong>`}</div>
       </div>`;
         }).join('');
@@ -5642,7 +5648,7 @@
         description: v('t-desc'),
         type: v('t-type'),
         priorite: v('t-prio'),
-        statut: 'nouveau', 
+        statut: 'nouveau',
         screenshot: _ticketScreenshotB64 || null,  // ← ici
       };
 
