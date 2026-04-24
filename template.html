@@ -2840,6 +2840,48 @@
       }
       const isV = estVac(date) && !isAdmin;
       if (!seances.length && !stgAll.length) { el.innerHTML = `<div class="ls">${isV ? '🏖 Vacances scolaires — aucun cours' : 'Aucun cours ni stage à venir ce jour'}</div>`; return; }
+
+      // ── Bandeau impayés ────────────────────────────
+      let bandeauImpayes = '';
+      if (affs.length) {
+        // Cavaliers présents ce jour (non absents, avec un cavalier_id)
+        const cavIdsDuJour = [...new Set(affs.filter(a => !a.absent && a.cavalier_id).map(a => a.cavalier_id))];
+        if (cavIdsDuJour.length) {
+          const cavIdsStr = `(${cavIdsDuJour.map(id => `"${id}"`).join(',')})`;
+          // 1. Cours exceptionnels non réglés pour ces cavaliers (toutes dates)
+          //    On cherche les exc avec cavalier_id — mais les exc n'ont pas de cavalier_id…
+          //    Donc on prend les exc présents AUJOURD'HUI non réglés (déjà dans affs)
+          const excImpayes = affs.filter(a =>
+            a.cours_exceptionnel && !a.regle_exceptionnel && a.montant_exceptionnel > 0
+          );
+          // 2. Cartes non réglées appartenant aux cavaliers présents
+          const cartesImpayes = C.cartes.filter(c =>
+            cavIdsDuJour.includes(c.cavalier_id) && !c.regle && c.prix_total > 0
+          );
+          // 3. Affectations passées avec montant_exceptionnel non réglé pour ces cavaliers
+          //    (depuis toutes les affectations déjà chargées pour aujourd'hui + requête séparée)
+          const lignes = [];
+          for (const a of excImpayes) {
+            const nom = a.nom_exceptionnel || '?';
+            lignes.push(`<span style="font-weight:700">${nom}</span> cours exc. <strong style="color:#b43728">${parseFloat(a.montant_exceptionnel).toFixed(0)}€</strong>`);
+          }
+          for (const c of cartesImpayes) {
+            const cav = C.cav.find(x => x.id === c.cavalier_id);
+            const nom = cav ? cap(cav.prenom) : '?';
+            lignes.push(`<span style="font-weight:700">${nom}</span> carte <strong style="color:#b43728">${parseFloat(c.prix_total).toFixed(0)}€</strong>`);
+          }
+          if (lignes.length) {
+            bandeauImpayes = `<div style="background:#fef2f2;border:1.5px solid #fca5a5;border-radius:10px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px">
+              <span style="font-size:18px;flex-shrink:0">💳</span>
+              <div>
+                <div style="font-size:11px;font-weight:700;color:#b43728;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Impayés du jour</div>
+                <div style="font-size:13px;color:#3a3028;display:flex;flex-wrap:wrap;gap:8px">${lignes.map(l => `<span style="background:#fff;border:1px solid #fca5a5;border-radius:6px;padding:2px 8px">${l}</span>`).join('')}</div>
+              </div>
+            </div>`;
+          }
+        }
+      }
+
       let blocs = [];
       for (const s of seances) {
         const g = s.groupes || {}; const h = (g.heure || s.heure || '').slice(0, 5);
@@ -2926,7 +2968,7 @@
         });
       }
       blocs.sort((a, b) => a.h.localeCompare(b.h));
-      el.innerHTML = blocs.map(b => b.html).join('');
+      el.innerHTML = bandeauImpayes + blocs.map(b => b.html).join('');
       startVueRefresh(); // relance le timer après chaque chargement
     }
 
