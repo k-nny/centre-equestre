@@ -2823,7 +2823,11 @@
       let seances = isAdmin ? seaAll : seaAll.filter(s => !estVac(s.date));
       // Filtrer les séances passées si c'est aujourd'hui (vue client)
       if (!isAdmin && date === todayStr) {
-        seances = seances.filter(s => { const h = (s.groupes?.heure || s.heure || '').slice(0, 5); return h >= nowTime; });
+        seances = seances.filter(s => {
+          const h = (s.groupes?.heure || s.heure || '').slice(0, 5);
+          if (!h) return true; // si pas d'heure définie, on garde (cours ponctuel sans heure)
+          return h >= nowTime;
+        });
       }
       let affs = [];
       if (seances.length) {
