@@ -43,32 +43,56 @@ export default async function handler(req, res) {
   // 3. Ajouter l'action d'envoi d'email (à mettre avant le bloc 'query')
   if (req.method === 'POST' && req.body.action === 'send-ticket-email') {
     const { ticket, token } = req.body;
-    if (!verifyToken(token, ADMIN_PWD) && !verifyToken(token, DEV_PASSWORD)) return res.status(401).json({ error: 'Unauthorized' });
+
+    if (!verifyToken(token, ADMIN_PWD) && !verifyToken(token, DEV_PASSWORD)) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
 
     const resendKey = process.env.RESEND_API_KEY;
     const toEmail = process.env.NOTIF_EMAIL;
-    const base64Data = ticket.screenshot ? ticket.screenshot.replace(/^data:image\/png;base64,/, "") : null;
+
+    const hasImage = !!ticket.screenshot;
+
+    const base64Data = hasImage
+      ? ticket.screenshot.replace(/^data:image\/png;base64,/, "")
+      : null;
+
+    const html = `
+  <p><strong>Type:</strong> ${ticket.type} | <strong>Priorité:</strong> ${ticket.priorite}</p>
+  <p><strong>Description:</strong> ${ticket.description}</p>
+  ${hasImage
+        ? `<p>Screenshot: <img src="cid:my-image" /></p>`
+        : ""
+      }
+  <p><em>Envoyé depuis l'application de gestion des écuries</em></p>
+`;
+
+    const body = {
+      from: 'Ecuries <onboarding@resend.dev>',
+      to: toEmail,
+      subject: `[Nouveau Ticket] ${ticket.titre}`,
+      html
+    };
+
+    // 👉 seulement si image
+    if (hasImage) {
+      body.attachments = [
+        {
+          filename: "image.png",
+          content: base64Data,
+          encoding: "base64",
+          cid: "my-image",
+        },
+      ];
+    }
 
     const emailRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${resendKey}` },
-      body: JSON.stringify({
-        from: 'Ecuries <onboarding@resend.dev>',
-        to: toEmail,
-        subject: `[Nouveau Ticket] ${ticket.titre}`,
-        html: `<p><strong>Type:</strong> ${ticket.type} | <strong>Priorité:</strong> ${ticket.priorite}</p>
-             <p><strong>Description:</strong> ${ticket.description}</p>
-             <p>Screenshot: <img src="cid:my-image" /></p>
-             <p><em>Envoyé depuis l'application de gestion des écuries</em></p>`,
-        attachments: [
-          {
-            filename: "image.png",
-            content: base64Data,
-            encoding: "base64",
-            cid: "my-image", // 👈 correspond au src
-          },
-        ],
-      })
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${resendKey}`
+      },
+      body: JSON.stringify(body)
     });
     return res.json({ ok: emailRes.ok });
   }
