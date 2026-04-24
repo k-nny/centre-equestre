@@ -2934,7 +2934,8 @@
           : ('<button class="btn btn-o sm" onclick="openRatt(\'' + sid + '\',\'' + h + '\',\'' + date + '\')">➕ Rattrapage</button>'
             + '<button class="btn btn-g sm" onclick="openExc(\'' + sid + '\',\'' + h + '\',\'' + date + '\')">⭐ Cours exceptionnel</button>'
             + '<button class="btn btn-pu sm" onclick="openMon2Modal(\'' + sid + '\',\'' + date + '\')">👤 + Intervenant</button>'
-            + (s.moniteur2_id ? '<button class="btn btn-d sm" onclick="removeMon2(\'' + sid + '\')">🗑 Intervenant</button>' : ''));
+            + (s.moniteur2_id ? '<button class="btn btn-d sm" onclick="removeMon2(\'' + sid + '\')">🗑 Intervenant</button>' : '')
+            + `<button class="btn btn-g sm" onclick="editNoteSeance('${sid}')" title="Note visible par les cavaliers">${s.note_seance ? '📝✅' : '📝'} Note cours</button>`);;
         blocs.push({
           h, html: `<div class="pcc" style="border:none;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.10)">
       <div class="pch" style="background:${couleur};border-bottom:none">
@@ -2949,6 +2950,7 @@
         </div>
       </div>
       ${vOrdered.length === 0 ? '<div style="padding:12px 20px;color:var(--muted)">Aucun cavalier</div>' : rows}
+      ${s.note_seance ? `<div class="note-pub" style="background:rgba(251,191,36,.15);color:#92400e;font-style:italic">📝 ${s.note_seance}</div>` : ''}
       ${g.note ? `<div class="note-pub">📝 ${g.note}</div>` : ''}</div>`
         });
       }
@@ -3406,7 +3408,8 @@
             + '<button class="btn btn-g sm" onclick="openExc(\'' + sid + '\',\'' + h + '\',\'' + date + '\')">⭐ Cours exceptionnel</button>'
             + '<button class="btn btn-g sm" onclick="openCoursCarte(\'' + sid + '\',\'' + h + '\',\'' + date + '\')">🎫 Cours carte</button>'
             + '<button class="btn btn-pu sm" onclick="openMon2Modal(\'' + sid + '\',\'' + date + '\')">👤 + Intervenant</button>'
-            + (s.moniteur2_id ? '<button class="btn btn-d sm" onclick="removeMon2(\'' + sid + '\')">🗑 Intervenant</button>' : ''));
+            + (s.moniteur2_id ? '<button class="btn btn-d sm" onclick="removeMon2(\'' + sid + '\')">🗑 Intervenant</button>' : '')
+            + `<button class="btn btn-g sm" onclick="editNoteSeance('${sid}')" title="Note visible par les cavaliers">${s.note_seance ? '📝✅' : '📝'} Note cours</button>`);
         const dateObj = new Date(date + 'T00:00:00');
         const numSem = (() => { const d = new Date(date); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7); const w = new Date(d.getFullYear(), 0, 4); return 1 + Math.round(((d - w) / 86400000 - 3 + (w.getDay() + 6) % 7) / 7); })();
         html += `<div class="sk" style="border:none;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.10)">
@@ -3426,6 +3429,7 @@
       </div>
       <div class="skb" id="sk-${s.id}" style="${isOpen ? 'display:block' : 'display:none'}">
         ${rows || '<div style="color:var(--muted);padding:8px 14px;font-size:12px">Aucun cavalier</div>'}
+        ${s.note_seance ? `<div style="padding:8px 14px;background:rgba(251,191,36,.12);border-top:1px solid rgba(251,191,36,.3);font-size:12px;color:#92400e">📝 <em>${s.note_seance}</em></div>` : ''}
         <div style="margin:9px 14px;padding-top:9px;border-top:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap">
   ${btnsBas}
 </div>
@@ -3587,7 +3591,16 @@
       addPoncPart();
       openMo('mo-ponctuel');
     }
-
+    async function editNoteSeance(seaId) {
+      const s = C.sea.find(x => x.id === seaId);
+      if (!s) return;
+      const note = prompt('Note visible par les cavaliers (laisser vide pour effacer) :', s.note_seance || '');
+      if (note === null) return; // annulé
+      await dbUpd('seances', { note_seance: note.trim() || null }, [{ col: 'id', op: 'eq', val: seaId }]);
+      s.note_seance = note.trim() || null;
+      renderSeances();
+      toast('Note mise à jour', 'ok');
+    }
     async function editPonctuel(seaId) {
       const s = C.sea.find(x => x.id === seaId); if (!s) return;
       document.getElementById('mo-ponc-t').textContent = '✏️ Modifier le cours — ' + fmtDate(s.date || v('sea-date'));
