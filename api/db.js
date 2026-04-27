@@ -99,7 +99,7 @@ export default async function handler(req, res) {
     return res.json({ ok: emailRes.ok });
   }
   if (req.method === 'POST' && req.body.action === 'send-ticket-retour-email') {
-    const { ticket, token } = req.body;
+    const { message, ticketTitre, token } = req.body;
 
     if (!verifyToken(token, ADMIN_PWD) && !verifyToken(token, DEV_PASSWORD)) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -111,14 +111,14 @@ export default async function handler(req, res) {
     
 
     const html = `
-  <p><strong>Retour :</strong> ${ticket.message}</p>
+  <p><strong>Retour :</strong> ${message}</p>
   <p><em>Envoyé depuis l'application de gestion des écuries</em></p>
 `;
 
     const body = {
       from: 'Ecuries <onboarding@resend.dev>',
       to: toEmail,
-      subject: `[Modif Ticket] ${ticket.ticketTitre}`,
+      subject: `[Modif Ticket] ${ticketTitre}`,
       html
     };
 

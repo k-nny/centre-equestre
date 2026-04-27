@@ -3182,16 +3182,21 @@
           filter: [{ col: 'lu', op: 'eq', val: 'false' }],
           order: [{ col: 'created_at', asc: false }]
         });
-        if (!nonLus.length) return;
+        if (!nonLus.length) {
+          // Supprimer le bloc s'il n'y a plus rien
+          document.getElementById('td-retours-dash-wrap')?.remove();
+          return;
+        }
 
-        // Charger les titres des tickets concernés
-        const ids = `(${[...new Set(nonLus.map(r => `"${r.ticket_id}`))].join(',')})`;
+        // ✅ Construction correcte avec guillemets fermés
+        const uniqueIds = [...new Set(nonLus.map(r => r.ticket_id))];
+        const ids = `(${uniqueIds.map(id => `"${id}"`).join(',')})`;
+
         const tickets = await dbSel('tickets', {
           select: 'id,titre',
           filter: [{ col: 'id', op: 'in', val: ids }]
         });
 
-        // Injecter ou créer le bloc dans le dashboard
         let wrap = document.getElementById('td-retours-dash-wrap');
         if (!wrap) {
           wrap = document.createElement('div');
@@ -3199,7 +3204,6 @@
           wrap.className = 'tc';
           wrap.style.marginBottom = '20px';
           wrap.innerHTML = `<div class="tt"><h3>💬 Retours non lus sur les tickets</h3></div><div id="td-retours-dash"></div>`;
-          // Insérer avant td-impayes-wrap
           const impayes = document.getElementById('td-impayes-wrap');
           impayes.parentNode.insertBefore(wrap, impayes);
         }
