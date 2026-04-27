@@ -25,6 +25,7 @@ function build() {
   console.log('   • SUPABASE_ANON');
   console.log('   • APP_KEY');
   console.log('   • ADMIN_PASSWORD');
+  console.log('   • MARINE_PASSWORD');
 }
 
 build();

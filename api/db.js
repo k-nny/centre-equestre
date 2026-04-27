@@ -25,6 +25,7 @@ export default async function handler(req, res) {
   const SUPA_ANON = process.env.SUPABASE_ANON || '';
   const APP_KEY = process.env.APP_KEY || '';
   const ADMIN_PWD = process.env.ADMIN_PASSWORD || '';
+  const MARINE_PWD = process.env.MARINE_PASSWORD || '';
   const DEV_PASSWORD = process.env.DEV_PASSWORD || '';
 
   // [DANS LE HANDLER, APRES LES CONST SUPA_URL, etc.]
@@ -36,6 +37,7 @@ export default async function handler(req, res) {
   if (req.method === 'POST' && req.body.action === 'auth') {
     const { password } = req.body;
     if (password === ADMIN_PWD) return res.json({ ok: true, token: makeToken(ADMIN_PWD), role: 'admin' });
+    if (password === MARINE_PWD) return res.json({ ok: true, token: makeToken(MARINE_PWD), role: 'marine' });
     if (password === DEV_PASSWORD) return res.json({ ok: true, token: makeToken(DEV_PASSWORD), role: 'dev' });
     return res.status(401).json({ error: 'Invalide' });
   }
@@ -224,9 +226,10 @@ export default async function handler(req, res) {
       const isMutation = ['insert', 'update', 'delete'].includes(body.method);
       if (isMutation) {
         const isAdmin = verifyToken(body.token, ADMIN_PWD);
+        const ismarine = verifyToken(body.token, MARINE_PWD);
         const isDev = verifyToken(body.token, DEV_PASSWORD);
 
-        if (!isAdmin && !isDev) {
+        if (!isAdmin && !isDev && !ismarine) {
           return res.status(403).json({ error: 'Session invalide ou expirée' });
         }
       }

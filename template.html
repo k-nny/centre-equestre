@@ -2419,7 +2419,7 @@
     const statutsActifsADate = (date) => C.statuts.filter(s => statutActifADate(s, date));
     const SBDG = { attache: 'bo', veto: 'br', marechal: 'bp', repos: 'b' };
 
-    let isAdmin = false, isDev = false, sessionToken = '', histTab = 'couples';
+    let isAdmin = false, isDev = false, isMarine = false, sessionToken = '', histTab = 'couples';
     let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [] };
     // ── Historique d'annulation (undo) ──
     let _undoStack = []; // [{ label, fn }]
@@ -2583,6 +2583,11 @@
           enableDev(lastPage);
           return;
         }
+        if (localStorage.getItem('ce_marine_active') === '1') {
+          sessionToken = siteToken;
+          enableMarine(lastPage);
+          return;
+        }
         go(adminPages.includes(lastPage) ? 'vue' : lastPage);
       } catch (e) {
         const s = document.getElementById('ld-sub'); s.textContent = 'Erreur : ' + (e.message || e); s.style.color = '#b43728';
@@ -2624,7 +2629,15 @@
     function hexToRgbStr(h) { const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h); return r ? `${parseInt(r[1], 16)}, ${parseInt(r[2], 16)}, ${parseInt(r[3], 16)}` : '0, 0, 0'; }
 
     // ── Admin ──
-    function handleAdminToggle() { if (isAdmin) { logoutAdmin(); return; } document.getElementById('pw-in').value = ''; document.getElementById('pw-err').style.display = 'none'; openMo('mo-pw'); setTimeout(() => document.getElementById('pw-in').focus(), 80); }
+    function handleAdminToggle() {
+      if (isAdmin) { logoutAdmin(); return; }
+      if (isMarine) { logoutMarine(); return; }
+      if (isDev) { logoutAdmin(); return; }
+      document.getElementById('pw-in').value = '';
+      document.getElementById('pw-err').style.display = 'none';
+      openMo('mo-pw');
+      setTimeout(() => document.getElementById('pw-in').focus(), 80);
+    }
     async function chkPw() {
       const pw = document.getElementById('pw-in').value;
       const btn = document.getElementById('pw-btn'); btn.textContent = '…'; btn.disabled = true;
@@ -2634,6 +2647,20 @@
         if (j && j.ok) {
           sessionToken = j.token;
           isDev = (j.role === 'dev');
+          isMarine = (j.role === 'marine');
+          localStorage.removeItem('ce_admin_active');
+          localStorage.removeItem('ce_dev_active');
+          localStorage.removeItem('ce_marine_active');
+          if (isDev) {
+            localStorage.setItem('ce_dev_active', '1');
+            enableDev();
+          } else if (isMarine) {
+            localStorage.setItem('ce_marine_active', '1');
+            enableMarine();
+          } else {
+            enableAdmin();
+          }
+          closeMo('mo-pw');
           localStorage.setItem('ce_admin_active', '1');
           localStorage.setItem('ce_role', j.role); // Optionnel pour persister le rôle
           enableAdmin();
@@ -2657,13 +2684,56 @@
       document.getElementById('atbtn').textContent = '🔑 Mode administrateur'; document.getElementById('atbtn').classList.remove('on');
       renderCavaliers(); go('vue'); toast('Déconnecté', 'ok');
     }
+    function enableMarine(targetPage = 'vue') {
+      isMarine = true; isAdmin = false;
+      sessionToken = localStorage.getItem('ce_site_token') || '';
+      document.getElementById('admin-banner').classList.add('show');
+      document.getElementById('mc').classList.add('wb');
+      // Afficher uniquement la nav Séances
+      document.getElementById('anav').style.display = 'block';
+      document.getElementById('atbtn').textContent = '🔒 Quitter';
+      document.getElementById('atbtn').classList.add('on');
+      localStorage.setItem('ce_marine_active', '1');
+      // Masquer les entrées de nav non autorisées
+      document.querySelectorAll('#anav .ni').forEach(btn => {
+        const page = btn.dataset.p;
+        if (!['seances'].includes(page)) btn.style.display = 'none';
+      });
+      go(targetPage);
+      toast('Mode Marine activé', 'ok');
+    }
+
+    function logoutMarine() {
+      isMarine = false; sessionToken = '';
+      localStorage.removeItem('ce_marine_active');
+      document.getElementById('admin-banner').classList.remove('show');
+      document.getElementById('mc').classList.remove('wb');
+      document.getElementById('anav').style.display = 'none';
+      document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
+      document.getElementById('atbtn').classList.remove('on');
+      document.querySelectorAll('#anav .ni').forEach(btn => btn.style.display = '');
+      go('vue');
+      toast('Déconnecté', 'ok');
+    }
+
+    function enableDev(targetPage = 'tickets') {
+      isDev = true; isAdmin = false;
+      sessionToken = localStorage.getItem('ce_site_token') || '';
+      document.getElementById('anav').style.display = 'block';
+      document.getElementById('atbtn').textContent = '🔒 Quitter dev';
+      document.getElementById('atbtn').classList.add('on');
+      localStorage.setItem('ce_dev_active', '1');
+      go(targetPage);
+      toast('Mode dev activé', 'ok');
+    }
     function togPw() { const i = document.getElementById('pw-in'); i.type = i.type === 'password' ? 'text' : 'password'; }
 
     // ── Nav ──
     function go(p) {
       const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets'];
-      if (!isAdmin && !isDev && adm.includes(p)) return;
+      if (!isAdmin && !isDev && !isMarine && adm.includes(p)) return;
       if (!isAdmin && isDev && !['tickets'].includes(p) && adm.includes(p)) return;
+      if (!isAdmin && isMarine && !['seances'].includes(p) && adm.includes(p)) return;
       document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
       document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
       document.getElementById('page-' + p)?.classList.add('active');
@@ -2811,7 +2881,7 @@
       const now = new Date();
       const todayStr = now.toISOString().split('T')[0];
       const nowTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-      document.getElementById('vac-pub').style.display = estVac(base) && !isAdmin ? 'flex' : 'none';
+      document.getElementById('vac-pub').style.display = estVac(base) && !(isAdmin || isMarine) ? 'flex' : 'none';
       const today = new Date().toISOString().slice(0, 10);
       const [seaAll, stgAll, stgAvenir] = await Promise.all([
         dbSel('seances', { select: '*,groupes(nom,heure,moniteur_id,eleve_moniteur_id,note,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)', filter: [{ col: 'date', op: 'eq', val: date }], order: [{ col: 'heure' }] }),
@@ -2820,9 +2890,9 @@
       ]);
       C._stagesAvenir = stgAvenir;
       updateStgBanner();
-      let seances = isAdmin ? seaAll : seaAll.filter(s => !estVac(s.date));
+      let seances = (isAdmin || isMarine) ? seaAll : seaAll.filter(s => !estVac(s.date));
       // Filtrer les séances passées si c'est aujourd'hui (vue client)
-      if (!isAdmin && date === todayStr) {
+      if (!(isAdmin || isMarine) && date === todayStr) {
         seances = seances.filter(s => {
           const h = (s.groupes?.heure || s.heure || '').slice(0, 5);
           if (!h) return true; // si pas d'heure définie, on garde (cours ponctuel sans heure)
@@ -2842,7 +2912,7 @@
           dbSel('stage_chevaux', { select: '*,equides(nom)', filter: [{ col: 'stage_id', op: 'in', val: is }] }),
         ]);
       }
-      const isV = estVac(date) && !isAdmin;
+      const isV = estVac(date) && !(isAdmin || isMarine);
       if (!seances.length && !stgAll.length) { el.innerHTML = `<div class="ls">${isV ? '🏖 Vacances scolaires — aucun cours' : 'Aucun cours ni stage à venir ce jour'}</div>`; return; }
 
       // ── Bandeau impayés ────────────────────────────
@@ -2893,7 +2963,7 @@
         const couleur = isPonc ? (s.couleur_ponctuel || '#6366f1') : g.couleur || '#c9a84c';
         const sa = affs.filter(a => a.seance_id === s.id);
         // Vue publique : n'afficher que les présents (pas les absents), pas les cours exceptionnels
-        const saVisibles = isAdmin ? sa : sa.filter(a => !a.absent);
+        const saVisibles = (isAdmin || isMarine) ? sa : sa.filter(a => !a.absent);
         const sorted = [...saVisibles].sort((a, b) => { if (a.absent && !b.absent) return 1; if (!a.absent && b.absent) return -1; return (a.cavaliers?.prenom || '').localeCompare(b.cavaliers?.prenom || '', 'fr'); });
         // élève moniteur + intervenant
         const elMonId = g.eleve_moniteur_id;
