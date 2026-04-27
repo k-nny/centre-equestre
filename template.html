@@ -1360,6 +1360,11 @@
     </div>
     <button class="bbtn" onclick="logoutAdmin()">Quitter →</button>
   </div>
+  <div id="retours-banner"
+    style="display:none;position:fixed;top:0;left:0;right:0;z-index:9997;background:linear-gradient(90deg,#1a5276,#2e86c1,#1a5276);color:#fff;padding:8px 14px 8px 56px;align-items:center;justify-content:space-between;font-size:12px;font-weight:700;gap:8px;box-shadow:0 2px 12px rgba(46,134,193,.4);flex-wrap:wrap">
+    <span>💬 <span id="retours-banner-txt">Nouveau retour sur vos tickets</span></span>
+    <button class="bbtn" onclick="go('tickets');dismissRetoursBanner()">Voir →</button>
+  </div>
 
   <div class="hb" id="hb" onclick="toggleSB()"><span></span><span></span><span></span></div>
   <div class="sbo" id="sbo" onclick="toggleSB()"></div>
@@ -1845,6 +1850,59 @@
       <div class="mf">
         <button class="btn btn-g" onclick="closeMo('mo-ticket')">Annuler</button>
         <button class="btn btn-p" onclick="saveTicket()">Envoyer</button>
+      </div>
+    </div>
+  </div>
+  <!-- Modale édition ticket + retours (DEV) -->
+  <div class="mo" id="mo-ticket-detail">
+    <div class="md" style="max-width:600px">
+      <h3 id="mo-td-titre">Ticket</h3>
+      <input type="hidden" id="td-id">
+
+      <!-- Champs éditables (dev only) -->
+      <div id="td-edit-zone">
+        <div class="fg"><label>Titre</label><input type="text" id="td-titre"></div>
+        <div class="fr">
+          <div class="fg"><label>Type</label>
+            <select id="td-type">
+              <option value="bug">Bug 🐞</option>
+              <option value="evolution">Évolution ✨</option>
+              <option value="autre">Autre 💬</option>
+            </select>
+          </div>
+          <div class="fg"><label>Priorité</label>
+            <select id="td-prio">
+              <option value="basse">Basse</option>
+              <option value="normale">Normale</option>
+              <option value="haute">Haute 🔥</option>
+            </select>
+          </div>
+          <div class="fg"><label>Statut</label>
+          </div>
+        </div>
+        <div class="fg"><label>Description</label><textarea id="td-desc" rows="3"></textarea></div>
+      </div>
+
+      <!-- Section retours -->
+      <div style="border-top:1px solid var(--border);margin:14px 0;padding-top:12px">
+        <div
+          style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">
+          💬 Retours
+        </div>
+        <div id="td-retours-list"
+          style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:220px;overflow-y:auto"></div>
+        <div id="td-retour-zone">
+          <div class="fg" style="margin-bottom:8px">
+            <label>Ajouter un retour</label>
+            <textarea id="td-retour-msg" rows="2" placeholder="Votre retour, correction apportée…"></textarea>
+          </div>
+          <button class="btn btn-p sm" onclick="saveRetourTicket()">Envoyer le retour</button>
+        </div>
+      </div>
+
+      <div class="mf">
+        <button class="btn btn-g" onclick="closeMo('mo-ticket-detail')">Fermer</button>
+        <button class="btn btn-p" id="td-save-btn" onclick="saveTicketEdit()">Enregistrer</button>
       </div>
     </div>
   </div>
@@ -2626,7 +2684,7 @@
     function handleAdminToggle() {
       if (isAdmin) { logoutAdmin(); return; }
       if (isMarine) { logoutMarine(); return; }
-      if (isDev) { logoutAdmin(); return; }
+      if (isDev) { logoutDev(); return; }
       document.getElementById('pw-in').value = '';
       document.getElementById('pw-err').style.display = 'none';
       openMo('mo-pw');
@@ -2710,15 +2768,31 @@
       toast('Déconnecté', 'ok');
     }
 
-    function enableDev(targetPage = 'tickets') {
+    function enableDev(targetPage = 'dash') {
       isDev = true; isAdmin = false;
       sessionToken = localStorage.getItem('ce_site_token') || '';
+      document.getElementById('admin-banner').classList.add('show');
+      document.getElementById('mc').classList.add('wb');
       document.getElementById('anav').style.display = 'block';
       document.getElementById('atbtn').textContent = '🔒 Quitter dev';
       document.getElementById('atbtn').classList.add('on');
       localStorage.setItem('ce_dev_active', '1');
+      renderCavaliers();
       go(targetPage);
       toast('Mode dev activé', 'ok');
+    }
+
+    function logoutDev() {
+      isDev = false; sessionToken = '';
+      localStorage.removeItem('ce_dev_active');
+      document.getElementById('admin-banner').classList.remove('show');
+      document.getElementById('mc').classList.remove('wb');
+      document.getElementById('anav').style.display = 'none';
+      document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
+      document.getElementById('atbtn').classList.remove('on');
+      renderCavaliers();
+      go('vue');
+      toast('Déconnecté', 'ok');
     }
     function togPw() { const i = document.getElementById('pw-in'); i.type = i.type === 'password' ? 'text' : 'password'; }
 
@@ -2726,7 +2800,6 @@
     function go(p) {
       const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets'];
       if (!isAdmin && !isDev && adm.includes(p)) return;
-      if (!isAdmin && isDev && !['tickets'].includes(p) && adm.includes(p)) return;
       if (!isAdmin && isMarine && !['seances'].includes(p) && adm.includes(p)) return;
       document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
       document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
@@ -5727,37 +5800,189 @@
       } catch (e) { toast('Erreur : ' + e.message, 'err'); }
     }
 
-    async function renderTicketsPage() {
-      const ts = await dbSel('tickets', { order: [{ col: 'created_at', desc: true }] });
-      const bdy = document.getElementById('tickets-tbody');
+    // ── Bannière retours ──
+    async function checkRetoursBanner() {
+      if (isAdmin || isDev) return; // dev voit ses propres retours, pas la bannière
+      try {
+        const nonLus = await dbSel('ticket_retours', {
+          select: 'id',
+          filter: [{ col: 'lu', op: 'eq', val: 'false' }]
+        });
+        const banner = document.getElementById('retours-banner');
+        if (!banner) return;
+        if (nonLus.length) {
+          const txt = document.getElementById('retours-banner-txt');
+          if (txt) txt.textContent = `${nonLus.length} retour${nonLus.length > 1 ? 's' : ''} non lu${nonLus.length > 1 ? 's' : ''} sur vos tickets`;
+          banner.style.display = 'flex';
+          // Décaler le contenu principal
+          document.getElementById('mc').style.paddingTop = '54px';
+        } else {
+          banner.style.display = 'none';
+        }
+      } catch (e) { console.warn('checkRetoursBanner', e); }
+    }
 
-      // Dans renderTicketsPage() ...
+    function dismissRetoursBanner() {
+      const banner = document.getElementById('retours-banner');
+      if (banner) banner.style.display = 'none';
+    }
+
+    // ── Page tickets mise à jour ──
+    async function renderTicketsPage() {
+      // Vérifier retours non lus pour la bannière (utilisateurs non-dev)
+      if (!isDev) checkRetoursBanner();
+
+      const ts = await dbSel('tickets', { order: [{ col: 'created_at', asc: false }] });
+
+      // Charger les retours pour tous les tickets (pour indicateur)
+      let retoursCounts = {};
+      if (ts.length) {
+        const iv = `(${ts.map(t => `"${t.id}"`).join(',')})`;
+        const retours = await dbSel('ticket_retours', {
+          select: 'id,ticket_id,lu',
+          filter: [{ col: 'ticket_id', op: 'in', val: iv }]
+        });
+        retours.forEach(r => {
+          if (!retoursCounts[r.ticket_id]) retoursCounts[r.ticket_id] = { total: 0, nonLus: 0 };
+          retoursCounts[r.ticket_id].total++;
+          if (!r.lu) retoursCounts[r.ticket_id].nonLus++;
+        });
+      }
+
+      const bdy = document.getElementById('tickets-tbody');
       bdy.innerHTML = ts.map(t => {
         const isClosed = t.statut === 'termine';
+        const rc = retoursCounts[t.id] || { total: 0, nonLus: 0 };
+        const retourBadge = rc.total > 0
+          ? `<span class="b ${rc.nonLus > 0 ? 'bb' : 'b'}" style="font-size:10px">
+           💬 ${rc.total}${rc.nonLus > 0 ? ` <strong>(${rc.nonLus} nouveau${rc.nonLus > 1 ? 'x' : ''})</strong>` : ''}
+         </span>`
+          : '';
 
-        // Menu de changement de statut réservé au DEV
-        let actionsHtml = '';
-        if (isDev && !isClosed) {
-          actionsHtml = `
-      <select class="sm" onchange="updateTicketStatus('${t.id}', this.value)" style="font-size:11px; padding:2px">
-        <option value="nouveau" ${t.statut === 'nouveau' ? 'selected' : ''}>Nouveau</option>
-        <option value="en_cours" ${t.statut === 'en_cours' ? 'selected' : ''}>En cours</option>
-        <option value="termine">Terminé (Clôturer)</option>
-      </select>
-    `;
-        } else if (isClosed) {
-          actionsHtml = '<span style="color:var(--muted); font-size:11px">Archive</span>';
-        }
+        let actionsHtml = `<button class="btn btn-g sm" onclick="openTicketDetail('${t.id}')">
+      ${isDev ? '✏️ Détail' : '👁 Voir'}
+    </button>`;
 
         return `<tr>
-    <td>${new Date(t.created_at).toLocaleDateString('fr-FR')}</td>
-    <td><strong>${t.titre}</strong><div style="font-size:10px; color:var(--muted)">${t.description || ''}</div></td>
-    <td><span class="b ${t.type === 'bug' ? 'br' : 'bb'}">${t.type}</span></td>
-    <td><span class="b ${t.priorite === 'haute' ? 'bo' : ''}">${t.priorite}</span></td>
-    <td><span class="b ${t.statut === 'termine' ? 'bg' : (t.statut === 'en_cours' ? 'bp' : 'bgo')}">${t.statut.replace('_', ' ')}</span></td>
-    <td>${actionsHtml}</td>
-  </tr>`;
+      <td>${new Date(t.created_at).toLocaleDateString('fr-FR')}</td>
+      <td>
+        <strong>${t.titre}</strong>
+        <div style="font-size:10px;color:var(--muted)">${(t.description || '').slice(0, 80)}${(t.description || '').length > 80 ? '…' : ''}</div>
+        ${retourBadge}
+      </td>
+      <td><span class="b ${t.type === 'bug' ? 'br' : 'bb'}">${t.type}</span></td>
+      <td><span class="b ${t.priorite === 'haute' ? 'bo' : ''}">${t.priorite}</span></td>
+      <td><span class="b ${t.statut === 'termine' ? 'bg' : t.statut === 'en_cours' ? 'bp' : 'bgo'}">${t.statut.replace('_', ' ')}</span></td>
+      <td>${actionsHtml}</td>
+    </tr>`;
       }).join('');
+    }
+
+    // ── Ouvrir détail ticket ──
+    async function openTicketDetail(ticketId) {
+      const ts = await dbSel('tickets', {
+        select: '*',
+        filter: [{ col: 'id', op: 'eq', val: ticketId }]
+      });
+      const t = ts[0]; if (!t) return;
+
+      document.getElementById('td-id').value = ticketId;
+      document.getElementById('mo-td-titre').textContent = `🎫 ${t.titre}`;
+      document.getElementById('td-titre').value = t.titre || '';
+      document.getElementById('td-type').value = t.type || 'bug';
+      document.getElementById('td-prio').value = t.priorite || 'normale';
+      document.getElementById('td-statut').value = t.statut || 'nouveau';
+      document.getElementById('td-desc').value = t.description || '';
+      document.getElementById('td-retour-msg').value = '';
+
+      // Afficher/masquer les champs d'édition selon le rôle
+      const editZone = document.getElementById('td-edit-zone');
+      const saveBtn = document.getElementById('td-save-btn');
+      const retourZone = document.getElementById('td-retour-zone');
+      if (isDev) {
+        editZone.style.display = 'block';
+        saveBtn.style.display = '';
+        retourZone.style.display = 'block';
+      } else {
+        // Utilisateur non-dev : lecture seule + peut voir les retours
+        editZone.querySelectorAll('input,select,textarea').forEach(el => el.disabled = true);
+        saveBtn.style.display = 'none';
+        retourZone.style.display = 'none';
+      }
+
+      // Charger les retours
+      await loadRetours(ticketId);
+
+      // Marquer les retours comme lus si non-dev
+      if (!isDev) {
+        await dbUpd('ticket_retours', { lu: true },
+          [{ col: 'ticket_id', op: 'eq', val: ticketId }, { col: 'lu', op: 'eq', val: 'false' }]
+        );
+        dismissRetoursBanner();
+      }
+
+      openMo('mo-ticket-detail');
+    }
+
+    async function loadRetours(ticketId) {
+      const retours = await dbSel('ticket_retours', {
+        select: '*',
+        filter: [{ col: 'ticket_id', op: 'eq', val: ticketId }],
+        order: [{ col: 'created_at', asc: true }]
+      });
+      const el = document.getElementById('td-retours-list');
+      if (!retours.length) {
+        el.innerHTML = '<div style="color:var(--muted);font-size:12px;font-style:italic">Aucun retour pour l\'instant.</div>';
+        return;
+      }
+      el.innerHTML = retours.map(r => `
+    <div style="background:${r.lu || isDev ? 'var(--surface2)' : 'rgba(40,90,160,.07)'};border:1px solid ${r.lu || isDev ? 'var(--border)' : 'rgba(40,90,160,.25)'};border-radius:8px;padding:10px 13px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-size:11px;font-weight:700;color:var(--gold)">👤 ${r.auteur}</span>
+        <span style="font-size:10px;color:var(--muted)">${new Date(r.created_at).toLocaleDateString('fr-FR')} ${new Date(r.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+      </div>
+      <div style="font-size:13px;color:var(--text);white-space:pre-wrap">${r.message}</div>
+      ${!r.lu && !isDev ? '<div style="font-size:10px;color:#2856a0;font-weight:700;margin-top:4px">● Nouveau</div>' : ''}
+    </div>
+  `).join('');
+      // Scroll en bas
+      el.scrollTop = el.scrollHeight;
+    }
+
+    async function saveRetourTicket() {
+      const ticketId = v('td-id');
+      const msg = v('td-retour-msg').trim();
+      if (!msg) { toast('Saisissez un message', 'err'); return; }
+
+      await dbIns('ticket_retours', {
+        ticket_id: ticketId,
+        auteur: 'Dev',
+        message: msg,
+        lu: false
+      });
+
+      
+      toast('Retour envoyé', 'ok');
+      document.getElementById('td-retour-msg').value = '';
+      await loadRetours(ticketId);
+      await renderTicketsPage();
+    }
+
+    async function saveTicketEdit() {
+      if (!isDev) return;
+      const id = v('td-id');
+      const data = {
+        titre: v('td-titre').trim(),
+        type: v('td-type'),
+        priorite: v('td-prio'),
+        statut: v('td-statut'),
+        description: v('td-desc').trim()
+      };
+      if (!data.titre) { toast('Titre requis', 'err'); return; }
+      await dbUpd('tickets', data, [{ col: 'id', op: 'eq', val: id }]);
+      toast('Ticket mis à jour', 'ok');
+      document.getElementById('mo-td-titre').textContent = `🎫 ${data.titre}`;
+      await renderTicketsPage();
     }
 
     function openTicketMo() {
@@ -5788,30 +6013,7 @@
       } catch (e) { toast(e.message, 'err'); }
     }
 
-    async function updateTicketStatus(id, newStatus) {
-      if (newStatus === 'termine' && !confirm('Clôturer définitivement ce ticket ?')) {
-        renderTicketsPage(); // Reset l'affichage si annulation
-        return;
-      }
-
-      try {
-        // On met à jour la table tickets
-        // Note: l'app_key est gérée automatiquement par ton db.js si configuré
-        await dbUpd('tickets',
-          { statut: newStatus },
-          [{ col: 'id', op: 'eq', val: id }]
-        );
-
-        toast('Statut mis à jour', 'ok');
-        renderTicketsPage();
-      } catch (e) {
-        console.error(e);
-        toast('Erreur de droits ou réseau', 'err');
-        // On ne déconnecte pas, on rafraîchit juste pour annuler le changement visuel
-        renderTicketsPage();
-      }
-    }
-
+    
     // ── Screenshot tickets ──
     let _ticketScreenshotB64 = null;
 
