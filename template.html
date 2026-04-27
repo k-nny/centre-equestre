@@ -1878,11 +1878,15 @@
             </select>
           </div>
           <div class="fg"><label>Statut</label>
+            <select id="td-statut">
+              <option value="nouveau">Nouveau</option>
+              <option value="en_cours">En cours</option>
+              <option value="termine">Terminé</option>
+            </select>
           </div>
         </div>
         <div class="fg"><label>Description</label><textarea id="td-desc" rows="3"></textarea></div>
       </div>
-
       <!-- Section retours -->
       <div style="border-top:1px solid var(--border);margin:14px 0;padding-top:12px">
         <div
@@ -2703,6 +2707,7 @@
           localStorage.removeItem('ce_admin_active');
           localStorage.removeItem('ce_dev_active');
           localStorage.removeItem('ce_marine_active');
+          closeMo('mo-pw');
           if (isDev) {
             localStorage.setItem('ce_dev_active', '1');
             enableDev();
@@ -2710,14 +2715,14 @@
             localStorage.setItem('ce_marine_active', '1');
             enableMarine();
           } else {
+            localStorage.setItem('ce_admin_active', '1');
             enableAdmin();
           }
-          closeMo('mo-pw');
-          localStorage.setItem('ce_admin_active', '1');
-          localStorage.setItem('ce_role', j.role); // Optionnel pour persister le rôle
-          enableAdmin();
-          closeMo('mo-pw');
-        } else { document.getElementById('pw-err').style.display = 'block'; document.getElementById('pw-in').value = ''; document.getElementById('pw-in').focus(); }
+        } else {
+          document.getElementById('pw-err').style.display = 'block';
+          document.getElementById('pw-in').value = '';
+          document.getElementById('pw-in').focus();
+        }
       } catch { document.getElementById('pw-err').style.display = 'block'; }
       btn.textContent = 'Connexion'; btn.disabled = false;
     }
@@ -5899,16 +5904,9 @@
       const editZone = document.getElementById('td-edit-zone');
       const saveBtn = document.getElementById('td-save-btn');
       const retourZone = document.getElementById('td-retour-zone');
-      if (isDev) {
-        editZone.style.display = 'block';
-        saveBtn.style.display = '';
-        retourZone.style.display = 'block';
-      } else {
-        // Utilisateur non-dev : lecture seule + peut voir les retours
-        editZone.querySelectorAll('input,select,textarea').forEach(el => el.disabled = true);
-        saveBtn.style.display = 'none';
-        retourZone.style.display = 'none';
-      }
+      editZone.style.display = 'block';
+      saveBtn.style.display = '';
+      retourZone.style.display = 'block';
 
       // Charger les retours
       await loadRetours(ticketId);
@@ -5961,7 +5959,7 @@
         lu: false
       });
 
-      
+
       toast('Retour envoyé', 'ok');
       document.getElementById('td-retour-msg').value = '';
       await loadRetours(ticketId);
@@ -6013,7 +6011,7 @@
       } catch (e) { toast(e.message, 'err'); }
     }
 
-    
+
     // ── Screenshot tickets ──
     let _ticketScreenshotB64 = null;
 
