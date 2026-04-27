@@ -2731,7 +2731,7 @@
     // ── Nav ──
     function go(p) {
       const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets'];
-      if (!isAdmin && !isDev && !isMarine && adm.includes(p)) return;
+      if (!isAdmin && !isDev && adm.includes(p)) return;
       if (!isAdmin && isDev && !['tickets'].includes(p) && adm.includes(p)) return;
       if (!isAdmin && isMarine && !['seances'].includes(p) && adm.includes(p)) return;
       document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
