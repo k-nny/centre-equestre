@@ -98,6 +98,52 @@ export default async function handler(req, res) {
     });
     return res.json({ ok: emailRes.ok });
   }
+  if (req.method === 'POST' && req.body.action === 'send-ticket-retour-email') {
+    const { ticket, token } = req.body;
+
+    if (!verifyToken(token, ADMIN_PWD) && !verifyToken(token, DEV_PASSWORD)) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const resendKey = process.env.RESEND_API_KEY;
+    const toEmail = process.env.NOTIF_EMAIL;
+
+    
+
+    const html = `
+  <p><strong>Retour :</strong> ${ticket.message}</p>
+  <p><em>Envoyé depuis l'application de gestion des écuries</em></p>
+`;
+
+    const body = {
+      from: 'Ecuries <onboarding@resend.dev>',
+      to: toEmail,
+      subject: `[Modif Ticket] ${ticket.ticketTitre}`,
+      html
+    };
+
+    // 👉 seulement si image
+    if (hasImage) {
+      body.attachments = [
+        {
+          filename: "image.png",
+          content: base64Data,
+          encoding: "base64",
+          cid: "my-image",
+        },
+      ];
+    }
+
+    const emailRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${resendKey}`
+      },
+      body: JSON.stringify(body)
+    });
+    return res.json({ ok: emailRes.ok });
+  }
 
   // ── Route : vérification du mot de passe admin ─────────────────────
   // POST /api/db  { action: 'auth', password: '...' }

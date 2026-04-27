@@ -69,10 +69,17 @@
     #admin-banner.show {
       display: flex;
     }
+
+    /* 54 admin + 34 retours */
+    .main.wb2 {
+      padding-top: 88px;
+    }
+
+
     #retours-banner {
       display: none;
       position: fixed;
-      top: 20px;
+      top: 36px;
       left: 0;
       right: 0;
       z-index: 9998;
@@ -2646,6 +2653,8 @@
         await loadAll();
         document.getElementById('ld').style.display = 'none';
         document.getElementById('app').style.display = 'block';
+        // Vérifier les retours non lus après chargement (admin et marine)
+        setTimeout(() => checkRetoursBanner(), 500);
         // Restaurer le mode admin seulement si l'utilisateur l'avait explicitement activé
         // (flag posé par enableAdmin, effacé par logoutAdmin — indépendant du token site)
         // Restaurer la dernière page visitée
@@ -2753,6 +2762,7 @@
       document.getElementById('mc').classList.add('wb'); document.getElementById('anav').style.display = 'block';
       document.getElementById('atbtn').textContent = '🔒 Quitter admin'; document.getElementById('atbtn').classList.add('on');
       localStorage.setItem('ce_admin_active', '1');
+      setTimeout(() => checkRetoursBanner(), 300);
       renderCavaliers(); go(targetPage); toast('Mode admin activé', 'ok');
     }
     function logoutAdmin() {
@@ -3162,8 +3172,52 @@
           }).join('')}</tbody></table>`;
       });
       loadImpayes();
+      loadRetoursNonLusDash();
     }
 
+    async function loadRetoursNonLusDash() {
+      try {
+        const nonLus = await dbSel('ticket_retours', {
+          select: 'id,ticket_id,auteur,message,created_at',
+          filter: [{ col: 'lu', op: 'eq', val: 'false' }],
+          order: [{ col: 'created_at', asc: false }]
+        });
+        if (!nonLus.length) return;
+
+        // Charger les titres des tickets concernés
+        const ids = `(${[...new Set(nonLus.map(r => `"${r.ticket_id}`))].join(',')})`;
+        const tickets = await dbSel('tickets', {
+          select: 'id,titre',
+          filter: [{ col: 'id', op: 'in', val: ids }]
+        });
+
+        // Injecter ou créer le bloc dans le dashboard
+        let wrap = document.getElementById('td-retours-dash-wrap');
+        if (!wrap) {
+          wrap = document.createElement('div');
+          wrap.id = 'td-retours-dash-wrap';
+          wrap.className = 'tc';
+          wrap.style.marginBottom = '20px';
+          wrap.innerHTML = `<div class="tt"><h3>💬 Retours non lus sur les tickets</h3></div><div id="td-retours-dash"></div>`;
+          // Insérer avant td-impayes-wrap
+          const impayes = document.getElementById('td-impayes-wrap');
+          impayes.parentNode.insertBefore(wrap, impayes);
+        }
+
+        const el = document.getElementById('td-retours-dash');
+        el.innerHTML = nonLus.map(r => {
+          const ticket = tickets.find(t => t.id === r.ticket_id);
+          return `<div style="padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <div>
+          <div style="font-size:12px;font-weight:700">💬 <span style="color:var(--gold)">${r.auteur}</span> — ${ticket?.titre || 'Ticket'}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${(r.message || '').slice(0, 80)}${(r.message || '').length > 80 ? '…' : ''}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">${new Date(r.created_at).toLocaleDateString('fr-FR')}</div>
+        </div>
+        <button class="btn btn-g sm" onclick="go('tickets');openTicketDetail('${r.ticket_id}')">Voir →</button>
+      </div>`;
+        }).join('');
+      } catch (e) { console.warn('loadRetoursNonLusDash', e); }
+    }
 
     async function loadImpayes() {
       const wrap = document.getElementById('td-impayes-wrap');
@@ -5829,7 +5883,7 @@
 
     // ── Bannière retours ──
     async function checkRetoursBanner() {
-      if (isAdmin || isDev) return; // dev voit ses propres retours, pas la bannière
+      if (isDev) return; // dev ne voit pas la bannière
       try {
         const nonLus = await dbSel('ticket_retours', {
           select: 'id',
@@ -5840,11 +5894,14 @@
         if (nonLus.length) {
           const txt = document.getElementById('retours-banner-txt');
           if (txt) txt.textContent = `${nonLus.length} retour${nonLus.length > 1 ? 's' : ''} non lu${nonLus.length > 1 ? 's' : ''} sur vos tickets`;
+          // Positionner sous la bannière admin si elle est visible
+          const adminBannerVisible = document.getElementById('admin-banner').classList.contains('show');
+          banner.style.top = adminBannerVisible ? '36px' : '0';
           banner.style.display = 'flex';
-          // Décaler le contenu principal
-          document.getElementById('mc').style.paddingTop = '54px';
+          document.getElementById('mc').classList.add('wb2');
         } else {
           banner.style.display = 'none';
+          document.getElementById('mc').classList.remove('wb2');
         }
       } catch (e) { console.warn('checkRetoursBanner', e); }
     }
@@ -5922,19 +5979,41 @@
       document.getElementById('td-desc').value = t.description || '';
       document.getElementById('td-retour-msg').value = '';
 
-      // Afficher/masquer les champs d'édition selon le rôle
       const editZone = document.getElementById('td-edit-zone');
       const saveBtn = document.getElementById('td-save-btn');
       const retourZone = document.getElementById('td-retour-zone');
-      editZone.style.display = 'block';
-      saveBtn.style.display = '';
-      retourZone.style.display = 'block';
+      const retourLabel = document.querySelector('#td-retour-zone label');
 
-      // Charger les retours
+      if (isDev) {
+        // Dev : peut tout modifier + répondre (auteur = Dev)
+        editZone.querySelectorAll('input,select,textarea').forEach(el => el.disabled = false);
+        editZone.style.display = 'block';
+        saveBtn.style.display = '';
+        retourZone.style.display = 'block';
+        if (retourLabel) retourLabel.textContent = 'Ajouter un retour (Dev)';
+      } else if (isAdmin) {
+        // Admin : peut voir les champs, modifier le statut, répondre (auteur = Admin)
+        editZone.style.display = 'block';
+        // Désactiver titre/type/priorité/description pour admin, garder statut
+        ['td-titre', 'td-type', 'td-prio', 'td-desc'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.disabled = true;
+        });
+        document.getElementById('td-statut').disabled = false;
+        saveBtn.style.display = '';
+        saveBtn.textContent = 'Mettre à jour le statut';
+        retourZone.style.display = 'block';
+        if (retourLabel) retourLabel.textContent = 'Répondre au ticket (Admin)';
+      } else {
+        // Autres : lecture seule, pas de retour
+        editZone.querySelectorAll('input,select,textarea').forEach(el => el.disabled = true);
+        saveBtn.style.display = 'none';
+        retourZone.style.display = 'none';
+      }
+
       await loadRetours(ticketId);
 
-      // Marquer les retours comme lus si non-dev
-      if (!isDev) {
+      if (!isDev && !isAdmin) {
         await dbUpd('ticket_retours', { lu: true },
           [{ col: 'ticket_id', op: 'eq', val: ticketId }, { col: 'lu', op: 'eq', val: 'false' }]
         );
@@ -5974,13 +6053,28 @@
       const msg = v('td-retour-msg').trim();
       if (!msg) { toast('Saisissez un message', 'err'); return; }
 
+      const auteur = isDev ? 'Dev' : isAdmin ? 'Admin' : 'Utilisateur';
+
       await dbIns('ticket_retours', {
         ticket_id: ticketId,
-        auteur: 'Dev',
+        auteur,
         message: msg,
         lu: false
       });
 
+      // Email uniquement Admin → Dev (pas Dev → Admin)
+      if (isAdmin) {
+        try {
+          const ts = await dbSel('tickets', { select: 'titre', filter: [{ col: 'id', op: 'eq', val: ticketId }] });
+          await dbReq({
+            action: 'send-ticket-retour-email',
+            token: sessionToken,
+            ticketTitre: ts[0]?.titre || '?',
+            message: msg,
+            auteur: 'Admin'
+          });
+        } catch (e) { console.warn('Email retour non envoyé', e); }
+      }
 
       toast('Retour envoyé', 'ok');
       document.getElementById('td-retour-msg').value = '';
