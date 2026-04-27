@@ -69,6 +69,28 @@
     #admin-banner.show {
       display: flex;
     }
+    #retours-banner {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 0;
+      right: 0;
+      z-index: 9998;
+      background: linear-gradient(90deg, #7a3a0c, #c97a30, #7a3a0c);
+      color: #fff;
+      padding: 8px 14px 8px 56px;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      gap: 8px;
+      box-shadow: 0 2px 12px rgba(201, 122, 48, .4);
+      flex-wrap: wrap;
+    }
+
+    #retours-banner.show {
+      display: flex;
+    }
 
     .bwarn {
       font-size: 10px;
@@ -5865,7 +5887,7 @@
           : '';
 
         let actionsHtml = `<button class="btn btn-g sm" onclick="openTicketDetail('${t.id}')">
-      ${isDev ? '✏️ Détail' : '👁 Voir'}
+      ${isDev ? '✏️ Modifier' : '👁 Voir / modifier'}
     </button>`;
 
         return `<tr>
