@@ -1916,17 +1916,22 @@
         </div>
         <div class="fg"><label>Description</label><textarea id="td-desc" rows="3"></textarea></div>
       </div>
+
       <!-- Section retours -->
       <div style="border-top:1px solid var(--border);margin:14px 0;padding-top:12px">
-        <div
-          style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">
-          💬 Retours
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">
+            💬 Retours
+          </div>
+          <button id="td-marquer-lu-btn" class="btn btn-g sm" onclick="marquerRetoursLus()" style="display:none">
+            ✅ Marquer tout comme lu
+          </button>
         </div>
         <div id="td-retours-list"
           style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:220px;overflow-y:auto"></div>
         <div id="td-retour-zone">
           <div class="fg" style="margin-bottom:8px">
-            <label>Ajouter un retour</label>
+            <label id="td-retour-label">Ajouter un retour</label>
             <textarea id="td-retour-msg" rows="2" placeholder="Votre retour, correction apportée…"></textarea>
           </div>
           <button class="btn btn-p sm" onclick="saveRetourTicket()">Envoyer le retour</button>
@@ -2836,8 +2841,10 @@
     // ── Nav ──
     function go(p) {
       const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets'];
-      if (!isAdmin && !isDev && adm.includes(p)) return;
-      if (!isAdmin && isMarine && !['seances'].includes(p) && adm.includes(p)) return;
+      // Bloquer les pages admin si pas de rôle élevé
+      if (!isAdmin && !isDev && !isMarine && adm.includes(p)) return;
+      // Marine : seulement séances (+ vue est déjà publique)
+      if (isMarine && !isAdmin && !isDev && !['seances'].includes(p) && adm.includes(p)) return;
       document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
       document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
       document.getElementById('page-' + p)?.classList.add('active');
@@ -6016,6 +6023,15 @@
       }
 
       await loadRetours(ticketId);
+      // Afficher le bouton "marquer lu" pour admin si retours non lus
+      const marquerBtn = document.getElementById('td-marquer-lu-btn');
+      if (marquerBtn) {
+        const hasNonLus = await dbSel('ticket_retours', {
+          select: 'id',
+          filter: [{ col: 'ticket_id', op: 'eq', val: ticketId }, { col: 'lu', op: 'eq', val: 'false' }]
+        });
+        marquerBtn.style.display = (isAdmin && hasNonLus.length > 0) ? '' : 'none';
+      }
 
       if (!isDev && !isAdmin) {
         await dbUpd('ticket_retours', { lu: true },
@@ -6027,6 +6043,23 @@
       openMo('mo-ticket-detail');
     }
 
+    async function marquerRetoursLus() {
+      const ticketId = v('td-id');
+      if (!ticketId) return;
+      await dbUpd('ticket_retours', { lu: true }, [
+        { col: 'ticket_id', op: 'eq', val: ticketId },
+        { col: 'lu', op: 'eq', val: 'false' }
+      ]);
+      toast('Retours marqués comme lus', 'ok');
+      document.getElementById('td-marquer-lu-btn').style.display = 'none';
+      await loadRetours(ticketId);
+      await checkRetoursBanner();
+      await renderTicketsPage();
+      // Mettre à jour le dashboard si visible
+      if (document.getElementById('page-dash')?.classList.contains('active')) {
+        await loadRetoursNonLusDash();
+      }
+    }
     async function loadRetours(ticketId) {
       const retours = await dbSel('ticket_retours', {
         select: '*',
