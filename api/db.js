@@ -174,7 +174,7 @@ export default async function handler(req, res) {
 
     // ── Upload icône discipline vers Supabase Storage ─────────────────
     // { action: 'upload-icon', token, discipline, fileBase64, mimeType }
-    if (req.method === 'update-env') {
+    if (body.action === 'update-env') {
       if (!isAdmin(token)) return res.status(403).json({ error: 'Non autorisé' });
       const { varName, newValue } = body;
       // Whitelist stricte des variables modifiables
