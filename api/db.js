@@ -108,7 +108,7 @@ export default async function handler(req, res) {
     const resendKey = process.env.RESEND_API_KEY;
     const toEmail = process.env.NOTIF_EMAIL;
 
-
+    
 
     const html = `
   <p><strong>Retour :</strong> ${message}</p>
@@ -172,116 +172,8 @@ export default async function handler(req, res) {
       return res.status(200).json({ hash });
     }
 
-    if (body.action === 'update-env') {
-      if (!isAdmin(token)) {
-        return res.status(403).json({ error: 'Non autorisé' });
-      }
-
-      const { varName, newValue } = body;
-
-      // whitelist stricte
-      const allowed = ['ADMIN_PASSWORD', 'DEV_PASSWORD', 'MARINE_PASSWORD'];
-      if (!allowed.includes(varName)) {
-        return res.status(400).json({ error: 'Variable non autorisée' });
-      }
-
-      const projectId = process.env.VERCEL_PROJECT_ID;
-      const apiToken = process.env.VERCEL_API_TOKEN;
-
-      if (!projectId || !apiToken) {
-        return res.status(500).json({ error: 'VERCEL_PROJECT_ID ou VERCEL_API_TOKEN manquant' });
-      }
-
-      try {
-        // 1. récupérer les env vars existantes
-        const envRes = await fetch(
-          `https://api.vercel.com/v9/projects/${projectId}/env`,
-          {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer ${apiToken}`,
-            },
-          }
-        );
-
-        if (!envRes.ok) {
-          const err = await envRes.json();
-          throw new Error(err.error?.message || 'Erreur GET env');
-        }
-
-        const envData = await envRes.json();
-
-        const existing = (envData.envs || []).find(e => e.key === varName);
-
-        // 2. supprimer si existe
-        if (existing) {
-          const delRes = await fetch(
-            `https://api.vercel.com/v9/projects/${projectId}/env/${existing.id}`,
-            {
-              method: 'DELETE',
-              headers: {
-                Authorization: `Bearer ${apiToken}`,
-              },
-            }
-          );
-
-          if (!delRes.ok) {
-            const err = await delRes.json();
-            throw new Error(err.error?.message || 'Erreur DELETE env');
-          }
-        }
-
-        // 3. créer nouvelle variable
-        const createRes = await fetch(
-          `https://api.vercel.com/v9/projects/${projectId}/env`,
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${apiToken}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              key: varName,
-              value: newValue,
-              type: 'encrypted',
-              target: ['production', 'preview'],
-            }),
-          }
-        );
-
-        if (!createRes.ok) {
-          const err = await createRes.json();
-          throw new Error(err.error?.message || 'Erreur CREATE env');
-        }
-
-        // 4. déclencher redeploy (séparé logiquement)
-        const deployRes = await fetch(
-          `https://api.vercel.com/v13/deployments`,
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${apiToken}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              name: process.env.VERCEL_PROJECT_NAME,
-              target: 'production',
-              forceNew: 1,
-            }),
-          }
-        );
-
-        if (!deployRes.ok) {
-          const err = await deployRes.json();
-          throw new Error(err.error?.message || 'Erreur deploy');
-        }
-
-        return res.json({ ok: true });
-      } catch (e) {
-        console.error('Vercel update-env error:', e);
-        return res.status(500).json({ error: e.message });
-      }
-    }
+    // ── Upload icône discipline vers Supabase Storage ─────────────────
+    // { action: 'upload-icon', token, discipline, fileBase64, mimeType }
     if (body.action === 'upload-icon') {
       if (!verifyToken(body.token, ADMIN_PWD) && !verifyToken(body.token, DEV_PASSWORD))
         return res.status(403).json({ error: 'Non autorisé' });

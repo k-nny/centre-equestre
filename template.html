@@ -1870,63 +1870,6 @@
             </div>
           </div>
 
-          <!-- Mots de passe -->
-          <div class="tc" id="params-pw-section">
-            <div class="tt">
-              <h3>🔑 Mots de passe</h3>
-            </div>
-            <div style="padding:18px;display:flex;flex-direction:column;gap:14px">
-              <div style="font-size:12px;color:var(--muted)">
-                Les mots de passe sont stockés dans les variables d'environnement Vercel et mis à jour via l'API Vercel.
-                Un redéploiement automatique sera déclenché.
-              </div>
-              <div id="params-pw-fields" style="display:flex;flex-direction:column;gap:12px">
-                
-                <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
-                  <div class="fr">
-                    <div class="fg">
-                      <label>Mot de passe admin</label>
-                      <div class="pwg">
-                        <input type="password" id="pw-admin-new" placeholder="Nouveau mot de passe…">
-                        <button class="pwe" onclick="togPwField('pw-admin-new')" type="button">👁</button>
-                      </div>
-                    </div>
-                    <div class="fg">
-                      <label>Confirmation</label>
-                      <div class="pwg">
-                        <input type="password" id="pw-admin-confirm" placeholder="Confirmer…">
-                        <button class="pwe" onclick="togPwField('pw-admin-confirm')" type="button">👁</button>
-                      </div>
-                    </div>
-                  </div>
-                  <button class="btn btn-p" style="width:fit-content" onclick="savePwAdmin()">Changer le mot de passe
-                    admin</button>
-                </div>
-
-                <div class="fr">
-                  <div class="fg">
-                    <label>Mot de passe développeur</label>
-                    <div class="pwg">
-                      <input type="password" id="pw-dev-new" placeholder="Nouveau mot de passe…">
-                      <button class="pwe" onclick="togPwField('pw-dev-new')" type="button">👁</button>
-                    </div>
-                  </div>
-                  <div class="fg">
-                    <label>Confirmation</label>
-                    <div class="pwg">
-                      <input type="password" id="pw-dev-confirm" placeholder="Confirmer…">
-                      <button class="pwe" onclick="togPwField('pw-dev-confirm')" type="button">👁</button>
-                    </div>
-                  </div>
-                </div>
-                <button class="btn btn-p" style="width:fit-content" onclick="savePwDev()">Changer le mot de passe développeur</button>
-
-              </div>
-              <div id="params-pw-status" style="display:none"></div>
-            </div>
-          </div>
-        </div>
-
 
         <!-- ═══════════════ MODALS ═══════════════ -->
         <div class="mo" id="mo-ticket">
@@ -6347,49 +6290,6 @@
             if (el) el.type = el.type === 'password' ? 'text' : 'password';
           }
 
-          async function savePwDev() {
-            const nv = document.getElementById('pw-dev-new').value.trim();
-            const cf = document.getElementById('pw-dev-confirm').value.trim();
-            if (!nv) { toast('Saisissez un mot de passe', 'err'); return; }
-            if (nv !== cf) { toast('Les mots de passe ne correspondent pas', 'err'); return; }
-            await changeEnvPassword('DEV_PASSWORD', nv, 'pw-dev-new', 'pw-dev-confirm');
-          }
-
-          async function savePwAdmin() {
-            const nv = document.getElementById('pw-admin-new').value.trim();
-            const cf = document.getElementById('pw-admin-confirm').value.trim();
-            if (!nv) { toast('Saisissez un mot de passe', 'err'); return; }
-            if (nv !== cf) { toast('Les mots de passe ne correspondent pas', 'err'); return; }
-            await changeEnvPassword('ADMIN_PASSWORD', nv, 'pw-admin-new', 'pw-admin-confirm');
-          }
-
-          async function changeEnvPassword(varName, newValue, field1Id, field2Id) {
-            const statusEl = document.getElementById('params-pw-status');
-            statusEl.style.display = 'block';
-            statusEl.innerHTML = `<div class="warn-box">⏳ Mise à jour en cours…</div>`;
-            try {
-              const r = await dbReq({
-                action: 'update-env',
-                token: sessionToken,
-                varName,
-                newValue
-              });
-              if (r.ok) {
-                document.getElementById(field1Id).value = '';
-                document.getElementById(field2Id).value = '';
-                statusEl.innerHTML = `<div style="background:rgba(46,120,70,.07);border:1px solid rgba(46,120,70,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:#1e7a40">
-        ✅ Mot de passe mis à jour. Un redéploiement a été déclenché (~1 min).
-        <br><span style="color:var(--muted);font-size:11px">Reconnectez-vous avec le nouveau mot de passe après le redéploiement.</span>
-      </div>`;
-                // Effacer le hash local pour forcer re-validation au prochain chargement
-                localStorage.removeItem('ce_pw_hash');
-              } else {
-                throw new Error(r.error || 'Erreur inconnue');
-              }
-            } catch (e) {
-              statusEl.innerHTML = `<div class="warn-box">❌ Erreur : ${e.message}</div>`;
-            }
-          }
           function isAbsenceRattrapable(dateSeance) {
             const mode = APP_SETTINGS.rattrap_mode || 'semaines';
             const today = new Date().toISOString().slice(0, 10);
