@@ -178,7 +178,7 @@ export default async function handler(req, res) {
       if (!isAdmin(token)) return res.status(403).json({ error: 'Non autorisé' });
       const { varName, newValue } = body;
       // Whitelist stricte des variables modifiables
-      const allowed = ['SITE_PASSWORD', 'ADMIN_PASSWORD', 'DEV_PASSWORD', 'MARINE_PASSWORD'];
+      const allowed = ['ADMIN_PASSWORD', 'DEV_PASSWORD', 'MARINE_PASSWORD'];
       if (!allowed.includes(varName)) return res.status(400).json({ error: 'Variable non autorisée' });
 
       const projectId = process.env.VERCEL_PROJECT_ID;

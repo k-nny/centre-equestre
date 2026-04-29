@@ -1881,25 +1881,7 @@
                 Un redéploiement automatique sera déclenché.
               </div>
               <div id="params-pw-fields" style="display:flex;flex-direction:column;gap:12px">
-                <div class="fr">
-                  <div class="fg">
-                    <label>Mot de passe site (accès public)</label>
-                    <div class="pwg">
-                      <input type="password" id="pw-site-new" placeholder="Nouveau mot de passe…">
-                      <button class="pwe" onclick="togPwField('pw-site-new')" type="button">👁</button>
-                    </div>
-                  </div>
-                  <div class="fg">
-                    <label>Confirmation</label>
-                    <div class="pwg">
-                      <input type="password" id="pw-site-confirm" placeholder="Confirmer…">
-                      <button class="pwe" onclick="togPwField('pw-site-confirm')" type="button">👁</button>
-                    </div>
-                  </div>
-                </div>
-                <button class="btn btn-p" style="width:fit-content" onclick="savePwSite()">Changer le mot de passe
-                  site</button>
-
+                
                 <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
                   <div class="fr">
                     <div class="fg">
@@ -1920,6 +1902,25 @@
                   <button class="btn btn-p" style="width:fit-content" onclick="savePwAdmin()">Changer le mot de passe
                     admin</button>
                 </div>
+
+                <div class="fr">
+                  <div class="fg">
+                    <label>Mot de passe développeur</label>
+                    <div class="pwg">
+                      <input type="password" id="pw-dev-new" placeholder="Nouveau mot de passe…">
+                      <button class="pwe" onclick="togPwField('pw-dev-new')" type="button">👁</button>
+                    </div>
+                  </div>
+                  <div class="fg">
+                    <label>Confirmation</label>
+                    <div class="pwg">
+                      <input type="password" id="pw-dev-confirm" placeholder="Confirmer…">
+                      <button class="pwe" onclick="togPwField('pw-dev-confirm')" type="button">👁</button>
+                    </div>
+                  </div>
+                </div>
+                <button class="btn btn-p" style="width:fit-content" onclick="savePwSite()">Changer le mot de passe développeur</button>
+
               </div>
               <div id="params-pw-status" style="display:none"></div>
             </div>
@@ -6315,7 +6316,7 @@
             document.getElementById('rm-vacances').checked = mode === 'vacances';
             document.getElementById('rattrap-semaines-val').value = semaines;
             // Cacher section mdp si pas admin
-            document.getElementById('params-pw-section').style.display = isAdmin ? 'block' : 'none';
+            document.getElementById('params-pw-section').style.display = isAdmin || isDev ? 'block' : 'none';
           }
 
           function onRattrapModeChange() {
@@ -6346,13 +6347,12 @@
             if (el) el.type = el.type === 'password' ? 'text' : 'password';
           }
 
-          async function savePwSite() {
-            const nv = document.getElementById('pw-site-new').value.trim();
-            const cf = document.getElementById('pw-site-confirm').value.trim();
+          async function savePwDev() {
+            const nv = document.getElementById('pw-dev-new').value.trim();
+            const cf = document.getElementById('pw-dev-confirm').value.trim();
             if (!nv) { toast('Saisissez un mot de passe', 'err'); return; }
             if (nv !== cf) { toast('Les mots de passe ne correspondent pas', 'err'); return; }
-            if (nv.length < 6) { toast('Minimum 6 caractères', 'err'); return; }
-            await changeEnvPassword('SITE_PASSWORD', nv, 'pw-site-new', 'pw-site-confirm');
+            await changeEnvPassword('DEV_PASSWORD', nv, 'pw-dev-new', 'pw-dev-confirm');
           }
 
           async function savePwAdmin() {
@@ -6360,7 +6360,6 @@
             const cf = document.getElementById('pw-admin-confirm').value.trim();
             if (!nv) { toast('Saisissez un mot de passe', 'err'); return; }
             if (nv !== cf) { toast('Les mots de passe ne correspondent pas', 'err'); return; }
-            if (nv.length < 6) { toast('Minimum 6 caractères', 'err'); return; }
             await changeEnvPassword('ADMIN_PASSWORD', nv, 'pw-admin-new', 'pw-admin-confirm');
           }
 
