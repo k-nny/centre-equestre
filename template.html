@@ -6290,11 +6290,6 @@
               }
             }
 
-            function togPwField(id) {
-              const el = document.getElementById(id);
-              if (el) el.type = el.type === 'password' ? 'text' : 'password';
-            }
-
             function isAbsenceRattrapable(dateSeance) {
               const mode = APP_SETTINGS.rattrap_mode || 'semaines';
               const today = new Date().toISOString().slice(0, 10);
