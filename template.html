@@ -5840,7 +5840,6 @@
         <td><strong>${a.cavaliers ? cap(a.cavaliers.prenom || '') + (a.cavaliers.nom ? ' ' + a.cavaliers.nom.toUpperCase() : '') : '?'}</strong></td>
         <td>${a.motif_absence || '<span style="color:var(--muted)">—</span>'}</td>
         <td>${a.date_rattrapage ? fmtDate(a.date_rattrapage) : '<span style="color:var(--muted)">—</span>'}</td>
-        // Dans la génération du tbody des absences, après la colonne "Rattrapage prévu" :
 <td>${!a.rattrapage_effectue && a.seances?.date && !isAbsenceRattrapable(a.seances.date)
                   ? '<span class="b br" style="font-size:10px">⛔ Expiré</span>'
                   : (a.rattrapage_effectue
