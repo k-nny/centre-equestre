@@ -2800,7 +2800,6 @@
             document.getElementById('ld').style.display = 'none';
             document.getElementById('app').style.display = 'block';
             // Vérifier les retours non lus après chargement (admin et marine)
-            setTimeout(() => checkRetoursBanner(), 500);
             // Restaurer le mode admin seulement si l'utilisateur l'avait explicitement activé
             // (flag posé par enableAdmin, effacé par logoutAdmin — indépendant du token site)
             // Restaurer la dernière page visitée
@@ -2808,6 +2807,7 @@
             const adminPages = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets'];
             if (localStorage.getItem('ce_admin_active') === '1') {
               sessionToken = siteToken;
+              setTimeout(() => checkRetoursBanner(), 500);
               enableAdmin(lastPage); // on passe la page à restaurer
               return;
             }
@@ -3467,7 +3467,7 @@
             👤 ${s.moniteur1?.prenom || '—'}
             ${elMon ? `· <span style="opacity:.85">${elMon.prenom}</span>` : ''}
             ${mon2prenom ? `· 👤 ${mon2prenom}${cheval2nom ? ' 🐎 ' + cheval2nom : ''}` : ''}</div>
-            ${s.note_seance ? `<div class="note-pub" style="background:rgba(255,255,255,.15);color:#92400e;font-style:italic">📝 ${s.note_seance}</div>` : ''}
+            ${s.note_seance ? `<div class="note-pub" style="background:rgba(255,255,255,.75);color:#92400e;font-style:italic">📝 ${s.note_seance}</div>` : ''}
             ${g.note ? `<div class="note-pub">📝 ${g.note}</div>` : ''}
         </div>
       </div>
