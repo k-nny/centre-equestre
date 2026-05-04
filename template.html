@@ -2872,8 +2872,8 @@
           let _pollTimer = null;
           let _lastActivity = Date.now();
 
-          const POLL_INTERVAL_ACTIVE = 30000;  // 30s si actif
-          const POLL_INTERVAL_IDLE = 120000;   // 2min si inactif
+          const POLL_INTERVAL_ACTIVE = 300000;  // 5min si actif
+          const POLL_INTERVAL_IDLE = 1800000;   // 30min si inactif
 
           async function pollUpdates() {
             const page = document.querySelector('.page.active')?.id?.replace('page-', '');
