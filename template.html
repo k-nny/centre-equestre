@@ -2799,6 +2799,7 @@
             await loadAll();
             document.getElementById('ld').style.display = 'none';
             document.getElementById('app').style.display = 'block';
+            initRealtime();
             // Vérifier les retours non lus après chargement (admin et marine)
             // Restaurer le mode admin seulement si l'utilisateur l'avait explicitement activé
             // (flag posé par enableAdmin, effacé par logoutAdmin — indépendant du token site)
@@ -2860,7 +2861,59 @@
           document.getElementById('grp-couleur-preview').style.background = hex;
         }
         function hexToRgbStr(h) { const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h); return r ? `${parseInt(r[1], 16)}, ${parseInt(r[2], 16)}, ${parseInt(r[3], 16)}` : '0, 0, 0'; }
+        let _realtimeChannel = null;
 
+        function initRealtime() {
+          // Utilise l'API Supabase Realtime via le proxy existant — 
+          // mais comme on passe par /api/db on ne peut pas utiliser le client Supabase directement.
+          // On utilise donc un polling intelligent : toutes les 30s si l'onglet est visible,
+          // pause si l'onglet est en arrière-plan.
+
+          let _pollTimer = null;
+          let _lastActivity = Date.now();
+
+          const POLL_INTERVAL_ACTIVE = 30000;  // 30s si actif
+          const POLL_INTERVAL_IDLE = 120000;   // 2min si inactif
+
+          async function pollUpdates() {
+            const page = document.querySelector('.page.active')?.id?.replace('page-', '');
+            if (!page) return;
+            try {
+              // Rafraîchir la page active silencieusement
+              if (page === 'vue') await loadVue();
+              else if (page === 'seances') await loadSeances(v('sea-date'));
+              else if (page === 'dash') renderDash();
+              else if (page === 'taches-pub') await loadTachesPub();
+              else if (page === 'balades-pub') await loadBaladesPub();
+            } catch (e) { /* silencieux */ }
+          }
+
+          function scheduleNext() {
+            clearTimeout(_pollTimer);
+            const idle = Date.now() - _lastActivity > 5 * 60 * 1000; // 5min sans interaction
+            _pollTimer = setTimeout(async () => {
+              if (!document.hidden) await pollUpdates();
+              scheduleNext();
+            }, idle ? POLL_INTERVAL_IDLE : POLL_INTERVAL_ACTIVE);
+          }
+
+          // Tracker l'activité
+          ['click', 'keydown', 'scroll', 'touchstart'].forEach(ev => {
+            document.addEventListener(ev, () => { _lastActivity = Date.now(); }, { passive: true });
+          });
+
+          // Pause si onglet masqué, reprise sinon
+          document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+              pollUpdates(); // refresh immédiat au retour
+              scheduleNext();
+            } else {
+              clearTimeout(_pollTimer);
+            }
+          });
+
+          scheduleNext();
+        }
         // ── Admin ──
         function handleAdminToggle() {
           if (isAdmin) { logoutAdmin(); return; }
