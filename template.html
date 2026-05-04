@@ -1429,6 +1429,9 @@
         <div class="sb-nav">
           <div class="nav-sec">Planning</div>
           <button class="ni active" data-p="vue" onclick="go('vue')"><span class="ic">📅</span>Planning</button>
+          <button class="ni" data-p="taches-pub" onclick="go('taches-pub')">
+            <span class="ic">✅</span> Tâches du jour
+          </button>
           <div id="anav" style="display:none">
             <div class="nav-sec" style="margin-top:8px">Administration</div>
             <button class="ni" data-p="dash" onclick="go('dash')"><span class="ic">⬛</span>Tableau de bord</button>
@@ -1445,6 +1448,9 @@
             <button class="ni" data-p="cartes" onclick="go('cartes')"><span class="ic">🎫</span>Cartes</button>
             <button class="ni" id="ni-tickets" onclick="go('tickets')">
               <span class="ic">📝</span> Améliorations & Retours
+            </button>
+            <button class="ni" data-p="taches" onclick="go('taches')">
+              <span class="ic">✅</span> Tâches
             </button>
             <button class="ni" id="ni-params" data-p="params" onclick="go('params')">
               <span class="ic">⚙️</span> Paramètres
@@ -1473,6 +1479,43 @@
             <span id="stg-banner-txt"></span>
           </div>
           <div id="vue-content"></div>
+        </div>
+        <!-- TÂCHES (vue publique) -->
+        <div class="page" id="page-taches-pub">
+          <div class="ph">
+            <h2>✅ Tâches du jour</h2>
+            <p id="taches-pub-lbl" class="no-upper"></p>
+          </div>
+          <div id="taches-pub-content"></div>
+        </div>
+
+        <!-- TÂCHES (admin) -->
+        <div class="page" id="page-taches">
+          <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div>
+              <h2>✅ Tâches</h2>
+              <p class="no-upper">Gérez les tâches récurrentes ou ponctuelles.</p>
+            </div>
+            <button class="btn btn-p" onclick="newTache()">+ Nouvelle tâche</button>
+          </div>
+          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+            <input type="date" id="taches-date"
+              style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px;color:var(--text);font-family:Arial,sans-serif;outline:none"
+              onchange="renderTachesAdmin()">
+            <div class="seg">
+              <button onclick="setTachesFreqFilter('all')" class="on" id="tf-all">Toutes</button>
+              <button onclick="setTachesFreqFilter('quotidien')" id="tf-quotidien">Quotidiennes</button>
+              <button onclick="setTachesFreqFilter('hebdo')" id="tf-hebdo">Hebdo</button>
+              <button onclick="setTachesFreqFilter('ponctuel')" id="tf-ponctuel">Ponctuelles</button>
+            </div>
+          </div>
+          <div id="taches-admin-content"></div>
+          <div class="tc" style="margin-top:20px">
+            <div class="tt">
+              <h3>Liste des tâches configurées</h3>
+            </div>
+            <div id="taches-liste-content"></div>
+          </div>
         </div>
 
         <!-- DASHBOARD -->
@@ -1566,6 +1609,46 @@
           </div>
           <div id="sea-rappels" style="display:none"></div>
           <div id="sea-content"></div>
+        </div>
+
+        <div class="mo" id="mo-tache">
+          <div class="md" style="max-width:480px">
+            <h3 id="mo-tache-t">Nouvelle tâche</h3>
+            <input type="hidden" id="tache-id">
+            <div class="fg"><label>Titre *</label><input type="text" id="tache-titre"
+                placeholder="Ex : Vérifier les abreuvoirs"></div>
+            <div class="fg"><label>Description</label><textarea id="tache-desc" rows="2"
+                placeholder="Détails optionnels…"></textarea></div>
+            <div class="fg"><label>Fréquence</label>
+              <select id="tache-freq" onchange="onTacheFreqChange()">
+                <option value="quotidien">Quotidienne</option>
+                <option value="hebdo">Hebdomadaire</option>
+                <option value="ponctuel">Ponctuelle</option>
+              </select>
+            </div>
+            <div class="fg" id="tache-jour-fg" style="display:none"><label>Jour de la semaine</label>
+              <select id="tache-jour">
+                <option value="1">Lundi</option>
+                <option value="2">Mardi</option>
+                <option value="3">Mercredi</option>
+                <option value="4">Jeudi</option>
+                <option value="5">Vendredi</option>
+                <option value="6">Samedi</option>
+                <option value="0">Dimanche</option>
+              </select>
+            </div>
+            <div class="fg"><label>Ordre d'affichage</label>
+              <input type="number" id="tache-ordre" value="0" min="0">
+            </div>
+            <div class="fg" style="display:flex;align-items:center;gap:14px">
+              <label style="margin-bottom:0;min-width:80px">Active</label>
+              <label class="tog"><input type="checkbox" id="tache-actif" checked><span class="ts"></span></label>
+            </div>
+            <div class="mf">
+              <button class="btn btn-g" onclick="closeMo('mo-tache')">Annuler</button>
+              <button class="btn btn-p" onclick="saveTache()">Enregistrer</button>
+            </div>
+          </div>
         </div>
 
         <!-- Cours ponctuel -->
@@ -2568,7 +2651,7 @@
         const SBDG = { attache: 'bo', veto: 'br', marechal: 'bp', repos: 'b' };
 
         let isAdmin = false, isDev = false, isMarine = false, sessionToken = '', histTab = 'couples';
-        let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [] };
+        let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [], taches: [], tachesComp: [] };
         // ── Historique d'annulation (undo) ──
         let _undoStack = []; // [{ label, fn }]
         const MAX_UNDO = 15;
@@ -2898,7 +2981,7 @@
 
         // ── Nav ──
         function go(p) {
-          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets'];
+          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches'];
           // Bloquer les pages admin si pas de rôle élevé
           if (!isAdmin && !isDev && !isMarine && adm.includes(p)) return;
           // Marine : seulement séances (+ vue est déjà publique)
@@ -2921,6 +3004,11 @@
           if (p === 'disciplines') renderDiscPage();
           if (p === 'cartes') loadPageCartes();
           if (p === 'tickets') renderTicketsPage();
+          if (p === 'taches-pub') loadTachesPub();
+          if (p === 'taches') {
+            document.getElementById('taches-date').value = new Date().toISOString().slice(0, 10);
+            renderTachesAdmin();
+          }
           if (p === 'params') renderParamsPage();
           if (window.innerWidth <= 768) { document.getElementById('sb').classList.remove('open'); document.getElementById('sbo').classList.remove('open'); }
         }
@@ -2928,7 +3016,7 @@
 
         // ── Chargement ──
         async function loadAll() {
-          await Promise.all([loadGrp(), loadCav(), loadChv(), loadMon(), loadStatuts(), loadSemaine(), loadDiscIcons(), loadCartes(), loadAppSettings()]);      // Rendu final une fois toutes les données chargées (évite les 0 cavaliers / moniteurs manquants)
+          await Promise.all([loadGrp(), loadCav(), loadChv(), loadMon(), loadStatuts(), loadSemaine(), loadDiscIcons(), loadCartes(), loadAppSettings(), loadTaches()]);      // Rendu final une fois toutes les données chargées (évite les 0 cavaliers / moniteurs manquants)
           renderGroupes(); renderCavaliers(); renderMoniteurs(); renderChevaux(); popSelects();
         }
 
@@ -3010,6 +3098,198 @@
           const btn = document.getElementById('btn-gen');
           if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = '⚡ Générer séances'; }
           loadSeances(date);
+        }
+        async function loadTaches() {
+          C.taches = await dbSel('taches', { order: [{ col: 'ordre' }, { col: 'titre' }] });
+        }
+
+        async function loadTachesCompletions(date) {
+          if (!date) return;
+          // Charger les tâches actives ce jour
+          const tachesJour = getTachesDuJour(date);
+          if (!tachesJour.length) { C.tachesComp = []; return; }
+          const iv = `(${tachesJour.map(t => `"${t.id}"`).join(',')})`;
+          C.tachesComp = await dbSel('taches_completions', {
+            filter: [{ col: 'tache_id', op: 'in', val: iv }, { col: 'date', op: 'eq', val: date }]
+          });
+        }
+
+        // Retourne les tâches applicables à une date donnée
+        function getTachesDuJour(date) {
+          const d = new Date(date + 'T00:00:00');
+          const jourSemaine = d.getDay();
+          return C.taches.filter(t => {
+            if (!t.actif) return false;
+            if (t.frequence === 'quotidien') return true;
+            if (t.frequence === 'hebdo') return +t.jour_semaine === jourSemaine;
+            if (t.frequence === 'ponctuel') return true; // toujours visible jusqu'à completion
+            return false;
+          });
+        }
+        async function loadTachesPub() {
+          const today = new Date().toISOString().slice(0, 10);
+          document.getElementById('taches-pub-lbl').textContent = fmtL(today);
+          const el = document.getElementById('taches-pub-content');
+          el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
+          await loadTachesCompletions(today);
+          const taches = getTachesDuJour(today);
+          if (!taches.length) {
+            el.innerHTML = '<div class="ls">Aucune tâche pour aujourd\'hui</div>';
+            return;
+          }
+          el.innerHTML = taches.sort((a, b) => a.ordre - b.ordre).map(t => {
+            const comp = C.tachesComp.find(c => c.tache_id === t.id);
+            const done = !!comp?.completee;
+            return `<div class="tc" style="margin-bottom:10px">
+      <div style="padding:14px 18px;display:flex;align-items:center;gap:14px">
+        <label class="tog" style="flex-shrink:0">
+          <input type="checkbox" ${done ? 'checked' : ''}
+            onchange="toggleTache('${t.id}','${today}',this.checked)">
+          <span class="ts"></span>
+        </label>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:14px;${done ? 'text-decoration:line-through;color:var(--muted)' : ''}">${t.titre}</div>
+          ${t.description ? `<div style="font-size:12px;color:var(--muted);margin-top:2px">${t.description}</div>` : ''}
+        </div>
+        ${done ? `<span class="b bg" style="font-size:11px">✅ Fait${comp.completee_par ? ' par ' + comp.completee_par : ''}</span>` : '<span class="b br" style="font-size:11px">⏳ À faire</span>'}
+      </div>
+    </div>`;
+          }).join('');
+        }
+
+        async function toggleTache(tacheId, date, checked) {
+          const existing = C.tachesComp.find(c => c.tache_id === tacheId && c.date === date);
+          if (existing) {
+            await dbUpd('taches_completions', {
+              completee: checked,
+              completed_at: checked ? new Date().toISOString() : null
+            }, [{ col: 'id', op: 'eq', val: existing.id }]);
+            existing.completee = checked;
+          } else {
+            const r = await dbIns('taches_completions', {
+              tache_id: tacheId, date, completee: checked,
+              completed_at: checked ? new Date().toISOString() : null
+            });
+            if (r.data?.[0]) C.tachesComp.push(r.data[0]);
+          }
+          toast(checked ? 'Tâche complétée ✅' : 'Tâche décochée', 'ok');
+          loadTachesPub(); // refresh la vue
+        }
+        let _tachesFreqFilter = 'all';
+
+        function setTachesFreqFilter(f) {
+          _tachesFreqFilter = f;
+          ['all', 'quotidien', 'hebdo', 'ponctuel'].forEach(x => {
+            document.getElementById('tf-' + x)?.classList.toggle('on', x === f);
+          });
+          renderTachesAdmin();
+        }
+
+        async function renderTachesAdmin() {
+          const date = document.getElementById('taches-date')?.value || new Date().toISOString().slice(0, 10);
+          await loadTachesCompletions(date);
+          const taches = getTachesDuJour(date).filter(t =>
+            _tachesFreqFilter === 'all' || t.frequence === _tachesFreqFilter
+          );
+          const el = document.getElementById('taches-admin-content');
+          el.innerHTML = `<div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">
+    Tâches du ${fmtDate(date)} — ${taches.filter(t => C.tachesComp.find(c => c.tache_id === t.id && c.completee)).length}/${taches.length} complétées
+  </div>` + (taches.length ? taches.sort((a, b) => a.ordre - b.ordre).map(t => {
+            const comp = C.tachesComp.find(c => c.tache_id === t.id);
+            const done = !!comp?.completee;
+            const freq = { quotidien: '🔁 Quotidien', hebdo: '📅 ' + JOURS[t.jour_semaine], ponctuel: '1️⃣ Ponctuel' }[t.frequence] || '';
+            return `<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;${done ? 'opacity:.6' : ''}">
+      <label class="tog" style="flex-shrink:0">
+        <input type="checkbox" ${done ? 'checked' : ''}
+          onchange="toggleTache('${t.id}','${date}',this.checked)">
+        <span class="ts"></span>
+      </label>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:13px;${done ? 'text-decoration:line-through' : ''}">${t.titre}</div>
+        ${t.description ? `<div style="font-size:11px;color:var(--muted)">${t.description}</div>` : ''}
+      </div>
+      <span class="b bgo" style="font-size:10px">${freq}</span>
+      ${done ? `<span class="b bg" style="font-size:10px">✅${comp.completee_par ? ' ' + comp.completee_par : ''}</span>` : ''}
+      <button class="btn btn-g sm" onclick="editTache('${t.id}')">✏️</button>
+      <button class="btn btn-d sm" onclick="delTache('${t.id}')">🗑</button>
+    </div>`;
+          }).join('') : '<div class="ls">Aucune tâche ce jour</div>');
+
+          // Liste config
+          const liste = document.getElementById('taches-liste-content');
+          if (!C.taches.length) { liste.innerHTML = '<div class="ls">Aucune tâche configurée</div>'; return; }
+          liste.innerHTML = `<table><thead><tr><th>Titre</th><th>Fréquence</th><th>Jour</th><th>Ordre</th><th>Active</th><th></th></tr></thead><tbody>
+    ${C.taches.map(t => `<tr style="${!t.actif ? 'opacity:.5' : ''}">
+      <td><strong>${t.titre}</strong>${t.description ? `<div style="font-size:11px;color:var(--muted)">${t.description}</div>` : ''}</td>
+      <td><span class="b bgo">${{ quotidien: '🔁 Quotidien', hebdo: '📅 Hebdo', ponctuel: '1️⃣ Ponctuel' }[t.frequence] || t.frequence}</span></td>
+      <td>${t.frequence === 'hebdo' ? JOURS[t.jour_semaine] || '?' : '—'}</td>
+      <td>${t.ordre}</td>
+      <td><span class="b ${t.actif ? 'bg' : 'br'}">${t.actif ? 'Oui' : 'Non'}</span></td>
+      <td style="display:flex;gap:5px">
+        <button class="btn btn-g sm" onclick="editTache('${t.id}')">✏️</button>
+        <button class="btn btn-d sm" onclick="delTache('${t.id}')">🗑</button>
+      </td>
+    </tr>`).join('')}
+  </tbody></table>`;
+        }
+
+        function onTacheFreqChange() {
+          const freq = document.getElementById('tache-freq')?.value;
+          document.getElementById('tache-jour-fg').style.display = freq === 'hebdo' ? 'block' : 'none';
+        }
+
+        function newTache() {
+          document.getElementById('mo-tache-t').textContent = 'Nouvelle tâche';
+          ['tache-id', 'tache-titre', 'tache-desc'].forEach(i => document.getElementById(i).value = '');
+          document.getElementById('tache-freq').value = 'quotidien';
+          document.getElementById('tache-jour').value = '1';
+          document.getElementById('tache-ordre').value = '0';
+          document.getElementById('tache-actif').checked = true;
+          document.getElementById('tache-jour-fg').style.display = 'none';
+          openMo('mo-tache');
+        }
+
+        function editTache(id) {
+          const t = C.taches.find(x => x.id === id); if (!t) return;
+          document.getElementById('mo-tache-t').textContent = 'Modifier la tâche';
+          document.getElementById('tache-id').value = id;
+          document.getElementById('tache-titre').value = t.titre;
+          document.getElementById('tache-desc').value = t.description || '';
+          document.getElementById('tache-freq').value = t.frequence;
+          document.getElementById('tache-jour').value = t.jour_semaine ?? '1';
+          document.getElementById('tache-ordre').value = t.ordre ?? 0;
+          document.getElementById('tache-actif').checked = !!t.actif;
+          document.getElementById('tache-jour-fg').style.display = t.frequence === 'hebdo' ? 'block' : 'none';
+          openMo('mo-tache');
+        }
+
+        async function saveTache() {
+          const id = v('tache-id');
+          const titre = v('tache-titre').trim();
+          if (!titre) { toast('Le titre est requis', 'err'); return; }
+          const data = {
+            titre,
+            description: v('tache-desc') || null,
+            frequence: v('tache-freq'),
+            jour_semaine: v('tache-freq') === 'hebdo' ? parseInt(v('tache-jour')) : null,
+            ordre: parseInt(v('tache-ordre')) || 0,
+            actif: document.getElementById('tache-actif').checked
+          };
+          if (id) await dbUpd('taches', data, [{ col: 'id', op: 'eq', val: id }]);
+          else await dbIns('taches', data);
+          toast(id ? 'Tâche modifiée' : 'Tâche créée', 'ok');
+          closeMo('mo-tache');
+          await loadTaches();
+          renderTachesAdmin();
+        }
+
+        async function delTache(id) {
+          if (!confirm('Supprimer cette tâche et tout son historique ?')) return;
+          await dbDel('taches_completions', [{ col: 'tache_id', op: 'eq', val: id }]);
+          await dbDel('taches', [{ col: 'id', op: 'eq', val: id }]);
+          toast('Supprimée', 'ok');
+          await loadTaches();
+          renderTachesAdmin();
         }
 
         // ══════════════════════════════════════════════════
