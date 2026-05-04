@@ -3467,11 +3467,12 @@
             👤 ${s.moniteur1?.prenom || '—'}
             ${elMon ? `· <span style="opacity:.85">${elMon.prenom}</span>` : ''}
             ${mon2prenom ? `· 👤 ${mon2prenom}${cheval2nom ? ' 🐎 ' + cheval2nom : ''}` : ''}</div>
+            ${s.note_seance ? `<div class="note-pub" style="background:rgba(251,191,36,.15);color:#92400e;font-style:italic">📝 ${s.note_seance}</div>` : ''}
+            ${g.note ? `<div class="note-pub">📝 ${g.note}</div>` : ''}
         </div>
       </div>
       ${vOrdered.length === 0 ? '<div style="padding:12px 20px;color:var(--muted)">Aucun cavalier</div>' : rows}
-      ${s.note_seance ? `<div class="note-pub" style="background:rgba(251,191,36,.15);color:#92400e;font-style:italic">📝 ${s.note_seance}</div>` : ''}
-      ${g.note ? `<div class="note-pub">📝 ${g.note}</div>` : ''}</div>`
+      </div>`
             });
           }
           for (const st of stgAll) {
@@ -3487,10 +3488,11 @@
               h: '00', html: `<div class="pcc st-card">
       <div class="pch"><div class="pheure" style="font-size:16px">🏕</div>
         <div><div class="pgn">${st.titre}</div><div class="pdi">${fmtDate(st.date_debut)}${st.date_fin !== st.date_debut ? ' → ' + fmtDate(st.date_fin) : ''}</div></div>
+        ${st.notes ? `<div class="note-pub">📝 ${st.notes}</div>` : ''}
       </div>
       ${rows}
       ${chvs.length ? `<div style="padding:7px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)">🐎 sans cavalier : ${chvs.map(c => c.equides?.nom || '?').join(', ')}</div>` : ''}
-      ${st.notes ? `<div class="note-pub">📝 ${st.notes}</div>` : ''}</div>`
+      </div>`
             });
           }
           blocs.sort((a, b) => a.h.localeCompare(b.h));
