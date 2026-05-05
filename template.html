@@ -5773,16 +5773,17 @@
         // ══════════════════════════════════════════════════
         function renderCavaliers() {
           const t = document.getElementById('tb-cav'); if (!t) return;
-          const semBadge = c.semaine_type !== 'toutes'
-            ? `<span class="b bb" style="margin-left:4px;font-size:10px">${c.semaine_type === 'paire' ? 'S.paires' : 'S.impaires'}</span>`
-            : '';
           if (!C.cav.length) { t.innerHTML = '<tr class="er"><td colspan="4">Aucun cavalier</td></tr>'; return; }
           t.innerHTML = C.cav.map(c => {
             const grpIds = getCavGroups(c.id);
             const grpsHtml = grpIds.length
               ? grpIds.map(gid => { const g = C.grp.find(x => x.id === gid); if (!g) return ''; const c = g.couleur || '#c9a84c'; const isLight = isLightColor(c); return `<span style="display:inline-block;margin:2px 3px 2px 0;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${isLight ? '#3a3028' : '#fff'};text-transform:uppercase;letter-spacing:.3px">${g.nom}</span>`; }).join('')
               : '<span class="b br">Sans groupe</span>';
+            const semBadge = c.semaine_type !== 'toutes'
+              ? `<span class="b bb" style="margin-left:4px;font-size:10px">${c.semaine_type === 'paire' ? 'S.paires' : 'S.impaires'}</span>`
+              : '';
             return `<tr>
+              
       <td><strong>${cap(c.prenom || '')}${c.nom ? ' <span style="color:var(--muted);font-size:12px">' + c.nom.toUpperCase() + '</span>' : ''}</strong>${semBadge}</td>
       <td>${grpsHtml}</td>
       <td>${isAdmin ? (c.telephone || '—') : '<span style="color:var(--muted)">🔒</span>'}</td>
