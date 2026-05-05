@@ -3742,10 +3742,10 @@
           const cavs = [...C.cav].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr'));
           if (!cavs.length) { grid.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:4px">Aucun cavalier disponible</div>'; return; }
           grid.innerHTML = cavs.map(c => `
-    <label class="cav-check">
-      <input type="checkbox" value="${c.id}" ${assigned.includes(c.id) && !isNew ? 'checked' : ''} onchange="updateCavCount()">
-      <span>${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}</span>
-    </label>`).join('');
+  <label class="cav-check">
+    <input type="checkbox" value="${c.id}" ${assigned.includes(c.id) && !isNew ? 'checked' : ''} onchange="updateCavCount()">
+    <span>${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}${c.semaine_type && c.semaine_type !== 'toutes' ? ' <span style="font-size:10px;color:#2856a0;font-weight:700">(' + (c.semaine_type === 'paire' ? 'S.paires' : 'S.imp.') + ')</span>' : ''}</span>
+  </label>`).join('');
           updateCavCount();
         }
 
@@ -5186,11 +5186,11 @@
           const grid = document.getElementById('cav-grp-grid'); if (!grid) return;
           const assigned = cavId ? getCavGroups(cavId) : [];
           if (!C.grp.length) { grid.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:4px">Aucun groupe disponible</div>'; return; }
-          grid.innerHTML = cavs.map(c => `
-  <label class="cav-check">
-    <input type="checkbox" value="${c.id}" ${assigned.includes(c.id) && !isNew ? 'checked' : ''} onchange="updateCavCount()">
-    <span>${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}${c.semaine_type && c.semaine_type !== 'toutes' ? ' <span style="font-size:10px;color:#2856a0;font-weight:700">(' + (c.semaine_type === 'paire' ? 'S.paires' : 'S.imp.') + ')</span>' : ''}</span>
-  </label>`).join('');
+          grid.innerHTML = C.grp.map(g => `
+    <label class="cav-check">
+      <input type="checkbox" value="${g.id}" ${assigned.includes(g.id) ? 'checked' : ''}>
+      <span style="display:flex;align-items:center"><span class="grp-dot" style="background:${g.couleur || '#c9a84c'}"></span>${g.nom}</span>
+    </label>`).join('');
         }
         function newCav() {
           document.getElementById('mo-cav-t').textContent = 'Nouveau cavalier';
