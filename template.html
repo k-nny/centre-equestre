@@ -2978,6 +2978,7 @@
           document.getElementById('mc').classList.remove('wb'); document.getElementById('anav').style.display = 'none';
           document.getElementById('atbtn').textContent = '🔑 Mode administrateur'; document.getElementById('atbtn').classList.remove('on');
           renderCavaliers(); go('vue'); toast('Déconnecté', 'ok');
+          checkRetoursBanner(); // mettre à jour le banner des retours non lus (si on était en admin)
         }
         function enableMarine(targetPage = 'vue') {
           isMarine = true; isAdmin = false;
@@ -6348,7 +6349,7 @@
 
         // ── Bannière retours ──
         async function checkRetoursBanner() {
-          if (!isAdmin) return; // si pas admin, pas la bannière
+          if (!isAdmin) {dismissRetoursBanner(); return; } // si pas admin, pas la bannière
           try {
             const nonLus = await dbSel('ticket_retours', {
               select: 'id',
