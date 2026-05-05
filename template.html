@@ -2186,6 +2186,13 @@
           </div>
           <div class="fg"><label>Téléphone <span style="color:var(--muted)">(admin)</span></label><input type="tel"
               id="cav-tel" placeholder="06 95 73 83 71"></div>
+          <div class="fg"><label>Fréquence de présence</label>
+            <select id="cav-semaine-type">
+              <option value="toutes">Toutes les semaines</option>
+              <option value="paire">Semaines paires uniquement</option>
+              <option value="impaire">Semaines impaires uniquement</option>
+            </select>
+          </div>
           <div class="fg"><label>Groupes assignés</label>
             <div class="cav-checkgrid" id="cav-grp-grid"></div>
           </div>
@@ -3892,7 +3899,32 @@
             if (!r.data?.[0]) continue; created++;
             const ns = r.data[0];
             const cavIds = getGrpCavs(g.id);
-            if (cavIds.length) await dbIns('affectations_seance', cavIds.map(cid => ({ seance_id: ns.id, cavalier_id: cid, equide_id: null, absent: false, rattrapage: false })));
+
+            // Calculer le numéro de semaine ISO pour la date générée
+            const getNumSemISO = (d) => {
+              const dt = new Date(d + 'T00:00:00');
+              dt.setHours(0, 0, 0, 0);
+              dt.setDate(dt.getDate() + 3 - (dt.getDay() + 6) % 7);
+              const w = new Date(dt.getFullYear(), 0, 4);
+              return 1 + Math.round(((dt - w) / 86400000 - 3 + (w.getDay() + 6) % 7) / 7);
+            };
+            const numSemGen = getNumSemISO(date);
+            const estPaireGen = numSemGen % 2 === 0;
+
+            // Filtrer selon semaine_type du cavalier
+            const cavIdsFiltres = cavIds.filter(cid => {
+              const cav = C.cav.find(c => c.id === cid);
+              if (!cav) return true;
+              if (cav.semaine_type === 'paire' && !estPaireGen) return false;
+              if (cav.semaine_type === 'impaire' && estPaireGen) return false;
+              return true;
+            });
+
+            if (cavIdsFiltres.length) {
+              await dbIns('affectations_seance', cavIdsFiltres.map(cid => ({
+                seance_id: ns.id, cavalier_id: cid, equide_id: null, absent: false, rattrapage: false
+              })));
+            }
           }
           await loadSeances(date);
           btn.disabled = true; btn.style.opacity = '.5'; btn.textContent = '✅ Séances générées';
@@ -5139,8 +5171,11 @@
             const grpsHtml = grpIds.length
               ? grpIds.map(gid => { const g = C.grp.find(x => x.id === gid); if (!g) return ''; const c = g.couleur || '#c9a84c'; const isLight = isLightColor(c); return `<span style="display:inline-block;margin:2px 3px 2px 0;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${isLight ? '#3a3028' : '#fff'};text-transform:uppercase;letter-spacing:.3px">${g.nom}</span>`; }).join('')
               : '<span class="b br">Sans groupe</span>';
+            const semBadge = c.semaine_type && c.semaine_type !== 'toutes'
+              ? `<span class="b bb" style="margin-left:5px;font-size:10px">${c.semaine_type === 'paire' ? '📅 S.paires' : '📅 S.impaires'}</span>`
+              : '';
             return `<tr>
-      <td><strong>${cap(c.prenom || '')}${c.nom ? ' <span style="color:var(--muted);font-size:12px">' + c.nom.toUpperCase() + '</span>' : ''}</strong></td>
+  <td><strong>${cap(c.prenom || '')}${c.nom ? ' <span style="color:var(--muted);font-size:12px">' + c.nom.toUpperCase() + '</span>' : ''}</strong>${semBadge}</td>
       <td>${grpsHtml}</td>
       <td>${isAdmin ? (c.telephone || '—') : '<span style="color:var(--muted)">🔒</span>'}</td>
       <td style="display:flex;gap:5px"><button class="btn btn-g sm" onclick="editCav('${c.id}')">✏️</button><button class="btn btn-d sm" onclick="delCav('${c.id}')">🗑</button></td>
@@ -5151,19 +5186,25 @@
           const grid = document.getElementById('cav-grp-grid'); if (!grid) return;
           const assigned = cavId ? getCavGroups(cavId) : [];
           if (!C.grp.length) { grid.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:4px">Aucun groupe disponible</div>'; return; }
-          grid.innerHTML = C.grp.map(g => `
-    <label class="cav-check">
-      <input type="checkbox" value="${g.id}" ${assigned.includes(g.id) ? 'checked' : ''}>
-      <span style="display:flex;align-items:center"><span class="grp-dot" style="background:${g.couleur || '#c9a84c'}"></span>${g.nom}</span>
-    </label>`).join('');
+          grid.innerHTML = cavs.map(c => `
+  <label class="cav-check">
+    <input type="checkbox" value="${c.id}" ${assigned.includes(c.id) && !isNew ? 'checked' : ''} onchange="updateCavCount()">
+    <span>${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}${c.semaine_type && c.semaine_type !== 'toutes' ? ' <span style="font-size:10px;color:#2856a0;font-weight:700">(' + (c.semaine_type === 'paire' ? 'S.paires' : 'S.imp.') + ')</span>' : ''}</span>
+  </label>`).join('');
         }
-        function newCav() { document.getElementById('mo-cav-t').textContent = 'Nouveau cavalier';['cav-id', 'cav-prenom', 'cav-nom', 'cav-tel'].forEach(i => document.getElementById(i).value = ''); buildCavGrpGrid(null); _refreshCavCarteInfo(null); openMo('mo-cav'); }
-        async function saveCavalier() {
-          const prenom = v('cav-prenom').trim(), nom = v('cav-nom').trim() || null, telephone = v('cav-tel') || null, id = v('cav-id');
+        function newCav() {
+          document.getElementById('mo-cav-t').textContent = 'Nouveau cavalier';
+          ['cav-id', 'cav-prenom', 'cav-nom', 'cav-tel'].forEach(i => document.getElementById(i).value = '');
+          document.getElementById('cav-semaine-type').value = 'toutes';
+          buildCavGrpGrid(null);
+          _refreshCavCarteInfo(null);
+          openMo('mo-cav');
+        } async function saveCavalier() {
+          const prenom = v('cav-prenom').trim(), nom = v('cav-nom').trim() || null, telephone = v('cav-tel') || null, semaine_type = v('cav-semaine-type') || 'toutes', id = v('cav-id');
           if (!prenom) { toast('Le prénom est requis', 'err'); return; }
           let cavId = id;
-          if (id) await dbUpd('cavaliers', { prenom, nom, telephone }, [{ col: 'id', op: 'eq', val: id }]);
-          else { const r = await dbIns('cavaliers', { prenom, nom, telephone }); cavId = r.data?.[0]?.id; }
+          if (id) await dbUpd('cavaliers', { prenom, nom, telephone, semaine_type }, [{ col: 'id', op: 'eq', val: id }]);
+          else { const r = await dbIns('cavaliers', { prenom, nom, telephone, semaine_type }); cavId = r.data?.[0]?.id; }
           if (!cavId) { toast('Erreur', 'err'); return; }
           // sync groupes
           const checked = [...document.querySelectorAll('#cav-grp-grid input:checked')].map(i => i.value);
@@ -5203,7 +5244,15 @@
           });
         }
         function editCav(id) {
-          const c = C.cav.find(x => x.id === id); document.getElementById('mo-cav-t').textContent = 'Modifier'; document.getElementById('cav-id').value = id; document.getElementById('cav-prenom').value = c.prenom; document.getElementById('cav-nom').value = c.nom || ''; document.getElementById('cav-tel').value = c.telephone || ''; buildCavGrpGrid(id); _refreshCavCarteInfo(id);
+          const c = C.cav.find(x => x.id === id);
+          document.getElementById('mo-cav-t').textContent = 'Modifier';
+          document.getElementById('cav-id').value = id;
+          document.getElementById('cav-prenom').value = c.prenom;
+          document.getElementById('cav-nom').value = c.nom || '';
+          document.getElementById('cav-tel').value = c.telephone || '';
+          document.getElementById('cav-semaine-type').value = c.semaine_type || 'toutes';
+          buildCavGrpGrid(id);
+          _refreshCavCarteInfo(id);
           openMo('mo-cav');
         }
         async function delCav(id) { if (!confirm('Supprimer ?')) return; await dbDel('cavalier_groupes', [{ col: 'cavalier_id', op: 'eq', val: id }]); await dbDel('cavaliers', [{ col: 'id', op: 'eq', val: id }]); toast('Supprimé', 'ok'); await loadCav(); renderCavaliers(); popSelects(); }
