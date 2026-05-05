@@ -1400,19 +1400,16 @@
   <div id="site-login"
     style="display:flex;position:fixed;inset:0;background:var(--bg);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:16px">
     <div style="font-size:40px">🐴</div>
-    <div style="font-size:16px;font-weight:700;color:var(--cream);text-transform:uppercase;letter-spacing:1px">
-      Les Écuries de l'Octroi
-    </div>
+    <div style="font-size:16px;font-weight:700;color:var(--cream);text-transform:uppercase;letter-spacing:1px">Les
+      Écuries de l'Octroi</div>
     <div
       style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px 32px;width:100%;max-width:320px;display:flex;flex-direction:column;gap:14px;box-shadow:0 8px 40px rgba(0,0,0,.12)">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Accès
         sécurisé</div>
-      <div class="pwg">
-        <input type="password" id="site-pw-in" placeholder="Mot de passe…"
+      <div class="pwg"><input type="password" id="site-pw-in" placeholder="Mot de passe…"
           onkeydown="if(event.key==='Enter')chkSitePw()"
-          style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 40px 10px 12px;color:var(--text);font-family:Arial,sans-serif;font-size:14px;outline:none">
-        <button class="pwe" onclick="togSitePw()" type="button">👁</button>
-      </div>
+          style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 40px 10px 12px;color:var(--text);font-family:Arial,sans-serif;font-size:14px;outline:none"><button
+          class="pwe" onclick="togSitePw()" type="button">👁</button></div>
       <div id="site-pw-err" style="color:#b43728;font-size:12px;display:none">Mot de passe incorrect.</div>
       <button class="btn btn-p" id="site-pw-btn" onclick="chkSitePw()" style="width:100%">Accéder</button>
     </div>
@@ -1435,9 +1432,6 @@
           <button class="ni" data-p="taches-pub" onclick="go('taches-pub')">
             <span class="ic">✅</span> Tâches du jour
           </button>
-          <button class="ni" data-p="balades-pub" id="ni-balades-pub" onclick="go('balades-pub')" style="display:none">
-            <span class="ic">🌿</span> Balades du jour
-          </button>
           <div id="anav" style="display:none">
             <div class="nav-sec" style="margin-top:8px">Administration</div>
             <button class="ni" data-p="dash" onclick="go('dash')"><span class="ic">⬛</span>Tableau de bord</button>
@@ -1457,9 +1451,6 @@
             </button>
             <button class="ni" data-p="taches" onclick="go('taches')">
               <span class="ic">✅</span> Tâches
-            </button>
-            <button class="ni" data-p="balades" onclick="go('balades')">
-              <span class="ic">🌿</span> Balades
             </button>
             <button class="ni" id="ni-params" data-p="params" onclick="go('params')">
               <span class="ic">⚙️</span> Paramètres
@@ -1497,31 +1488,7 @@
           </div>
           <div id="taches-pub-content"></div>
         </div>
-        <!-- BALADES vue employés -->
-        <div class="page" id="page-balades-pub">
-          <div class="ph">
-            <h2>🌿 Balades du jour</h2>
-            <p id="balades-pub-lbl" class="no-upper"></p>
-          </div>
-          <div id="balades-pub-content"></div>
-        </div>
 
-        <!-- BALADES admin -->
-        <div class="page" id="page-balades">
-          <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-            <div>
-              <h2>🌿 Balades</h2>
-              <p class="no-upper">Gérez les balades et les inscriptions.</p>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <input type="date" id="balades-admin-date"
-                style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px;color:var(--text);font-family:Arial,sans-serif;outline:none"
-                onchange="renderBaladesAdmin()">
-              <button class="btn btn-p" onclick="newBalade()">+ Nouvelle balade</button>
-            </div>
-          </div>
-          <div id="balades-admin-content"></div>
-        </div>
         <!-- TÂCHES (admin) -->
         <div class="page" id="page-taches">
           <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
@@ -1680,94 +1647,6 @@
             <div class="mf">
               <button class="btn btn-g" onclick="closeMo('mo-tache')">Annuler</button>
               <button class="btn btn-p" onclick="saveTache()">Enregistrer</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Modale balade (admin) -->
-        <div class="mo" id="mo-balade">
-          <div class="md" style="max-width:560px">
-            <h3 id="mo-balade-t">Nouvelle balade</h3>
-            <input type="hidden" id="balade-id">
-            <div class="fg"><label>Titre *</label>
-              <input type="text" id="balade-titre" placeholder="Ex : Balade en forêt de Mormal">
-            </div>
-            <div class="fg"><label>Description / programme</label>
-              <textarea id="balade-desc" rows="2" placeholder="Itinéraire, points de passage…"></textarea>
-            </div>
-            <div class="fr">
-              <div class="fg"><label>Date *</label><input type="date" id="balade-date"></div>
-              <div class="fg"><label>Heure départ</label><input type="time" id="balade-heure"></div>
-            </div>
-            <div class="fr">
-              <div class="fg"><label>Durée (min)</label>
-                <input type="number" id="balade-duree" value="60" min="15" step="15">
-              </div>
-              <div class="fg"><label>Places max</label>
-                <input type="number" id="balade-places" value="8" min="1">
-              </div>
-            </div>
-            <div class="fr">
-              <div class="fg"><label>Niveau requis</label>
-                <select id="balade-niveau">
-                  <option value="tous">Tous niveaux</option>
-                  <option value="debutant">Débutant</option>
-                  <option value="intermediaire">Intermédiaire</option>
-                  <option value="confirme">Confirmé</option>
-                </select>
-              </div>
-              <div class="fg"><label>Moniteur</label>
-                <select id="balade-moniteur">
-                  <option value="">— Aucun —</option>
-                </select>
-              </div>
-            </div>
-            <div class="fg"><label>Chevaux disponibles <span style="font-weight:400;color:var(--muted)">(un par
-                  ligne)</span></label>
-              <textarea id="balade-chevaux" rows="4" placeholder="Venom&#10;Ouragan&#10;Caramel&#10;…"
-                style="font-family:monospace"></textarea>
-            </div>
-            <div class="fg" style="display:flex;align-items:center;gap:14px">
-              <label style="margin-bottom:0;min-width:80px">Active</label>
-              <label class="tog"><input type="checkbox" id="balade-actif" checked><span class="ts"></span></label>
-            </div>
-            <div class="mf">
-              <button class="btn btn-g" onclick="closeMo('mo-balade')">Annuler</button>
-              <button class="btn btn-p" onclick="saveBalade()">Enregistrer</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Modale inscription balade -->
-        <div class="mo" id="mo-balade-inscr">
-          <div class="md" style="max-width:480px">
-            <h3 id="mo-inscr-titre">✍️ Inscription balade</h3>
-            <input type="hidden" id="inscr-balade-id">
-            <div class="fr">
-              <div class="fg"><label>Prénom *</label>
-                <input type="text" id="inscr-prenom" placeholder="Marie">
-              </div>
-              <div class="fg"><label>Nom *</label>
-                <input type="text" id="inscr-nom" placeholder="DUPONT">
-              </div>
-            </div>
-            <div class="fr">
-              <div class="fg"><label>Âge</label>
-                <input type="number" id="inscr-age" placeholder="25" min="3" max="99">
-              </div>
-              <div class="fg"><label>Téléphone</label>
-                <input type="tel" id="inscr-tel" placeholder="06 12 34 56 78">
-              </div>
-            </div>
-            <div class="fg"><label>Cheval attribué</label>
-              <select id="inscr-cheval"></select>
-            </div>
-            <div class="fg"><label>Note</label>
-              <textarea id="inscr-note" rows="2" placeholder="Allergie, besoin particulier…"></textarea>
-            </div>
-            <div class="mf">
-              <button class="btn btn-g" onclick="closeMo('mo-balade-inscr')">Annuler</button>
-              <button class="btn btn-p" onclick="saveInscription()">Inscrire</button>
             </div>
           </div>
         </div>
@@ -2072,123 +1951,6 @@
               </div>
               <button class="btn btn-p" style="width:fit-content" onclick="saveRattrapParams()">Enregistrer</button>
             </div>
-            <div id="params-pw-fields" style="display:flex;flex-direction:column;gap:18px">
-
-              <!-- Mot de passe site -->
-              <div>
-                <div
-                  style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px">
-                  🌐 Accès site (tous les utilisateurs)
-                </div>
-                <div class="fr">
-                  <div class="fg">
-                    <label>Nouveau mot de passe</label>
-                    <div class="pwg"><input type="password" id="pw-site-new" placeholder="…">
-                      <button class="pwe" onclick="togPwField('pw-site-new')" type="button">👁</button>
-                    </div>
-                  </div>
-                  <div class="fg">
-                    <label>Confirmation</label>
-                    <div class="pwg"><input type="password" id="pw-site-confirm" placeholder="…">
-                      <button class="pwe" onclick="togPwField('pw-site-confirm')" type="button">👁</button>
-                    </div>
-                  </div>
-                </div>
-                <button class="btn btn-p sm" onclick="savePwSite()">Changer</button>
-              </div>
-
-              <!-- Mot de passe admin -->
-              <div style="border-top:1px solid var(--border);padding-top:14px">
-                <div
-                  style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px">
-                  🔐 Accès administrateur
-                </div>
-                <div class="fr">
-                  <div class="fg">
-                    <label>Nouveau mot de passe</label>
-                    <div class="pwg"><input type="password" id="pw-admin-new" placeholder="…">
-                      <button class="pwe" onclick="togPwField('pw-admin-new')" type="button">👁</button>
-                    </div>
-                  </div>
-                  <div class="fg">
-                    <label>Confirmation</label>
-                    <div class="pwg"><input type="password" id="pw-admin-confirm" placeholder="…">
-                      <button class="pwe" onclick="togPwField('pw-admin-confirm')" type="button">👁</button>
-                    </div>
-                  </div>
-                </div>
-                <button class="btn btn-p sm" onclick="savePwAdmin()">Changer</button>
-              </div>
-
-              <!-- Mot de passe dev -->
-              <div style="border-top:1px solid var(--border);padding-top:14px">
-                <div
-                  style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px">
-                  🛠 Accès développeur
-                </div>
-                <div class="fr">
-                  <div class="fg">
-                    <label>Nouveau mot de passe</label>
-                    <div class="pwg"><input type="password" id="pw-dev-new" placeholder="…">
-                      <button class="pwe" onclick="togPwField('pw-dev-new')" type="button">👁</button>
-                    </div>
-                  </div>
-                  <div class="fg">
-                    <label>Confirmation</label>
-                    <div class="pwg"><input type="password" id="pw-dev-confirm" placeholder="…">
-                      <button class="pwe" onclick="togPwField('pw-dev-confirm')" type="button">👁</button>
-                    </div>
-                  </div>
-                </div>
-                <button class="btn btn-p sm" onclick="savePwDev()">Changer</button>
-              </div>
-
-              <!-- Mot de passe Marine -->
-              <div style="border-top:1px solid var(--border);padding-top:14px">
-                <div
-                  style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px">
-                  🐴 Accès Marine
-                </div>
-                <div class="fr">
-                  <div class="fg">
-                    <label>Nouveau mot de passe</label>
-                    <div class="pwg"><input type="password" id="pw-marine-new" placeholder="…">
-                      <button class="pwe" onclick="togPwField('pw-marine-new')" type="button">👁</button>
-                    </div>
-                  </div>
-                  <div class="fg">
-                    <label>Confirmation</label>
-                    <div class="pwg"><input type="password" id="pw-marine-confirm" placeholder="…">
-                      <button class="pwe" onclick="togPwField('pw-marine-confirm')" type="button">👁</button>
-                    </div>
-                  </div>
-                </div>
-                <button class="btn btn-p sm" onclick="savePwMarine()">Changer</button>
-              </div>
-              <!-- Mot de passe balades -->
-              <div style="border-top:1px solid var(--border);padding-top:14px">
-                <div
-                  style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px">
-                  🌿 Accès balades (employés)
-                </div>
-                <div class="fr">
-                  <div class="fg">
-                    <label>Nouveau mot de passe</label>
-                    <div class="pwg"><input type="password" id="pw-balades-new" placeholder="…">
-                      <button class="pwe" onclick="togPwField('pw-balades-new')" type="button">👁</button>
-                    </div>
-                  </div>
-                  <div class="fg">
-                    <label>Confirmation</label>
-                    <div class="pwg"><input type="password" id="pw-balades-confirm" placeholder="…">
-                      <button class="pwe" onclick="togPwField('pw-balades-confirm')" type="button">👁</button>
-                    </div>
-                  </div>
-                </div>
-                <button class="btn btn-p sm" onclick="savePwBalades()">Changer</button>
-              </div>
-
-            </div>
           </div>
       </main>
 
@@ -2424,13 +2186,6 @@
           </div>
           <div class="fg"><label>Téléphone <span style="color:var(--muted)">(admin)</span></label><input type="tel"
               id="cav-tel" placeholder="06 95 73 83 71"></div>
-          <div class="fg"><label>Fréquence de présence</label>
-            <select id="cav-semaine-type">
-              <option value="toutes">Toutes les semaines</option>
-              <option value="paire">Semaines paires uniquement</option>
-              <option value="impaire">Semaines impaires uniquement</option>
-            </select>
-          </div>
           <div class="fg"><label>Groupes assignés</label>
             <div class="cav-checkgrid" id="cav-grp-grid"></div>
           </div>
@@ -2895,8 +2650,8 @@
         const statutsActifsADate = (date) => C.statuts.filter(s => statutActifADate(s, date));
         const SBDG = { attache: 'bo', veto: 'br', marechal: 'bp', repos: 'b' };
 
-        let isAdmin = false, isDev = false, isMarine = false, isBalades = false, sessionToken = '', histTab = 'couples';
-        let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [], taches: [], tachesComp: [], balades: [], baladeInscrs: [] };
+        let isAdmin = false, isDev = false, isMarine = false, sessionToken = '', histTab = 'couples';
+        let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [], taches: [], tachesComp: [] };
         // ── Historique d'annulation (undo) ──
         let _undoStack = []; // [{ label, fn }]
         const MAX_UNDO = 15;
@@ -2979,116 +2734,98 @@
 
         window.onload = async () => {
           const savedSite = localStorage.getItem('ce_site_token');
-          const savedRole = localStorage.getItem('ce_role') || 'site';
           if (savedSite) {
+            // Ping : vérifier que le mot de passe n'a pas changé côté serveur
+            // Si le ping échoue (réseau, cold start) → on fait confiance au token local
             try {
-              const r = await fetch('/api/db', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'ping' })
-              });
+              const r = await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'ping' }) });
               if (r.ok) {
                 const j = await r.json();
                 const storedHash = localStorage.getItem('ce_pw_hash');
                 if (!storedHash) {
+                  // Première fois avec ce système → stocker le hash et continuer
                   localStorage.setItem('ce_pw_hash', j.hash);
                 } else if (j.hash !== storedHash) {
-                  // Hash site a changé → forcer reconnexion
+                  // Mot de passe changé → forcer reconnexion sur tous les appareils
                   localStorage.removeItem('ce_site_token');
                   localStorage.removeItem('ce_pw_hash');
                   localStorage.removeItem('ce_admin_active');
-                  localStorage.removeItem('ce_dev_active');
-                  localStorage.removeItem('ce_marine_active');
-                  localStorage.removeItem('ce_balades_active');
-                  localStorage.removeItem('ce_role');
-                  return;
+                  return; // affiche l'écran de connexion
                 }
+              } else {
+                // Serveur répond mais erreur (ex: 500) → accès direct sans bloquer
               }
-            } catch { /* accès direct si réseau KO */ }
-            await initApp(savedSite, savedRole);
-            return;
+            } catch {
+              // Erreur réseau / cold start → accès direct sans vérification
+            }
+            await initApp(savedSite); return;
           }
+          // Pas de token → afficher l'écran de connexion
         };
 
         async function chkSitePw() {
           const pw = document.getElementById('site-pw-in').value;
-          const btn = document.getElementById('site-pw-btn');
-          btn.textContent = '…'; btn.disabled = true;
+          const btn = document.getElementById('site-pw-btn'); btn.textContent = '…'; btn.disabled = true;
           document.getElementById('site-pw-err').style.display = 'none';
           try {
-            const r = await fetch('/api/db', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'auth', password: pw })
-            });
+            const r = await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'auth', password: pw }) });
             const j = await r.json();
             if (j && j.ok) {
               localStorage.setItem('ce_site_token', j.token);
-              localStorage.setItem('ce_pw_hash', fnv32Client(pw));
-              localStorage.setItem('ce_role', j.role);
+              // Stocker le hash du mot de passe pour détecter un changement ultérieur
+              const ph = fnv32Client(pw);
+              localStorage.setItem('ce_pw_hash', ph);
               document.getElementById('site-login').style.display = 'none';
-              await initApp(j.token, j.role);
+              await initApp(j.token);
             } else {
               document.getElementById('site-pw-err').style.display = 'block';
               document.getElementById('site-pw-in').value = '';
               document.getElementById('site-pw-in').focus();
             }
-          } catch {
-            document.getElementById('site-pw-err').style.display = 'block';
-          }
+          } catch { document.getElementById('site-pw-err').style.display = 'block'; }
           btn.textContent = 'Accéder'; btn.disabled = false;
         }
         function togSitePw() { const i = document.getElementById('site-pw-in'); i.type = i.type === 'password' ? 'text' : 'password'; }
 
-        async function initApp(siteToken, role) {
+        async function initApp(siteToken) {
           const today = new Date().toISOString().split('T')[0];
-          ['pub-date', 'sea-date'].forEach(id => {
-            const e = document.getElementById(id); if (e) e.value = today;
-          });
+          ['pub-date', 'sea-date'].forEach(id => { const e = document.getElementById(id); if (e) e.value = today; });
           document.getElementById('pub-lbl').textContent = fmtL(today);
           const tdl = document.getElementById('td-lbl'); if (tdl) tdl.textContent = fmtL(today);
-          document.getElementById('site-login').style.display = 'none';
+          document.getElementById('site-login').style.display = 'none'; // masquer l'écran de connexion dans tous les cas
           document.getElementById('ld').style.display = 'flex';
-
           try {
             await chargerVacancesZoneA();
-
-            // Mode balades : chargement minimal
-            if (role === 'balades') {
-              isBalades = true;
-              sessionToken = siteToken;
-              localStorage.setItem('ce_balades_active', '1');
-              // Charger seulement ce qui est nécessaire pour les balades
-              await Promise.all([loadMon(), loadDiscIcons()]);
-              document.getElementById('ld').style.display = 'none';
-              document.getElementById('app').style.display = 'block';
-              enableBalades();
-              return;
-            }
-
             await loadAll();
             document.getElementById('ld').style.display = 'none';
             document.getElementById('app').style.display = 'block';
-
+            initRealtime();
+            // Vérifier les retours non lus après chargement (admin et marine)
+            // Restaurer le mode admin seulement si l'utilisateur l'avait explicitement activé
+            // (flag posé par enableAdmin, effacé par logoutAdmin — indépendant du token site)
+            // Restaurer la dernière page visitée
             const lastPage = localStorage.getItem('ce_last_page') || 'vue';
-            const adminPages = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches', 'balades', 'params'];
-
+            const adminPages = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets'];
+            if (localStorage.getItem('ce_admin_active') === '1') {
+              sessionToken = siteToken;
+              setTimeout(() => checkRetoursBanner(), 500);
+              enableAdmin(lastPage); // on passe la page à restaurer
+              return;
+            }
             if (localStorage.getItem('ce_dev_active') === '1') {
-              sessionToken = siteToken; enableDev(lastPage); return;
+              sessionToken = siteToken;
+              enableDev(lastPage);
+              return;
             }
             if (localStorage.getItem('ce_marine_active') === '1') {
-              sessionToken = siteToken; enableMarine(lastPage); return;
-            }
-            if (localStorage.getItem('ce_admin_active') === '1') {
-              sessionToken = siteToken; enableAdmin(lastPage); return;
+              sessionToken = siteToken;
+              enableMarine(lastPage);
+              return;
             }
             go(adminPages.includes(lastPage) ? 'vue' : lastPage);
           } catch (e) {
-            const s = document.getElementById('ld-sub');
-            s.textContent = 'Erreur : ' + (e.message || e);
-            s.style.color = '#b43728';
-            document.querySelector('#ld .spin').style.display = 'none';
-            console.error(e);
+            const s = document.getElementById('ld-sub'); s.textContent = 'Erreur : ' + (e.message || e); s.style.color = '#b43728';
+            document.querySelector('#ld .spin').style.display = 'none'; console.error(e);
           }
         }
 
@@ -3125,28 +2862,7 @@
         }
         function hexToRgbStr(h) { const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h); return r ? `${parseInt(r[1], 16)}, ${parseInt(r[2], 16)}, ${parseInt(r[3], 16)}` : '0, 0, 0'; }
         let _realtimeChannel = null;
-        function enableBalades(targetPage = 'balades-pub') {
-          isBalades = true; isAdmin = false; isDev = false; isMarine = false;
-          // Masquer toute la nav admin, montrer seulement balades-pub
-          document.getElementById('anav').style.display = 'none';
-          const niBaladesPub = document.getElementById('ni-balades-pub');
-          if (niBaladesPub) niBaladesPub.style.display = '';
-          document.getElementById('atbtn').textContent = '🔒 Quitter';
-          document.getElementById('atbtn').classList.add('on');
-          go(targetPage);
-        }
 
-        function logoutBalades() {
-          isBalades = false; sessionToken = '';
-          localStorage.removeItem('ce_balades_active');
-          localStorage.removeItem('ce_role');
-          const niBaladesPub = document.getElementById('ni-balades-pub');
-          if (niBaladesPub) niBaladesPub.style.display = 'none';
-          document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
-          document.getElementById('atbtn').classList.remove('on');
-          go('vue');
-          toast('Déconnecté', 'ok');
-        }
         function initRealtime() {
           // Utilise l'API Supabase Realtime via le proxy existant — 
           // mais comme on passe par /api/db on ne peut pas utiliser le client Supabase directement.
@@ -3203,7 +2919,6 @@
           if (isAdmin) { logoutAdmin(); return; }
           if (isMarine) { logoutMarine(); return; }
           if (isDev) { logoutDev(); return; }
-          if (isBalades) { logoutBalades(); return; }
           document.getElementById('pw-in').value = '';
           document.getElementById('pw-err').style.display = 'none';
           openMo('mo-pw');
@@ -3219,11 +2934,9 @@
               sessionToken = j.token;
               isDev = (j.role === 'dev');
               isMarine = (j.role === 'marine');
-              isBalades = (j.role === 'balades');
               localStorage.removeItem('ce_admin_active');
               localStorage.removeItem('ce_dev_active');
               localStorage.removeItem('ce_marine_active');
-              localStorage.removeItem('ce_balades_active');
               closeMo('mo-pw');
               if (isDev) {
                 localStorage.setItem('ce_dev_active', '1');
@@ -3231,11 +2944,6 @@
               } else if (isMarine) {
                 localStorage.setItem('ce_marine_active', '1');
                 enableMarine();
-              } else if (isBalades) {
-                localStorage.setItem('ce_balades_active', '1');
-                localStorage.setItem('ce_role', 'balades');
-                closeMo('mo-pw');
-                enableBalades();
               } else {
                 localStorage.setItem('ce_admin_active', '1');
                 enableAdmin();
@@ -3326,56 +3034,42 @@
 
         // ── Nav ──
         function go(p) {
-          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs',
-            'historique', 'disciplines', 'cartes', 'tickets', 'taches', 'balades', 'params'];
-
-          if (!isAdmin && !isDev && !isMarine && !isBalades && adm.includes(p)) return;
+          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches'];
+          // Bloquer les pages admin si pas de rôle élevé
+          if (!isAdmin && !isDev && !isMarine && adm.includes(p)) return;
+          // Marine : seulement séances (+ vue est déjà publique)
           if (isMarine && !isAdmin && !isDev && !['seances'].includes(p) && adm.includes(p)) return;
-          if (isBalades && p !== 'balades-pub') return; // balades : seulement cette page
-
           document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
           document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
           document.getElementById('page-' + p)?.classList.add('active');
-          const b = document.querySelector('[data-p="' + p + '"]');
-          if (b) b.classList.add('active');
+          const b = document.querySelector('[data-p="' + p + '"]'); if (b) b.classList.add('active');
+          // 💾 Persistance de la page active
           try { localStorage.setItem('ce_last_page', p); } catch { }
-
           if (p === 'vue') loadVue();
           else stopVueRefresh();
+          if (p === 'dashboard') { if (!C.affSem.length) loadSemaine().then(() => renderAlerts()); else renderAlerts(); }
           if (p === 'dash') renderDash();
           if (p === 'seances') onSeaDate();
           if (p === 'stages') loadStages();
           if (p === 'chevaux') { loadStatuts(); renderChevaux(); }
           if (p === 'historique') loadHistorique();
+          updateStgBanner();
           if (p === 'disciplines') renderDiscPage();
           if (p === 'cartes') loadPageCartes();
           if (p === 'tickets') renderTicketsPage();
+          if (p === 'taches-pub') loadTachesPub();
           if (p === 'taches') {
             document.getElementById('taches-date').value = new Date().toISOString().slice(0, 10);
             renderTachesAdmin();
           }
-          if (p === 'taches-pub') loadTachesPub();
-          if (p === 'balades') {
-            document.getElementById('balades-admin-date').value = new Date().toISOString().slice(0, 10);
-            renderBaladesAdmin();
-          }
-          if (p === 'balades-pub') loadBaladesPub();
           if (p === 'params') renderParamsPage();
-          updateStgBanner();
-          if (window.innerWidth <= 768) {
-            document.getElementById('sb').classList.remove('open');
-            document.getElementById('sbo').classList.remove('open');
-          }
+          if (window.innerWidth <= 768) { document.getElementById('sb').classList.remove('open'); document.getElementById('sbo').classList.remove('open'); }
         }
         function toggleSB() { document.getElementById('sb').classList.toggle('open'); document.getElementById('sbo').classList.toggle('open'); }
 
         // ── Chargement ──
         async function loadAll() {
-          await Promise.all([
-            loadGrp(), loadCav(), loadChv(), loadMon(), loadStatuts(),
-            loadSemaine(), loadDiscIcons(), loadCartes(), loadAppSettings(),
-            loadTaches(), loadBalades()
-          ]);
+          await Promise.all([loadGrp(), loadCav(), loadChv(), loadMon(), loadStatuts(), loadSemaine(), loadDiscIcons(), loadCartes(), loadAppSettings(), loadTaches()]);      // Rendu final une fois toutes les données chargées (évite les 0 cavaliers / moniteurs manquants)
           renderGroupes(); renderCavaliers(); renderMoniteurs(); renderChevaux(); popSelects();
         }
 
@@ -4197,348 +3891,14 @@
             const r = await dbIns('seances', { groupe_id: g.id, date, heure: g.heure, discipline: DISC[0], moniteur_id: g.moniteur_id || null });
             if (!r.data?.[0]) continue; created++;
             const ns = r.data[0];
-            const getNumSemLocal = (d) => {
-              const dt = new Date(d + 'T00:00:00');
-              dt.setHours(0, 0, 0, 0);
-              dt.setDate(dt.getDate() + 3 - (dt.getDay() + 6) % 7);
-              const w = new Date(dt.getFullYear(), 0, 4);
-              return 1 + Math.round(((dt - w) / 86400000 - 3 + (w.getDay() + 6) % 7) / 7);
-            };
-            const numSemGen = getNumSemLocal(date);
-            const estPaireGen = numSemGen % 2 === 0;
-
             const cavIds = getGrpCavs(g.id);
-            // Filtrer selon semaine_type du cavalier
-            const cavIdsFiltres = cavIds.filter(cid => {
-              const cav = C.cav.find(c => c.id === cid);
-              if (!cav) return true;
-              if (cav.semaine_type === 'paire' && !estPaireGen) return false;
-              if (cav.semaine_type === 'impaire' && estPaireGen) return false;
-              return true;
-            });
-            if (cavIdsFiltres.length) {
-              await dbIns('affectations_seance', cavIdsFiltres.map(cid => ({
-                seance_id: ns.id, cavalier_id: cid, equide_id: null, absent: false, rattrapage: false
-              })));
-            }
+            if (cavIds.length) await dbIns('affectations_seance', cavIds.map(cid => ({ seance_id: ns.id, cavalier_id: cid, equide_id: null, absent: false, rattrapage: false })));
           }
           await loadSeances(date);
           btn.disabled = true; btn.style.opacity = '.5'; btn.textContent = '✅ Séances générées';
           toast(created > 0 ? `${created} séance${created > 1 ? 's' : ''} générée${created > 1 ? 's' : ''}` : 'Séances déjà existantes', 'ok');
         }
-        // ══════════════════════════════════════════════════
-        //  BALADES
-        // ══════════════════════════════════════════════════
-        async function loadBalades() {
-          C.balades = await dbSel('balades', {
-            order: [{ col: 'date', asc: true }, { col: 'heure_depart' }]
-          });
-        }
 
-        // Format téléphone FR
-        function fmtTel(tel) {
-          if (!tel) return '';
-          const t = tel.replace(/\D/g, '');
-          if (t.length === 10) {
-            return t.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
-          }
-          return tel;
-        }
-
-        async function loadBaladesPub() {
-          const el = document.getElementById('balades-pub-content');
-          if (!el) return;
-          const today = new Date().toISOString().slice(0, 10);
-          document.getElementById('balades-pub-lbl').textContent = fmtL(today);
-          el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
-
-          const balades = await dbSel('balades', {
-            filter: [
-              { col: 'date', op: 'eq', val: today },
-              { col: 'actif', op: 'eq', val: 'true' }
-            ],
-            order: [{ col: 'heure_depart' }]
-          });
-
-          if (!balades.length) {
-            el.innerHTML = '<div class="ls">Aucune balade prévue aujourd\'hui.</div>';
-            return;
-          }
-
-          const iv = `(${balades.map(b => `"${b.id}"`).join(',')})`;
-          const inscrs = await dbSel('balade_inscriptions', {
-            filter: [{ col: 'balade_id', op: 'in', val: iv }],
-            order: [{ col: 'num_ordre', asc: true }, { col: 'created_at', asc: true }]
-          });
-
-          const NIVEAUX = {
-            tous: 'Tous niveaux', debutant: '🟢 Débutant',
-            intermediaire: '🟡 Intermédiaire', confirme: '🔴 Confirmé'
-          };
-
-          el.innerHTML = balades.map(b => {
-            const bi = inscrs.filter(i => i.balade_id === b.id);
-            const placesRestantes = (b.places_max || 8) - bi.length;
-            const complet = placesRestantes <= 0;
-            const mon = C.mon.find(m => m.id === b.moniteur_id);
-            // Chevaux dispo (liste des noms pas encore attribués)
-            const chevaux = (b.chevaux_dispos || []);
-            const chevAttribues = bi.map(i => i.cheval_attribue).filter(Boolean);
-            const chevRestants = chevaux.filter(c => !chevAttribues.includes(c));
-
-            const lignesInscrits = bi.map((i, idx) => {
-              const nomComplet = `${cap(i.prenom || '')}${i.nom ? ' ' + i.nom.toUpperCase() : ''}`;
-              const tel = fmtTel(i.telephone);
-              return `<div class="cr" style="background:${idx % 2 === 0 ? 'transparent' : 'rgba(224,217,208,.4)'}">
-        <div style="display:flex;align-items:center;gap:8px;min-width:120px">
-          <span style="background:var(--gold);color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${idx + 1}</span>
-          <div>
-            <div class="cn">${nomComplet}</div>
-            ${i.age ? `<div style="font-size:11px;color:var(--muted)">${i.age} ans</div>` : ''}
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto">
-          ${tel ? `<span style="font-size:12px;color:var(--muted)">📞 ${tel}</span>` : ''}
-          ${i.cheval_attribue ? `<span class="b bgo" style="font-size:11px">🐴 ${i.cheval_attribue}</span>` : '<span class="b br" style="font-size:11px">Sans cheval</span>'}
-          ${i.note ? `<span style="font-size:11px;color:var(--muted);font-style:italic">${i.note}</span>` : ''}
-          <button class="btn btn-d sm" onclick="delInscriptionPub('${i.id}','${b.id}')">🗑</button>
-        </div>
-      </div>`;
-            }).join('');
-
-            return `<div class="sk" style="border:none;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.10);margin-bottom:14px">
-      <div class="skh" onclick="togSk('bal-${b.id}')"
-        style="background:linear-gradient(135deg,#2d6a4f,#40916c);border-radius:0;cursor:pointer">
-        <div>
-          <div class="skt" style="color:#fff">🌿 ${b.titre}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.8);margin-top:2px">
-            ${(b.heure_depart || '').slice(0, 5)} · ${b.duree_minutes || '?'} min
-            ${mon ? '· 👤 ' + mon.prenom : ''}
-            · ${NIVEAUX[b.niveau] || b.niveau}
-            · <strong style="color:#fff">${bi.length}/${b.places_max}</strong> inscrits
-            ${complet ? '· <span style="color:#ff8fab;font-weight:700">COMPLET</span>' : `· <span style="color:#b7e4c7">${placesRestantes} place${placesRestantes > 1 ? 's' : ''}</span>`}
-          </div>
-        </div>
-        <span style="color:rgba(255,255,255,.7);font-size:14px">▾</span>
-      </div>
-      <div class="skb" id="sk-bal-${b.id}" style="display:block">
-        ${b.description ? `<div style="padding:8px 14px;background:rgba(64,145,108,.05);border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);font-style:italic">${b.description}</div>` : ''}
-        ${chevaux.length ? `<div style="padding:6px 14px;background:rgba(64,145,108,.04);border-bottom:1px solid var(--border);font-size:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-          <span style="color:var(--muted);font-size:11px;font-weight:700">CHEVAUX DISPO :</span>
-          ${chevRestants.map(c => `<span class="b bg" style="font-size:11px">🐴 ${c}</span>`).join('')}
-          ${chevAttribues.length ? chevAttribues.map(c => `<span class="b bgo" style="font-size:11px;opacity:.5;text-decoration:line-through">🐴 ${c}</span>`).join('') : ''}
-        </div>` : ''}
-        ${lignesInscrits || '<div style="padding:10px 14px;color:var(--muted);font-size:12px">Aucun inscrit pour le moment</div>'}
-        ${!complet ? `<div style="padding:10px 14px;border-top:1px solid var(--border)">
-          <button class="btn btn-p" onclick="openInscription('${b.id}','${b.titre}',${JSON.stringify(chevRestants).replace(/"/g, '&quot;')})">
-            ✍️ Inscrire un cavalier
-          </button>
-        </div>` : `<div style="padding:10px 14px;border-top:1px solid var(--border);color:#b43728;font-size:13px;font-weight:700">🔴 Balade complète</div>`}
-      </div>
-    </div>`;
-          }).join('');
-        }
-
-        function openInscription(baladeId, titre, chevauxDispos) {
-          document.getElementById('inscr-balade-id').value = baladeId;
-          document.getElementById('mo-inscr-titre').textContent = `✍️ ${titre}`;
-          ['inscr-prenom', 'inscr-nom', 'inscr-tel', 'inscr-note'].forEach(i =>
-            document.getElementById(i).value = '');
-          document.getElementById('inscr-age').value = '';
-          // Peupler le select cheval
-          const sel = document.getElementById('inscr-cheval');
-          const chevaux = chevauxDispos || [];
-          sel.innerHTML = '<option value="">— Non attribué —</option>' +
-            chevaux.map(c => `<option value="${c}">🐴 ${c}</option>`).join('');
-          openMo('mo-balade-inscr');
-        }
-
-        async function saveInscription() {
-          const baladeId = v('inscr-balade-id');
-          const prenom = v('inscr-prenom').trim();
-          const nom = v('inscr-nom').trim();
-          if (!prenom || !nom) { toast('Prénom et nom requis', 'err'); return; }
-          // Numéro d'ordre = nb inscrits actuels + 1
-          const existing = await dbSel('balade_inscriptions', {
-            select: 'id',
-            filter: [{ col: 'balade_id', op: 'eq', val: baladeId }]
-          });
-          await dbIns('balade_inscriptions', {
-            balade_id: baladeId,
-            prenom, nom,
-            age: parseInt(v('inscr-age')) || null,
-            telephone: v('inscr-tel') || null,
-            cheval_attribue: v('inscr-cheval') || null,
-            note: v('inscr-note') || null,
-            num_ordre: existing.length + 1
-          });
-          toast('Inscrit ! ✅', 'ok');
-          closeMo('mo-balade-inscr');
-          await loadBaladesPub();
-        }
-
-        async function delInscriptionPub(id, baladeId) {
-          if (!confirm('Supprimer cette inscription ?')) return;
-          await dbDel('balade_inscriptions', [{ col: 'id', op: 'eq', val: id }]);
-          toast('Supprimé', 'ok');
-          await loadBaladesPub();
-        }
-
-        async function renderBaladesAdmin() {
-          const el = document.getElementById('balades-admin-content');
-          if (!el) return;
-          el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
-          await loadBalades();
-          const dateFiltre = document.getElementById('balades-admin-date')?.value || '';
-          const baladesFiltered = dateFiltre
-            ? C.balades.filter(b => b.date === dateFiltre)
-            : C.balades;
-
-          if (!baladesFiltered.length) {
-            el.innerHTML = '<div class="ls">Aucune balade' + (dateFiltre ? ' ce jour' : '') + '</div>';
-            return;
-          }
-
-          const iv = `(${baladesFiltered.map(b => `"${b.id}"`).join(',')})`;
-          const inscrs = await dbSel('balade_inscriptions', {
-            filter: [{ col: 'balade_id', op: 'in', val: iv }],
-            order: [{ col: 'num_ordre', asc: true }, { col: 'created_at', asc: true }]
-          });
-
-          const NIVEAUX = {
-            tous: 'Tous', debutant: '🟢 Déb.',
-            intermediaire: '🟡 Inter.', confirme: '🔴 Conf.'
-          };
-          const today = new Date().toISOString().slice(0, 10);
-
-          el.innerHTML = baladesFiltered.map(b => {
-            const bi = inscrs.filter(i => i.balade_id === b.id);
-            const complet = bi.length >= (b.places_max || 8);
-            const passee = b.date < today;
-            const mon = C.mon.find(m => m.id === b.moniteur_id);
-            const chevaux = b.chevaux_dispos || [];
-
-            const lignes = bi.map((i, idx) => {
-              const nomComplet = `${cap(i.prenom || '')}${i.nom ? ' ' + i.nom.toUpperCase() : ''}`;
-              const tel = fmtTel(i.telephone);
-              return `<div class="cr" style="background:${idx % 2 === 0 ? 'transparent' : 'rgba(224,217,208,.4)'}">
-        <div style="display:flex;align-items:center;gap:8px;min-width:140px">
-          <span style="background:var(--gold);color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${idx + 1}</span>
-          <div>
-            <div class="cn">${nomComplet}</div>
-            ${i.age ? `<div style="font-size:11px;color:var(--muted)">${i.age} ans</div>` : ''}
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto">
-          ${tel ? `<a href="tel:${i.telephone}" style="font-size:12px;color:var(--gold);text-decoration:none;font-weight:700">📞 ${tel}</a>` : ''}
-          ${i.cheval_attribue ? `<span class="b bgo" style="font-size:11px">🐴 ${i.cheval_attribue}</span>` : ''}
-          ${i.note ? `<span style="font-size:11px;color:var(--muted);font-style:italic">${i.note}</span>` : ''}
-          <button class="btn btn-d sm" onclick="delInscription('${i.id}','${b.id}')">🗑</button>
-        </div>
-      </div>`;
-            }).join('');
-
-            return `<div class="stg-wrap" style="${passee ? 'opacity:.65' : ''}">
-      <div class="stg-hdr">
-        <div>
-          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">
-            ${fmtDate(b.date)} ${(b.heure_depart || '').slice(0, 5)} · ${b.duree_minutes || '?'} min
-            ${mon ? '· 👤 ' + mon.prenom : ''}
-            · ${NIVEAUX[b.niveau] || b.niveau}
-          </div>
-          <div class="stg-ttl">🌿 ${b.titre}</div>
-          ${b.description ? `<div style="font-size:12px;color:var(--muted);margin-top:2px">${b.description}</div>` : ''}
-          <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
-            <span class="b ${complet ? 'br' : 'bg'}">${bi.length}/${b.places_max} inscrits${complet ? ' — COMPLET' : ''}</span>
-            <span class="b ${b.actif ? 'bg' : 'br'}">${b.actif ? 'Active' : 'Inactive'}</span>
-            ${chevaux.length ? `<span class="b bgo">${chevaux.length} cheval${chevaux.length > 1 ? 'x' : ''}</span>` : ''}
-          </div>
-        </div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap">
-          <button class="btn btn-g sm" onclick="editBalade('${b.id}')">✏️</button>
-          <button class="btn btn-d sm" onclick="delBalade('${b.id}')">🗑</button>
-        </div>
-      </div>
-      ${chevaux.length ? `<div style="padding:6px 14px;background:rgba(64,145,108,.04);border-bottom:1px solid var(--border);font-size:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-        <span style="color:var(--muted);font-size:11px;font-weight:700">CHEVAUX :</span>
-        ${chevaux.map(c => `<span class="b bgo" style="font-size:11px">🐴 ${c}</span>`).join('')}
-      </div>` : ''}
-      ${lignes || '<div style="padding:10px 14px;color:var(--muted);font-size:12px">Aucun inscrit</div>'}
-    </div>`;
-          }).join('');
-        }
-
-        function newBalade() {
-          document.getElementById('mo-balade-t').textContent = 'Nouvelle balade';
-          ['balade-id', 'balade-titre', 'balade-desc', 'balade-chevaux'].forEach(i =>
-            document.getElementById(i).value = '');
-          document.getElementById('balade-date').value = new Date().toISOString().slice(0, 10);
-          document.getElementById('balade-heure').value = '';
-          document.getElementById('balade-duree').value = '60';
-          document.getElementById('balade-places').value = '8';
-          document.getElementById('balade-niveau').value = 'tous';
-          document.getElementById('balade-actif').checked = true;
-          document.getElementById('balade-moniteur').innerHTML = '<option value="">— Aucun —</option>' +
-            C.mon.map(m => `<option value="${m.id}">${m.prenom}</option>`).join('');
-          openMo('mo-balade');
-        }
-
-        function editBalade(id) {
-          const b = C.balades.find(x => x.id === id); if (!b) return;
-          document.getElementById('mo-balade-t').textContent = 'Modifier la balade';
-          document.getElementById('balade-id').value = id;
-          document.getElementById('balade-titre').value = b.titre;
-          document.getElementById('balade-desc').value = b.description || '';
-          document.getElementById('balade-date').value = b.date;
-          document.getElementById('balade-heure').value = (b.heure_depart || '').slice(0, 5);
-          document.getElementById('balade-duree').value = b.duree_minutes || 60;
-          document.getElementById('balade-places').value = b.places_max || 8;
-          document.getElementById('balade-niveau').value = b.niveau || 'tous';
-          document.getElementById('balade-actif').checked = !!b.actif;
-          document.getElementById('balade-chevaux').value = (b.chevaux_dispos || []).join('\n');
-          document.getElementById('balade-moniteur').innerHTML = '<option value="">— Aucun —</option>' +
-            C.mon.map(m => `<option value="${m.id}"${m.id === b.moniteur_id ? ' selected' : ''}>${m.prenom}</option>`).join('');
-          openMo('mo-balade');
-        }
-
-        async function saveBalade() {
-          const id = v('balade-id');
-          const titre = v('balade-titre').trim();
-          if (!titre) { toast('Le titre est requis', 'err'); return; }
-          const chevaux = v('balade-chevaux').split('\n')
-            .map(c => c.trim()).filter(Boolean);
-          const data = {
-            titre, description: v('balade-desc') || null,
-            date: v('balade-date'), heure_depart: v('balade-heure') || null,
-            duree_minutes: parseInt(v('balade-duree')) || 60,
-            places_max: parseInt(v('balade-places')) || 8,
-            niveau: v('balade-niveau'),
-            moniteur_id: v('balade-moniteur') || null,
-            chevaux_dispos: chevaux.length ? chevaux : null,
-            actif: document.getElementById('balade-actif').checked
-          };
-          if (!data.date) { toast('La date est requise', 'err'); return; }
-          if (id) await dbUpd('balades', data, [{ col: 'id', op: 'eq', val: id }]);
-          else await dbIns('balades', data);
-          toast(id ? 'Balade modifiée' : 'Balade créée', 'ok');
-          closeMo('mo-balade');
-          renderBaladesAdmin();
-        }
-
-        async function delBalade(id) {
-          if (!confirm('Supprimer cette balade et ses inscriptions ?')) return;
-          await dbDel('balade_inscriptions', [{ col: 'balade_id', op: 'eq', val: id }]);
-          await dbDel('balades', [{ col: 'id', op: 'eq', val: id }]);
-          toast('Supprimée', 'ok');
-          renderBaladesAdmin();
-        }
-
-        async function delInscription(id, baladeId) {
-          if (!confirm('Supprimer cette inscription ?')) return;
-          await dbDel('balade_inscriptions', [{ col: 'id', op: 'eq', val: id }]);
-          toast('Inscription supprimée', 'ok');
-          renderBaladesAdmin();
-        }
         // état ouvert des séances
         let openSeances = new Set();
 
@@ -5779,12 +5139,8 @@
             const grpsHtml = grpIds.length
               ? grpIds.map(gid => { const g = C.grp.find(x => x.id === gid); if (!g) return ''; const c = g.couleur || '#c9a84c'; const isLight = isLightColor(c); return `<span style="display:inline-block;margin:2px 3px 2px 0;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${isLight ? '#3a3028' : '#fff'};text-transform:uppercase;letter-spacing:.3px">${g.nom}</span>`; }).join('')
               : '<span class="b br">Sans groupe</span>';
-            const semBadge = c.semaine_type !== 'toutes'
-              ? `<span class="b bb" style="margin-left:4px;font-size:10px">${c.semaine_type === 'paire' ? 'S.paires' : 'S.impaires'}</span>`
-              : '';
             return `<tr>
-              
-      <td><strong>${cap(c.prenom || '')}${c.nom ? ' <span style="color:var(--muted);font-size:12px">' + c.nom.toUpperCase() + '</span>' : ''}</strong>${semBadge}</td>
+      <td><strong>${cap(c.prenom || '')}${c.nom ? ' <span style="color:var(--muted);font-size:12px">' + c.nom.toUpperCase() + '</span>' : ''}</strong></td>
       <td>${grpsHtml}</td>
       <td>${isAdmin ? (c.telephone || '—') : '<span style="color:var(--muted)">🔒</span>'}</td>
       <td style="display:flex;gap:5px"><button class="btn btn-g sm" onclick="editCav('${c.id}')">✏️</button><button class="btn btn-d sm" onclick="delCav('${c.id}')">🗑</button></td>
@@ -5801,21 +5157,13 @@
       <span style="display:flex;align-items:center"><span class="grp-dot" style="background:${g.couleur || '#c9a84c'}"></span>${g.nom}</span>
     </label>`).join('');
         }
-        function newCav() {
-          document.getElementById('mo-cav-t').textContent = 'Nouveau cavalier';
-          ['cav-id', 'cav-prenom', 'cav-nom', 'cav-tel'].forEach(i => document.getElementById(i).value = '');
-          document.getElementById('cav-semaine-type').value = 'toutes';
-          buildCavGrpGrid(null);
-          _refreshCavCarteInfo(null);
-          openMo('mo-cav');
-        }
+        function newCav() { document.getElementById('mo-cav-t').textContent = 'Nouveau cavalier';['cav-id', 'cav-prenom', 'cav-nom', 'cav-tel'].forEach(i => document.getElementById(i).value = ''); buildCavGrpGrid(null); _refreshCavCarteInfo(null); openMo('mo-cav'); }
         async function saveCavalier() {
           const prenom = v('cav-prenom').trim(), nom = v('cav-nom').trim() || null, telephone = v('cav-tel') || null, id = v('cav-id');
-          const semaine_type = v('cav-semaine-type') || 'toutes';
           if (!prenom) { toast('Le prénom est requis', 'err'); return; }
           let cavId = id;
-          if (id) await dbUpd('cavaliers', { prenom, nom, telephone, semaine_type }, [{ col: 'id', op: 'eq', val: id }]);
-          else { const r = await dbIns('cavaliers', { prenom, nom, telephone, semaine_type }); cavId = r.data?.[0]?.id; }
+          if (id) await dbUpd('cavaliers', { prenom, nom, telephone }, [{ col: 'id', op: 'eq', val: id }]);
+          else { const r = await dbIns('cavaliers', { prenom, nom, telephone }); cavId = r.data?.[0]?.id; }
           if (!cavId) { toast('Erreur', 'err'); return; }
           // sync groupes
           const checked = [...document.querySelectorAll('#cav-grp-grid input:checked')].map(i => i.value);
@@ -5855,15 +5203,7 @@
           });
         }
         function editCav(id) {
-          const c = C.cav.find(x => x.id === id);
-          document.getElementById('mo-cav-t').textContent = 'Modifier';
-          document.getElementById('cav-id').value = id;
-          document.getElementById('cav-prenom').value = c.prenom;
-          document.getElementById('cav-nom').value = c.nom || '';
-          document.getElementById('cav-tel').value = c.telephone || '';
-          document.getElementById('cav-semaine-type').value = c.semaine_type || 'toutes';
-          buildCavGrpGrid(id);
-          _refreshCavCarteInfo(id);
+          const c = C.cav.find(x => x.id === id); document.getElementById('mo-cav-t').textContent = 'Modifier'; document.getElementById('cav-id').value = id; document.getElementById('cav-prenom').value = c.prenom; document.getElementById('cav-nom').value = c.nom || ''; document.getElementById('cav-tel').value = c.telephone || ''; buildCavGrpGrid(id); _refreshCavCarteInfo(id);
           openMo('mo-cav');
         }
         async function delCav(id) { if (!confirm('Supprimer ?')) return; await dbDel('cavalier_groupes', [{ col: 'cavalier_id', op: 'eq', val: id }]); await dbDel('cavaliers', [{ col: 'id', op: 'eq', val: id }]); toast('Supprimé', 'ok'); await loadCav(); renderCavaliers(); popSelects(); }
