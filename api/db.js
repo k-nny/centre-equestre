@@ -34,13 +34,65 @@ export default async function handler(req, res) {
   // Mais ici, tu as ajouté une colonne app_key à 'tickets', donc db.js le gérera tout seul.
 
   // 2. Modifier la route 'auth' et ajouter 'auth-dev'
-  if (req.method === 'POST' && req.body.action === 'auth') {
-    const { password } = req.body;
-    if (password === ADMIN_PWD) return res.json({ ok: true, token: makeToken(ADMIN_PWD), role: 'admin' });
-    if (password === MARINE_PWD) return res.json({ ok: true, token: makeToken(MARINE_PWD), role: 'marine' });
-    if (password === DEV_PASSWORD) return res.json({ ok: true, token: makeToken(DEV_PASSWORD), role: 'dev' });
-    return res.status(401).json({ error: 'Invalide' });
+  if (req.method === 'POST' && req.body.action === 'update-password') {
+    let decoded;
+    try { decoded = JSON.parse(Buffer.from(token, 'base64').toString()); }
+    catch { return res.status(403).json({ error: 'Token invalide' }); }
+    if (!['admin', 'dev'].includes(decoded.role)) {
+      return res.status(403).json({ error: 'Non autorisé' });
+    }
+    const { pwKey, newValue } = body;
+    const allowed = ['site', 'admin', 'dev', 'marine', 'balades'];
+    if (!allowed.includes(pwKey)) {
+      return res.status(400).json({ error: 'Clé non autorisée' });
+    }
+    if (!newValue || newValue.length < 4) {
+      return res.status(400).json({ error: 'Mot de passe trop court (min 4 car.)' });
+    }
+    const newHash = fnv32(newValue);
+    const { error } = await supabase.from('app_passwords')
+      .upsert({ key: pwKey, hash: newHash, updated_at: new Date().toISOString() },
+        { onConflict: 'key' });
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ ok: true });
   }
+  if (req.method === 'POST' && req.body.action === 'auth') {
+    const { password } = body;
+    if (!password) return res.status(400).json({ ok: false });
+    const hash = fnv32(password);
+
+    await initPasswords(supabase);
+
+    const { data: pwRows } = await supabase.from('app_passwords').select('key,hash');
+    const pw = {};
+    (pwRows || []).forEach(r => { pw[r.key] = r.hash; });
+
+    // Fallback vars d'env
+    if (!pw.site) pw.site = fnv32(process.env.SITE_PASSWORD || '');
+    if (!pw.admin) pw.admin = fnv32(process.env.ADMIN_PASSWORD || '');
+    if (!pw.dev) pw.dev = fnv32(process.env.DEV_PASSWORD || '');
+    if (!pw.marine) pw.marine = fnv32(process.env.MARINE_PASSWORD || '');
+    if (!pw.balades) pw.balades = fnv32(process.env.BALADES_PASSWORD || '');
+
+    const roles = [
+      { key: 'dev', role: 'dev' },
+      { key: 'marine', role: 'marine' },
+      { key: 'admin', role: 'admin' },
+      { key: 'balades', role: 'balades' },
+      { key: 'site', role: 'site' },
+    ];
+
+    for (const r of roles) {
+      if (hash === pw[r.key]) {
+        const token = Buffer.from(
+          JSON.stringify({ ts: Date.now(), role: r.role })
+        ).toString('base64');
+        return res.json({ ok: true, token, hash, role: r.role });
+      }
+    }
+    return res.status(401).json({ ok: false });
+  }
+
 
   // 3. Ajouter l'action d'envoi d'email (à mettre avant le bloc 'query')
   if (req.method === 'POST' && req.body.action === 'send-ticket-email') {
@@ -108,7 +160,7 @@ export default async function handler(req, res) {
     const resendKey = process.env.RESEND_API_KEY;
     const toEmail = process.env.NOTIF_EMAIL;
 
-    
+
 
     const html = `
   <p><strong>Retour :</strong> ${message}</p>
@@ -168,8 +220,11 @@ export default async function handler(req, res) {
     // Ping : retourne un hash public du mot de passe pour détecter un changement
     // Sans révéler le mot de passe — le client compare juste le hash stocké
     if (body.action === 'ping') {
-      const hash = fnv32(ADMIN_PWD).toString(16);
-      return res.status(200).json({ hash });
+      await initPasswords(supabase);
+      const { data: pwRows } = await supabase.from('app_passwords').select('key,hash');
+      const siteRow = (pwRows || []).find(r => r.key === 'site');
+      const hash = siteRow?.hash || fnv32(process.env.SITE_PASSWORD || '');
+      return res.json({ ok: true, hash });
     }
 
     // ── Upload icône discipline vers Supabase Storage ─────────────────
@@ -373,8 +428,30 @@ function verifyToken(token, secret) {
     return fnv32(secret + payload).toString(16) === sig;
   } catch { return false; }
 }
+// Utilitaire hash FNV32
 function fnv32(str) {
   let h = 0x811c9dc5;
-  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = (h * 0x01000193) >>> 0; }
-  return h;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16);
+}
+
+async function initPasswords(supabase) {
+  const { data } = await supabase.from('app_passwords').select('key');
+  const existing = (data || []).map(r => r.key);
+  const defaults = [
+    { key: 'site', value: process.env.SITE_PASSWORD || 'Leo_1987' },
+    { key: 'admin', value: process.env.ADMIN_PASSWORD || 'Leo_1987' },
+    { key: 'dev', value: process.env.DEV_PASSWORD || 'LEO_Dev' },
+    { key: 'marine', value: process.env.MARINE_PASSWORD || 'LEO_Marine' },
+    { key: 'balades', value: process.env.BALADES_PASSWORD || 'BaladeMain_2026' },
+  ];
+  for (const d of defaults) {
+    if (!existing.includes(d.key)) {
+      await supabase.from('app_passwords')
+        .insert({ key: d.key, hash: fnv32(d.value) });
+    }
+  }
 }
