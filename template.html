@@ -6348,7 +6348,7 @@
 
         // ── Bannière retours ──
         async function checkRetoursBanner() {
-          if (isDev) return; // dev ne voit pas la bannière
+          if (!isAdmin) return; // si pas admin, pas la bannière
           try {
             const nonLus = await dbSel('ticket_retours', {
               select: 'id',
