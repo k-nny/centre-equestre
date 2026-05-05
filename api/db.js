@@ -1,44 +1,130 @@
 // api/db.js — Proxy Supabase sécurisé (Vercel Serverless Function)
-//
-// ✅  SUPABASE_URL, SUPABASE_ANON, APP_KEY, ADMIN_PASSWORD
-//     restent dans les variables d'environnement Vercel.
-//     Elles ne transitent JAMAIS vers le navigateur.
-//
-// Le front envoie des requêtes JSON à /api/db
-// Ce fichier les exécute côté serveur et retourne uniquement les données.
 
 export default async function handler(req, res) {
-  // ── CORS strict : même domaine uniquement ──────────────────────────
+  // ── CORS ──────────────────────────────────────────────────────────
   const origin = req.headers.origin || '';
   const host = req.headers.host || '';
-  const ok =
+  const okCors =
     !origin ||
     origin.includes(host) ||
     /localhost|127\.0\.0\.1/.test(origin) ||
     origin.endsWith('.vercel.app');
-
-  if (!ok) return res.status(403).json({ error: 'Forbidden' });
+  if (!okCors) return res.status(403).json({ error: 'Forbidden' });
 
   res.setHeader('Cache-Control', 'no-store');
 
-  const SUPA_URL = process.env.SUPABASE_URL || '';
+  // ── Variables d'env ───────────────────────────────────────────────
+  const SUPA_URL  = process.env.SUPABASE_URL  || '';
   const SUPA_ANON = process.env.SUPABASE_ANON || '';
-  const APP_KEY = process.env.APP_KEY || '';
-  const ADMIN_PWD = process.env.ADMIN_PASSWORD || '';
-  const MARINE_PWD = process.env.MARINE_PASSWORD || '';
-  const DEV_PASSWORD = process.env.DEV_PASSWORD || '';
+  const APP_KEY   = process.env.APP_KEY       || '';
 
-  // [DANS LE HANDLER, APRES LES CONST SUPA_URL, etc.]
+  // ── Client Supabase léger (fetch direct) ─────────────────────────
+  const supabase = {
+    from: (table) => ({
+      select: async (cols = '*') => {
+        const r = await fetch(
+          `${SUPA_URL}/rest/v1/${table}?select=${encodeURIComponent(cols)}`,
+          { headers: { apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}` } }
+        );
+        const data = await r.json();
+        return { data: Array.isArray(data) ? data : [], error: r.ok ? null : data };
+      },
+      insert: async (rows) => {
+        const r = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
+          method: 'POST',
+          headers: {
+            apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}`,
+            'Content-Type': 'application/json', Prefer: 'return=representation'
+          },
+          body: JSON.stringify(Array.isArray(rows) ? rows : [rows])
+        });
+        const data = await r.json();
+        return { data, error: r.ok ? null : data };
+      },
+      upsert: async (row, opts = {}) => {
+        const conflict = opts.onConflict ? `?on_conflict=${opts.onConflict}` : '';
+        const r = await fetch(`${SUPA_URL}/rest/v1/${table}${conflict}`, {
+          method: 'POST',
+          headers: {
+            apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}`,
+            'Content-Type': 'application/json',
+            Prefer: 'resolution=merge-duplicates,return=representation'
+          },
+          body: JSON.stringify(Array.isArray(row) ? row : [row])
+        });
+        const data = await r.json();
+        return { data, error: r.ok ? null : data };
+      }
+    })
+  };
 
-  // 1. Ajouter 'tickets' à la liste des tables autorisées sans filtrage app_key si nécessaire
-  // Mais ici, tu as ajouté une colonne app_key à 'tickets', donc db.js le gérera tout seul.
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  // 2. Modifier la route 'auth' et ajouter 'auth-dev'
-  if (req.method === 'POST' && req.body.action === 'update-password') {
-    let decoded;
-    try { decoded = JSON.parse(Buffer.from(token, 'base64').toString()); }
-    catch { return res.status(403).json({ error: 'Token invalide' }); }
-    if (!['admin', 'dev'].includes(decoded.role)) {
+  // ── Lecture du body ───────────────────────────────────────────────
+  let body;
+  try {
+    body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+  } catch {
+    return res.status(400).json({ error: 'Invalid JSON' });
+  }
+
+  const { action, token } = body;
+
+  // ── PING ──────────────────────────────────────────────────────────
+  if (action === 'ping') {
+    try {
+      await initPasswords(supabase);
+      const { data: pwRows } = await supabase.from('app_passwords').select('key,hash');
+      const siteRow = (pwRows || []).find(r => r.key === 'site');
+      const hash = siteRow?.hash || fnv32(process.env.SITE_PASSWORD || '');
+      return res.json({ ok: true, hash });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+  // ── AUTH ──────────────────────────────────────────────────────────
+  if (action === 'auth') {
+    const { password } = body;
+    if (!password) return res.status(400).json({ ok: false });
+    try {
+      await initPasswords(supabase);
+      const { data: pwRows } = await supabase.from('app_passwords').select('key,hash');
+      const pw = {};
+      (pwRows || []).forEach(r => { pw[r.key] = r.hash; });
+
+      // Fallback vars d'env si BDD vide
+      if (!pw.site)    pw.site    = fnv32(process.env.SITE_PASSWORD    || '');
+      if (!pw.admin)   pw.admin   = fnv32(process.env.ADMIN_PASSWORD   || '');
+      if (!pw.dev)     pw.dev     = fnv32(process.env.DEV_PASSWORD     || '');
+      if (!pw.marine)  pw.marine  = fnv32(process.env.MARINE_PASSWORD  || '');
+      if (!pw.balades) pw.balades = fnv32(process.env.BALADES_PASSWORD || '');
+
+      const hash = fnv32(password);
+      const roles = [
+        { key: 'dev',     role: 'dev'     },
+        { key: 'marine',  role: 'marine'  },
+        { key: 'admin',   role: 'admin'   },
+        { key: 'balades', role: 'balades' },
+        { key: 'site',    role: 'site'    },
+      ];
+      for (const r of roles) {
+        if (hash === pw[r.key]) {
+          const tok = Buffer.from(
+            JSON.stringify({ ts: Date.now(), role: r.role })
+          ).toString('base64');
+          return res.json({ ok: true, token: tok, hash, role: r.role });
+        }
+      }
+      return res.status(401).json({ ok: false });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+  // ── UPDATE PASSWORD ───────────────────────────────────────────────
+  if (action === 'update-password') {
+    if (!isAllowed(token, ['admin', 'dev'])) {
       return res.status(403).json({ error: 'Non autorisé' });
     }
     const { pwKey, newValue } = body;
@@ -49,386 +135,218 @@ export default async function handler(req, res) {
     if (!newValue || newValue.length < 4) {
       return res.status(400).json({ error: 'Mot de passe trop court (min 4 car.)' });
     }
-    const newHash = fnv32(newValue);
-    const { error } = await supabase.from('app_passwords')
-      .upsert({ key: pwKey, hash: newHash, updated_at: new Date().toISOString() },
-        { onConflict: 'key' });
-    if (error) return res.status(500).json({ error: error.message });
-    return res.json({ ok: true });
-  }
-  if (req.method === 'POST' && req.body.action === 'auth') {
-    const { password } = body;
-    if (!password) return res.status(400).json({ ok: false });
-    const hash = fnv32(password);
-
-    await initPasswords(supabase);
-
-    const { data: pwRows } = await supabase.from('app_passwords').select('key,hash');
-    const pw = {};
-    (pwRows || []).forEach(r => { pw[r.key] = r.hash; });
-
-    // Fallback vars d'env
-    if (!pw.site) pw.site = fnv32(process.env.SITE_PASSWORD || '');
-    if (!pw.admin) pw.admin = fnv32(process.env.ADMIN_PASSWORD || '');
-    if (!pw.dev) pw.dev = fnv32(process.env.DEV_PASSWORD || '');
-    if (!pw.marine) pw.marine = fnv32(process.env.MARINE_PASSWORD || '');
-    if (!pw.balades) pw.balades = fnv32(process.env.BALADES_PASSWORD || '');
-
-    const roles = [
-      { key: 'dev', role: 'dev' },
-      { key: 'marine', role: 'marine' },
-      { key: 'admin', role: 'admin' },
-      { key: 'balades', role: 'balades' },
-      { key: 'site', role: 'site' },
-    ];
-
-    for (const r of roles) {
-      if (hash === pw[r.key]) {
-        const token = Buffer.from(
-          JSON.stringify({ ts: Date.now(), role: r.role })
-        ).toString('base64');
-        return res.json({ ok: true, token, hash, role: r.role });
-      }
+    try {
+      const { error } = await supabase.from('app_passwords').upsert(
+        { key: pwKey, hash: fnv32(newValue), updated_at: new Date().toISOString() },
+        { onConflict: 'key' }
+      );
+      if (error) return res.status(500).json({ error: error.message || JSON.stringify(error) });
+      return res.json({ ok: true });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
     }
-    return res.status(401).json({ ok: false });
   }
 
-
-  // 3. Ajouter l'action d'envoi d'email (à mettre avant le bloc 'query')
-  if (req.method === 'POST' && req.body.action === 'send-ticket-email') {
-    const { ticket, token } = req.body;
-
-    if (!verifyToken(token, ADMIN_PWD) && !verifyToken(token, DEV_PASSWORD)) {
+  // ── SEND TICKET EMAIL ─────────────────────────────────────────────
+  if (action === 'send-ticket-email') {
+    if (!isAllowed(token, ['admin', 'dev', 'marine', 'site'])) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
+    try {
+      const { ticket } = body;
+      const resendKey = process.env.RESEND_API_KEY;
+      const toEmail   = process.env.NOTIF_EMAIL;
+      if (!resendKey || !toEmail) return res.json({ ok: false, error: 'Config email manquante' });
 
-    const resendKey = process.env.RESEND_API_KEY;
-    const toEmail = process.env.NOTIF_EMAIL;
+      const hasImage  = !!ticket.screenshot;
+      const base64Data = hasImage
+        ? ticket.screenshot.replace(/^data:image\/[^;]+;base64,/, '')
+        : null;
 
-    const hasImage = !!ticket.screenshot;
-
-    const base64Data = hasImage
-      ? ticket.screenshot.replace(/^data:image\/png;base64,/, "")
-      : null;
-
-    const html = `
-  <p><strong>Type:</strong> ${ticket.type} | <strong>Priorité:</strong> ${ticket.priorite}</p>
-  <p><strong>Description:</strong> ${ticket.description}</p>
-  ${hasImage
-        ? `<p>Screenshot: <img src="cid:my-image" /></p>`
-        : ""
-      }
-  <p><em>Envoyé depuis l'application de gestion des écuries</em></p>
-`;
-
-    const body = {
-      from: 'Ecuries <onboarding@resend.dev>',
-      to: toEmail,
-      subject: `[Nouveau Ticket] ${ticket.titre}`,
-      html
-    };
-
-    // 👉 seulement si image
-    if (hasImage) {
-      body.attachments = [
-        {
-          filename: "image.png",
+      const emailBody = {
+        from: 'Ecuries <onboarding@resend.dev>',
+        to: toEmail,
+        subject: `[Nouveau Ticket] ${ticket.titre}`,
+        html: `
+          <p><strong>Type :</strong> ${ticket.type} | <strong>Priorité :</strong> ${ticket.priorite}</p>
+          <p><strong>Description :</strong> ${ticket.description || '—'}</p>
+          <p><em>Envoyé depuis l'application de gestion des écuries</em></p>
+        `
+      };
+      if (hasImage) {
+        emailBody.attachments = [{
+          filename: 'screenshot.png',
           content: base64Data,
-          encoding: "base64",
-          cid: "my-image",
+          encoding: 'base64'
+        }];
+      }
+      const emailRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${resendKey}`
         },
-      ];
+        body: JSON.stringify(emailBody)
+      });
+      return res.json({ ok: emailRes.ok });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
     }
-
-    const emailRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${resendKey}`
-      },
-      body: JSON.stringify(body)
-    });
-    return res.json({ ok: emailRes.ok });
   }
-  if (req.method === 'POST' && req.body.action === 'send-ticket-retour-email') {
-    const { message, ticketTitre, token } = req.body;
 
-    if (!verifyToken(token, ADMIN_PWD) && !verifyToken(token, DEV_PASSWORD)) {
+  // ── SEND TICKET RETOUR EMAIL ──────────────────────────────────────
+  if (action === 'send-ticket-retour-email') {
+    // Uniquement admin → dev (pas l'inverse)
+    if (!isAllowed(token, ['admin'])) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
+    try {
+      const { message, ticketTitre } = body;
+      const resendKey = process.env.RESEND_API_KEY;
+      const toEmail   = process.env.NOTIF_EMAIL;
+      if (!resendKey || !toEmail) return res.json({ ok: false, error: 'Config email manquante' });
 
-    const resendKey = process.env.RESEND_API_KEY;
-    const toEmail = process.env.NOTIF_EMAIL;
-
-
-
-    const html = `
-  <p><strong>Retour :</strong> ${message}</p>
-  <p><em>Envoyé depuis l'application de gestion des écuries</em></p>
-`;
-
-    const body = {
-      from: 'Ecuries <onboarding@resend.dev>',
-      to: toEmail,
-      subject: `[Modif Ticket] ${ticketTitre}`,
-      html
-    };
-
-    // 👉 seulement si image
-    if (hasImage) {
-      body.attachments = [
-        {
-          filename: "image.png",
-          content: base64Data,
-          encoding: "base64",
-          cid: "my-image",
+      const emailRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${resendKey}`
         },
-      ];
+        body: JSON.stringify({
+          from: 'Ecuries <onboarding@resend.dev>',
+          to: toEmail,
+          subject: `[Retour Admin] ${ticketTitre}`,
+          html: `
+            <p><strong>Retour de l'admin :</strong></p>
+            <p>${message}</p>
+            <p><em>Ticket : ${ticketTitre}</em></p>
+          `
+        })
+      });
+      return res.json({ ok: emailRes.ok });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
     }
-
-    const emailRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${resendKey}`
-      },
-      body: JSON.stringify(body)
-    });
-    return res.json({ ok: emailRes.ok });
   }
 
-  // ── Route : vérification du mot de passe admin ─────────────────────
-  // POST /api/db  { action: 'auth', password: '...' }
-  if (req.method === 'POST') {
-    let body;
-    try { body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body; }
-    catch { return res.status(400).json({ error: 'Invalid JSON' }); }
-
-    if (body.action === 'auth') {
-      const ok = body.password === ADMIN_PWD;
-      // Token valide 30 jours — stocké dans localStorage côté client
-      const token = ok ? makeToken(ADMIN_PWD) : null;
-      return res.status(ok ? 200 : 401).json({ ok, token });
+  // ── UPLOAD ICÔNE DISCIPLINE ───────────────────────────────────────
+  if (action === 'upload-icon') {
+    if (!isAllowed(token, ['admin', 'dev'])) {
+      return res.status(403).json({ error: 'Non autorisé' });
     }
-
-    // Vérification silencieuse d'un token existant (reconnexion auto)
-    if (body.action === 'verify') {
-      const ok = verifyToken(body.token, ADMIN_PWD);
-      return res.status(200).json({ ok });
+    const { discipline, fileBase64, mimeType } = body;
+    if (!discipline || !fileBase64 || !mimeType) {
+      return res.status(400).json({ error: 'Paramètres manquants' });
     }
-
-    // Ping : retourne un hash public du mot de passe pour détecter un changement
-    // Sans révéler le mot de passe — le client compare juste le hash stocké
-    if (body.action === 'ping') {
-      await initPasswords(supabase);
-      const { data: pwRows } = await supabase.from('app_passwords').select('key,hash');
-      const siteRow = (pwRows || []).find(r => r.key === 'site');
-      const hash = siteRow?.hash || fnv32(process.env.SITE_PASSWORD || '');
-      return res.json({ ok: true, hash });
-    }
-
-    // ── Upload icône discipline vers Supabase Storage ─────────────────
-    // { action: 'upload-icon', token, discipline, fileBase64, mimeType }
-    if (body.action === 'upload-icon') {
-      if (!verifyToken(body.token, ADMIN_PWD) && !verifyToken(body.token, DEV_PASSWORD))
-        return res.status(403).json({ error: 'Non autorisé' });
-
-      const { discipline, fileBase64, mimeType } = body;
-      if (!discipline || !fileBase64 || !mimeType)
-        return res.status(400).json({ error: 'Paramètres manquants' });
-
-      // Nom de fichier : slugify discipline
+    try {
       const slug = discipline.toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-      const ext = mimeType === 'image/svg+xml' ? 'svg'
-        : mimeType === 'image/png' ? 'png'
-          : mimeType === 'image/jpeg' ? 'jpg'
-            : mimeType === 'image/webp' ? 'webp'
-              : 'png';
+      const ext = { 'image/svg+xml': 'svg', 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' }[mimeType] || 'png';
       const fileName = `${slug}.${ext}`;
+      const binary   = Buffer.from(fileBase64, 'base64');
+      const bucket   = 'discipline-icons';
 
-      // Convertir base64 → binaire
-      const binary = Buffer.from(fileBase64, 'base64');
-      const bucket = 'discipline-icons';
-
-      // Upload vers Supabase Storage (upsert)
-      const storageUrl = `${SUPA_URL}/storage/v1/object/${bucket}/${fileName}`;
-      const upRes = await fetch(storageUrl, {
+      const upRes = await fetch(`${SUPA_URL}/storage/v1/object/${bucket}/${fileName}`, {
         method: 'PUT',
         headers: {
-          'apikey': SUPA_ANON,
-          'Authorization': `Bearer ${SUPA_ANON}`,
-          'Content-Type': mimeType,
-          'x-upsert': 'true',
+          apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}`,
+          'Content-Type': mimeType, 'x-upsert': 'true'
         },
-        body: binary,
+        body: binary
       });
       if (!upRes.ok) {
         const err = await upRes.text();
         return res.status(500).json({ error: 'Storage upload failed: ' + err });
       }
 
-      // URL publique
       const publicUrl = `${SUPA_URL}/storage/v1/object/public/${bucket}/${fileName}`;
-
-      // Upsert dans la table discipline_icons
-      const upsertUrl = `${SUPA_URL}/rest/v1/discipline_icons?on_conflict=discipline,app_key`;
-      const upsertRes = await fetch(upsertUrl, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPA_ANON,
-          'Authorization': `Bearer ${SUPA_ANON}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'resolution=merge-duplicates,return=representation',
-        },
-        body: JSON.stringify([{ discipline, icon_url: publicUrl, app_key: APP_KEY }]),
-      });
+      const upsertRes = await fetch(
+        `${SUPA_URL}/rest/v1/discipline_icons?on_conflict=discipline,app_key`,
+        {
+          method: 'POST',
+          headers: {
+            apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}`,
+            'Content-Type': 'application/json',
+            Prefer: 'resolution=merge-duplicates,return=representation'
+          },
+          body: JSON.stringify([{ discipline, icon_url: publicUrl, app_key: APP_KEY }])
+        }
+      );
       if (!upsertRes.ok) {
         const err = await upsertRes.text();
         return res.status(500).json({ error: 'DB upsert failed: ' + err });
       }
-
-      return res.status(200).json({ ok: true, url: publicUrl });
+      return res.json({ ok: true, url: publicUrl });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
     }
+  }
 
-    // ── Suppression icône discipline ──────────────────────────────────
-    // { action: 'delete-icon', token, discipline, fileName }
-    if (body.action === 'delete-icon') {
-      if (!verifyToken(body.token, ADMIN_PWD) && !verifyToken(body.token, DEV_PASSWORD))
-        return res.status(403).json({ error: 'Non autorisé' });
-
-      const { discipline, fileName } = body;
-      if (!discipline) return res.status(400).json({ error: 'discipline manquant' });
-
-      // Supprimer du Storage si fileName fourni
+  // ── DELETE ICÔNE DISCIPLINE ───────────────────────────────────────
+  if (action === 'delete-icon') {
+    if (!isAllowed(token, ['admin', 'dev'])) {
+      return res.status(403).json({ error: 'Non autorisé' });
+    }
+    const { discipline, fileName } = body;
+    if (!discipline) return res.status(400).json({ error: 'discipline manquant' });
+    try {
       if (fileName) {
-        const delUrl = `${SUPA_URL}/storage/v1/object/discipline-icons/${fileName}`;
-        await fetch(delUrl, {
+        await fetch(`${SUPA_URL}/storage/v1/object/discipline-icons/${fileName}`, {
           method: 'DELETE',
-          headers: { 'apikey': SUPA_ANON, 'Authorization': `Bearer ${SUPA_ANON}` },
+          headers: { apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}` }
         });
       }
+      await fetch(
+        `${SUPA_URL}/rest/v1/discipline_icons?discipline=eq.${encodeURIComponent(discipline)}&app_key=eq.${encodeURIComponent(APP_KEY)}`,
+        { method: 'DELETE', headers: { apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}` } }
+      );
+      return res.json({ ok: true });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
 
-      // Supprimer de la table
-      const delDbUrl = `${SUPA_URL}/rest/v1/discipline_icons?discipline=eq.${encodeURIComponent(discipline)}&app_key=eq.${encodeURIComponent(APP_KEY)}`;
-      await fetch(delDbUrl, {
-        method: 'DELETE',
-        headers: { 'apikey': SUPA_ANON, 'Authorization': `Bearer ${SUPA_ANON}` },
+  // ── QUERY (select / insert / update / delete) ─────────────────────
+  if (action === 'query') {
+    const isMutation = ['insert', 'update', 'delete'].includes(body.method);
+    if (isMutation && !isAllowed(token, ['admin', 'dev', 'marine', 'site', 'balades'])) {
+      return res.status(403).json({ error: 'Session invalide ou expirée' });
+    }
+    try {
+      const result = await supabaseQuery({
+        url: SUPA_URL, anon: SUPA_ANON, appKey: APP_KEY,
+        table:  body.table,
+        method: body.method,
+        select: body.select,
+        filter: body.filter,
+        data:   body.data,
+        order:  body.order,
+        single: body.single
       });
-
-      return res.status(200).json({ ok: true });
-    }
-
-    // ── Route : proxy Supabase (toutes les autres requêtes) ───────────
-    // { action: 'query', table, method, filter, data, token }
-    if (body.action === 'query') {
-      // Vérifier le token pour les mutations (insert/update/delete)
-      const isMutation = ['insert', 'update', 'delete'].includes(body.method);
-      if (isMutation) {
-        const isAdmin = verifyToken(body.token, ADMIN_PWD);
-        const ismarine = verifyToken(body.token, MARINE_PWD);
-        const isDev = verifyToken(body.token, DEV_PASSWORD);
-
-        if (!isAdmin && !isDev && !ismarine) {
-          return res.status(403).json({ error: 'Session invalide ou expirée' });
-        }
-      }
-
-      try {
-        const result = await supabaseQuery({
-          url: SUPA_URL,
-          anon: SUPA_ANON,
-          appKey: APP_KEY,
-          table: body.table,
-          method: body.method,   // select | insert | update | delete
-          select: body.select,   // colonnes / joins
-          filter: body.filter,   // { col, op, val }[]
-          data: body.data,     // pour insert/update
-          order: body.order,    // { col, asc }[]
-          single: body.single,
-        });
-        return res.status(200).json(result);
-      } catch (e) {
-        return res.status(500).json({ error: e.message });
-      }
+      return res.status(200).json(result);
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
     }
   }
 
-  return res.status(405).json({ error: 'Method not allowed' });
+  return res.status(400).json({ error: 'Action inconnue' });
 }
 
-// ── Proxy Supabase REST ───────────────────────────────────────────────
-async function supabaseQuery({ url, anon, appKey, table, method, select, filter = [], data, order = [], single }) {
-  const headers = {
-    'apikey': anon,
-    'Authorization': `Bearer ${anon}`,
-    'Content-Type': 'application/json',
-    'Prefer': single ? 'return=representation' : 'return=representation',
-  };
-  if (single) headers['Prefer'] += ',count=exact';
+// ── Helpers ───────────────────────────────────────────────────────────
 
-  // Construction de l'URL avec paramètres
-  let qs = [];
-  if (select) qs.push(`select=${encodeURIComponent(select)}`);
-
-  // APP_KEY filter — injecté côté serveur sauf pour les tables sans cette colonne
-  const NO_APPKEY_TABLES = ['disciplines'];
-  const allFilters = NO_APPKEY_TABLES.includes(table)
-    ? (filter || [])
-    : [{ col: 'app_key', op: 'eq', val: appKey }, ...(filter || [])];
-  for (const f of allFilters) {
-    qs.push(`${f.col}=${f.op}.${encodeURIComponent(f.val)}`);
-  }
-  for (const o of (order || [])) {
-    qs.push(`order=${o.col}${o.asc === false ? '.desc' : '.asc'}`);
-  }
-  if (single) qs.push('limit=1');
-
-  const qstr = qs.length ? '?' + qs.join('&') : '';
-  const endpoint = `${url}/rest/v1/${table}${qstr}`;
-
-  let fetchMethod = 'GET';
-  let body;
-
-  if (method === 'insert') { fetchMethod = 'POST'; body = JSON.stringify(Array.isArray(data) ? data : [data]); }
-  if (method === 'update') { fetchMethod = 'PATCH'; body = JSON.stringify(data); }
-  if (method === 'delete') { fetchMethod = 'DELETE'; }
-
-  // Pour insert : injecter app_key côté serveur (sauf tables sans cette colonne)
-  if (method === 'insert') {
-    const rows = Array.isArray(data) ? data : [data];
-    body = JSON.stringify(NO_APPKEY_TABLES.includes(table)
-      ? rows
-      : rows.map(r => ({ ...r, app_key: appKey })));
-  }
-
-  const r = await fetch(endpoint, { method: fetchMethod, headers, body });
-  const text = await r.text();
-  let json;
-  try { json = JSON.parse(text); } catch { json = text; }
-
-  if (!r.ok) throw new Error(typeof json === 'object' ? (json.message || JSON.stringify(json)) : json);
-  return { data: json, error: null };
-}
-
-// ── Token de session (signé avec le mot de passe, valide 8h) ─────────
-function makeToken(secret) {
-  const expires = Number.MAX_SAFE_INTEGER; // jamais expiré
-  const payload = expires.toString(36);
-  const sig = fnv32(secret + payload).toString(16);
-  return `${payload}.${sig}`;
-}
-function verifyToken(token, secret) {
+// Vérifie si le token base64 a un des rôles autorisés
+function isAllowed(token, allowedRoles) {
   if (!token) return false;
   try {
-    const [payload, sig] = token.split('.');
-    if (!payload || !sig) return false;
-    if (parseInt(payload, 36) < Date.now()) return false; // expiré
-    return fnv32(secret + payload).toString(16) === sig;
-  } catch { return false; }
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    return allowedRoles.includes(decoded.role);
+  } catch {
+    return false;
+  }
 }
-// Utilitaire hash FNV32
+
+// Hash FNV32
 function fnv32(str) {
   let h = 0x811c9dc5;
   for (let i = 0; i < str.length; i++) {
@@ -438,20 +356,114 @@ function fnv32(str) {
   return h.toString(16);
 }
 
+// Init mots de passe en BDD si absents
 async function initPasswords(supabase) {
-  const { data } = await supabase.from('app_passwords').select('key');
-  const existing = (data || []).map(r => r.key);
-  const defaults = [
-    { key: 'site', value: process.env.SITE_PASSWORD || 'Leo_1987' },
-    { key: 'admin', value: process.env.ADMIN_PASSWORD || 'Leo_1987' },
-    { key: 'dev', value: process.env.DEV_PASSWORD || 'LEO_Dev' },
-    { key: 'marine', value: process.env.MARINE_PASSWORD || 'LEO_Marine' },
-    { key: 'balades', value: process.env.BALADES_PASSWORD || 'BaladeMain_2026' },
-  ];
-  for (const d of defaults) {
-    if (!existing.includes(d.key)) {
-      await supabase.from('app_passwords')
-        .insert({ key: d.key, hash: fnv32(d.value) });
+  try {
+    const { data } = await supabase.from('app_passwords').select('key');
+    const existing = (data || []).map(r => r.key);
+    const defaults = [
+      { key: 'site',    value: process.env.SITE_PASSWORD    || '' },
+      { key: 'admin',   value: process.env.ADMIN_PASSWORD   || '' },
+      { key: 'dev',     value: process.env.DEV_PASSWORD     || '' },
+      { key: 'marine',  value: process.env.MARINE_PASSWORD  || '' },
+      { key: 'balades', value: process.env.BALADES_PASSWORD || '' },
+    ];
+    for (const d of defaults) {
+      if (!existing.includes(d.key) && d.value) {
+        await supabase.from('app_passwords')
+          .insert({ key: d.key, hash: fnv32(d.value) });
+      }
     }
+  } catch (e) {
+    console.warn('initPasswords error:', e.message);
   }
+}
+
+// Proxy Supabase REST
+async function supabaseQuery({ url, anon, appKey, table, method, select, filter = [], data, order = [], single }) {
+  const headers = {
+    apikey: anon,
+    Authorization: `Bearer ${anon}`,
+    'Content-Type': 'application/json',
+    Prefer: 'return=representation'
+  };
+
+  // Tables sans colonne app_key
+  const NO_APPKEY_TABLES = [
+    'disciplines', 'discipline_icons',
+    'app_passwords', 'app_settings', 'app_params',
+    'taches', 'taches_completions',
+    'balades', 'balade_inscriptions'
+  ];
+
+  const useAppKey = !NO_APPKEY_TABLES.includes(table);
+
+  let qs = [];
+  if (select) qs.push(`select=${encodeURIComponent(select)}`);
+
+  const allFilters = useAppKey
+    ? [{ col: 'app_key', op: 'eq', val: appKey }, ...(filter || [])]
+    : (filter || []);
+
+  for (const f of allFilters) {
+    qs.push(`${f.col}=${f.op}.${encodeURIComponent(f.val)}`);
+  }
+  for (const o of (order || [])) {
+    qs.push(`order=${o.col}${o.asc === false ? '.desc' : '.asc'}`);
+  }
+  if (single) qs.push('limit=1');
+
+  const qstr  = qs.length ? '?' + qs.join('&') : '';
+  const endpoint = `${url}/rest/v1/${table}${qstr}`;
+
+  let fetchMethod = 'GET';
+  let fetchBody;
+
+  if (method === 'insert') {
+    fetchMethod = 'POST';
+    const rows = Array.isArray(data) ? data : [data];
+    fetchBody = JSON.stringify(
+      useAppKey ? rows.map(r => ({ ...r, app_key: appKey })) : rows
+    );
+  }
+  if (method === 'update') {
+    fetchMethod = 'PATCH';
+    fetchBody = JSON.stringify(data);
+  }
+  if (method === 'delete') {
+    fetchMethod = 'DELETE';
+  }
+
+  const r = await fetch(endpoint, { method: fetchMethod, headers, body: fetchBody });
+  const text = await r.text();
+  let json;
+  try { json = JSON.parse(text); } catch { json = text; }
+
+  if (!r.ok) {
+    throw new Error(typeof json === 'object' ? (json.message || JSON.stringify(json)) : json);
+  }
+  return { data: json, error: null };
+}
+
+// makeToken / verifyToken conservés pour compatibilité ascendante si besoin
+function makeToken(secret) {
+  const expires = Number.MAX_SAFE_INTEGER;
+  const payload = expires.toString(36);
+  const sig = fnv32(secret + payload).toString(16);
+  return `${payload}.${sig}`;
+}
+function verifyToken(token, secret) {
+  if (!token) return false;
+  try {
+    // Nouveau format base64
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    return !!decoded.role;
+  } catch {}
+  // Ancien format payload.sig
+  try {
+    const [payload, sig] = token.split('.');
+    if (!payload || !sig) return false;
+    if (parseInt(payload, 36) < Date.now()) return false;
+    return fnv32(secret + payload).toString(16) === sig;
+  } catch { return false; }
 }
