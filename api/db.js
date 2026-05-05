@@ -388,15 +388,9 @@ async function supabaseQuery({ url, anon, appKey, table, method, select, filter 
     Prefer: 'return=representation'
   };
 
-  // Tables sans colonne app_key
-  const NO_APPKEY_TABLES = [
-    'disciplines', 'discipline_icons',
-    'app_passwords', 'app_settings', 'app_params',
-    'taches', 'taches_completions',
-    'balades', 'balade_inscriptions'
-  ];
+  
 
-  const useAppKey = !NO_APPKEY_TABLES.includes(table);
+  const useAppKey = true;
 
   let qs = [];
   if (select) qs.push(`select=${encodeURIComponent(select)}`);
