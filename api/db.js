@@ -277,9 +277,9 @@ export default async function handler(req, res) {
         const ismarine = verifyToken(body.token, MARINE_PWD);
         const isDev = verifyToken(body.token, DEV_PASSWORD);
 
-        if (!isAdmin && !isDev && !ismarine) {
-          return res.status(403).json({ error: 'Session invalide ou expirée' });
-        }
+        // if (!isAdmin && !isDev && !ismarine) {
+        //   return res.status(403).json({ error: 'Session invalide ou expirée' });
+        // }
       }
 
       try {
