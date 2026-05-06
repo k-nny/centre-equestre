@@ -3127,6 +3127,7 @@
           document.getElementById('app').style.display = 'none';
           document.getElementById('site-login').style.display = 'flex';
           document.getElementById('site-pw-in').value = '';
+          localStorage.setItem('ce_last_page', 'vue');
         }
 
         function enableDev(targetPage = 'dash') {
