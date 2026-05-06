@@ -75,6 +75,11 @@
       padding-top: 88px;
     }
 
+    /* Décalage dynamique selon les bandeaux visibles */
+    .main.wb-auto {
+      transition: padding-top .15s;
+    }
+
 
     #retours-banner {
       display: none;
@@ -1432,12 +1437,14 @@
           <button class="ni" data-p="taches-pub" onclick="go('taches-pub')">
             <span class="ic">✅</span> Tâches du jour
           </button>
+          <button class="ni" data-p="balades-pub" onclick="go('balades-pub')"><span class="ic">🌿</span>Balades</button>
           <div id="anav" style="display:none">
             <div class="nav-sec" style="margin-top:8px">Administration</div>
             <button class="ni" data-p="dash" onclick="go('dash')"><span class="ic">⬛</span>Tableau de bord</button>
             <button class="ni" data-p="groupes" onclick="go('groupes')"><span class="ic">👥</span>Groupes</button>
             <button class="ni" data-p="seances" onclick="go('seances')"><span class="ic">📋</span>Séances</button>
             <button class="ni" data-p="stages" onclick="go('stages')"><span class="ic">🏕</span>Stages</button>
+            <button class="ni" data-p="balades" onclick="go('balades')"><span class="ic">🌿</span>Balades</button>
             <button class="ni" data-p="cavaliers" onclick="go('cavaliers')"><span class="ic">🧑</span>Cavaliers</button>
             <button class="ni" data-p="chevaux" onclick="go('chevaux')"><span class="ic">🐎</span>Chevaux</button>
             <button class="ni" data-p="moniteurs" onclick="go('moniteurs')"><span class="ic">👤</span>Moniteurs</button>
@@ -1487,6 +1494,35 @@
             <p id="taches-pub-lbl" class="no-upper"></p>
           </div>
           <div id="taches-pub-content"></div>
+        </div>
+
+        <!-- BALADES (vue publique) -->
+        <div class="page" id="page-balades-pub">
+          <div class="ph">
+            <h2>🌿 Balades</h2>
+            <p id="balades-pub-lbl" class="no-upper">Planning des balades à venir</p>
+          </div>
+          <div id="balades-pub-content">
+            <div class="ls">
+              <div class="spin"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BALADES (admin) -->
+        <div class="page" id="page-balades">
+          <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div>
+              <h2>🌿 Balades</h2>
+              <p class="no-upper">Gérez les balades et leurs participants.</p>
+            </div>
+            <button class="btn btn-p" onclick="newBalade()">+ Nouvelle balade</button>
+          </div>
+          <div id="balades-admin-content">
+            <div class="ls">
+              <div class="spin"></div>
+            </div>
+          </div>
         </div>
 
         <!-- TÂCHES (admin) -->
@@ -1956,6 +1992,50 @@
 
 
       <!-- ═══════════════ MODALS ═══════════════ -->
+      <!-- Modale balade -->
+      <div class="mo" id="mo-balade">
+        <div class="md" style="max-width:480px">
+          <h3 id="mo-balade-t">🌿 Nouvelle balade</h3>
+          <input type="hidden" id="balade-id">
+          <div class="fg"><label>Titre *</label><input type="text" id="balade-titre" placeholder="Balade forêt"></div>
+          <div class="fr">
+            <div class="fg"><label>Date *</label><input type="date" id="balade-date"></div>
+            <div class="fg"><label>Heure</label><input type="time" id="balade-heure"></div>
+          </div>
+          <div class="fg"><label>Nombre de places <span style="color:var(--muted)">(optionnel)</span></label><input
+              type="number" id="balade-nb-places" min="1" step="1" placeholder="8"></div>
+          <div class="fg"><label>Note visible</label><textarea id="balade-note" rows="2"
+              placeholder="Équipement recommandé, niveau requis…"></textarea></div>
+          <div class="mf">
+            <button class="btn btn-g" onclick="closeMo('mo-balade')">Annuler</button>
+            <button class="btn btn-p" onclick="saveBalade()">Enregistrer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modale participant balade -->
+      <div class="mo" id="mo-balade-part">
+        <div class="md" style="max-width:420px">
+          <h3 id="mo-balade-part-t">👤 Ajouter un participant</h3>
+          <input type="hidden" id="balade-part-id">
+          <input type="hidden" id="balade-part-balade-id">
+          <div class="fg"><label>Prénom / Nom *</label><input type="text" id="balade-part-prenom"
+              placeholder="Marie Dupont"></div>
+          <div class="fg"><label>Cheval attribué <span style="color:var(--muted)">(optionnel)</span></label>
+            <select id="balade-part-chv">
+              <option value="">— Sans cheval —</option>
+            </select>
+          </div>
+          <div class="fg"><label>Note <span style="color:var(--muted)">(optionnel)</span></label><input type="text"
+              id="balade-part-note" placeholder="Débutant, casque fourni…"></div>
+          <div class="mf">
+            <button class="btn btn-g" onclick="closeMo('mo-balade-part')">Annuler</button>
+            <button class="btn btn-p" onclick="saveBaladePart()">Enregistrer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ FIN MODALS BALADES ═══════════════ -->
       <div class="mo" id="mo-ticket">
         <div class="md">
           <h3>🎫 Nouveau Ticket</h3>
@@ -2657,7 +2737,7 @@
         const statutsActifsADate = (date) => C.statuts.filter(s => statutActifADate(s, date));
         const SBDG = { attache: 'bo', veto: 'br', marechal: 'bp', repos: 'b' };
 
-        let isAdmin = false, isDev = false, isMarine = false, sessionToken = '', histTab = 'couples';
+        let isAdmin = false, isDev = false, isMarine = false, isBalade = false, sessionToken = '', histTab = 'couples';
         let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [], taches: [], tachesComp: [] };
         // ── Historique d'annulation (undo) ──
         let _undoStack = []; // [{ label, fn }]
@@ -2782,6 +2862,8 @@
               // Stocker le hash du mot de passe pour détecter un changement ultérieur
               const ph = fnv32Client(pw);
               localStorage.setItem('ce_pw_hash', ph);
+              // Stocker le rôle pour la reconnexion auto
+              if (j.role === 'balade') localStorage.setItem('ce_balade_active', '1');
               document.getElementById('site-login').style.display = 'none';
               await initApp(j.token);
             } else {
@@ -2827,6 +2909,10 @@
             if (localStorage.getItem('ce_marine_active') === '1') {
               sessionToken = siteToken;
               enableMarine(lastPage);
+              return;
+            }
+            if (localStorage.getItem('ce_balade_active') === '1') {
+              enableBalade();
               return;
             }
             go(adminPages.includes(lastPage) ? 'vue' : lastPage);
@@ -2926,6 +3012,7 @@
           if (isAdmin) { logoutAdmin(); return; }
           if (isMarine) { logoutMarine(); return; }
           if (isDev) { logoutDev(); return; }
+          if (isBalade) { logoutBalade(); return; }
           document.getElementById('pw-in').value = '';
           document.getElementById('pw-err').style.display = 'none';
           openMo('mo-pw');
@@ -2941,9 +3028,11 @@
               sessionToken = j.token;
               isDev = (j.role === 'dev');
               isMarine = (j.role === 'marine');
+              const isBaladeRole = (j.role === 'balade');
               localStorage.removeItem('ce_admin_active');
               localStorage.removeItem('ce_dev_active');
               localStorage.removeItem('ce_marine_active');
+              localStorage.removeItem('ce_balade_active');
               closeMo('mo-pw');
               if (isDev) {
                 localStorage.setItem('ce_dev_active', '1');
@@ -2951,6 +3040,8 @@
               } else if (isMarine) {
                 localStorage.setItem('ce_marine_active', '1');
                 enableMarine();
+              } else if (isBaladeRole) {
+                enableBalade();
               } else {
                 localStorage.setItem('ce_admin_active', '1');
                 enableAdmin();
@@ -2969,6 +3060,7 @@
           document.getElementById('atbtn').textContent = '🔒 Quitter admin'; document.getElementById('atbtn').classList.add('on');
           localStorage.setItem('ce_admin_active', '1');
           setTimeout(() => checkRetoursBanner(), 300);
+          updateBannerPadding();
           renderCavaliers(); go(targetPage); toast('Mode admin activé', 'ok');
         }
         function logoutAdmin() {
@@ -2977,24 +3069,25 @@
           document.getElementById('admin-banner').classList.remove('show');
           document.getElementById('mc').classList.remove('wb'); document.getElementById('anav').style.display = 'none';
           document.getElementById('atbtn').textContent = '🔑 Mode administrateur'; document.getElementById('atbtn').classList.remove('on');
+          document.getElementById('mc').style.paddingTop = '';
+          // Cacher le bandeau retours aussi
+          const rb = document.getElementById('retours-banner'); if (rb) rb.style.display = 'none';
           renderCavaliers(); go('vue'); toast('Déconnecté', 'ok');
-          checkRetoursBanner(); // mettre à jour le banner des retours non lus (si on était en admin)
         }
         function enableMarine(targetPage = 'vue') {
           isMarine = true; isAdmin = false;
           sessionToken = localStorage.getItem('ce_site_token') || '';
           document.getElementById('admin-banner').classList.add('show');
           document.getElementById('mc').classList.add('wb');
-          // Afficher uniquement la nav Séances
           document.getElementById('anav').style.display = 'block';
           document.getElementById('atbtn').textContent = '🔒 Quitter';
           document.getElementById('atbtn').classList.add('on');
           localStorage.setItem('ce_marine_active', '1');
-          // Masquer les entrées de nav non autorisées
           document.querySelectorAll('#anav .ni').forEach(btn => {
             const page = btn.dataset.p;
             if (!['seances'].includes(page)) btn.style.display = 'none';
           });
+          updateBannerPadding();
           go(targetPage);
           toast('Mode Marine activé', 'ok');
         }
@@ -3008,8 +3101,33 @@
           document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
           document.getElementById('atbtn').classList.remove('on');
           document.querySelectorAll('#anav .ni').forEach(btn => btn.style.display = '');
+          document.getElementById('mc').style.paddingTop = '';
+          updateBannerPadding();
           go('vue');
           toast('Déconnecté', 'ok');
+        }
+
+        function enableBalade() {
+          isBalade = true; isAdmin = false; isDev = false; isMarine = false;
+          localStorage.setItem('ce_balade_active', '1');
+          // Vue balades uniquement — pas de nav admin, pas de bannière admin
+          document.getElementById('admin-banner').classList.remove('show');
+          document.getElementById('atbtn').textContent = '🔒 Quitter mode balade'; document.getElementById('atbtn').classList.add('on');
+          document.getElementById('anav').style.display = 'none';
+          updateBannerPadding();
+          go('balades-pub');
+        }
+
+        function logoutBalade() {
+          isBalade = false;
+          localStorage.removeItem('ce_balade_active');
+          localStorage.removeItem('ce_site_token');
+          localStorage.removeItem('ce_pw_hash');
+          document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
+          document.getElementById('app').style.display = 'none';
+          document.getElementById('site-login').style.display = 'flex';
+          document.getElementById('site-pw-in').value = '';
+          localStorage.setItem('ce_last_page', 'vue');
         }
 
         function enableDev(targetPage = 'dash') {
@@ -3042,11 +3160,13 @@
 
         // ── Nav ──
         function go(p) {
-          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches'];
+          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches', 'balades'];
           // Bloquer les pages admin si pas de rôle élevé
           if (!isAdmin && !isDev && !isMarine && adm.includes(p)) return;
           // Marine : seulement séances (+ vue est déjà publique)
           if (isMarine && !isAdmin && !isDev && !['seances'].includes(p) && adm.includes(p)) return;
+          // Balade : seulement balades-pub
+          if (isBalade && p !== 'balades-pub') return;
           document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
           document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
           document.getElementById('page-' + p)?.classList.add('active');
@@ -3066,6 +3186,8 @@
           if (p === 'cartes') loadPageCartes();
           if (p === 'tickets') renderTicketsPage();
           if (p === 'taches-pub') loadTachesPub();
+          if (p === 'balades-pub') loadBaladesPub();
+          if (p === 'balades') loadBaladesAdmin();
           if (p === 'taches') {
             document.getElementById('taches-date').value = new Date().toISOString().slice(0, 10);
             renderTachesAdmin();
@@ -3892,44 +4014,95 @@
             btn.disabled = false; btn.style.opacity = '1'; btn.textContent = '⚡ Générer séances';
             return;
           }
+          // Calcul numéro de semaine ISO
+          const getNumSemISO = (d) => {
+            const dt = new Date(d + 'T00:00:00');
+            dt.setHours(0, 0, 0, 0);
+            dt.setDate(dt.getDate() + 3 - (dt.getDay() + 6) % 7);
+            const w = new Date(dt.getFullYear(), 0, 4);
+            return 1 + Math.round(((dt - w) / 86400000 - 3 + (w.getDay() + 6) % 7) / 7);
+          };
+          const numSemGen = getNumSemISO(date);
+          const estPaireGen = numSemGen % 2 === 0;
+
           const existantes = await dbSel('seances', { filter: [{ col: 'date', op: 'eq', val: date }], select: 'id,groupe_id' });
-          let created = 0;
+          let created = 0, updated = 0;
+
           for (const g of gj) {
-            if (existantes.find(s => s.groupe_id === g.id)) continue;
-            const r = await dbIns('seances', { groupe_id: g.id, date, heure: g.heure, discipline: DISC[0], moniteur_id: g.moniteur_id || null });
-            if (!r.data?.[0]) continue; created++;
-            const ns = r.data[0];
-            const cavIds = getGrpCavs(g.id);
+            const seaExist = existantes.find(s => s.groupe_id === g.id);
 
-            // Calculer le numéro de semaine ISO pour la date générée
-            const getNumSemISO = (d) => {
-              const dt = new Date(d + 'T00:00:00');
-              dt.setHours(0, 0, 0, 0);
-              dt.setDate(dt.getDate() + 3 - (dt.getDay() + 6) % 7);
-              const w = new Date(dt.getFullYear(), 0, 4);
-              return 1 + Math.round(((dt - w) / 86400000 - 3 + (w.getDay() + 6) % 7) / 7);
-            };
-            const numSemGen = getNumSemISO(date);
-            const estPaireGen = numSemGen % 2 === 0;
+            if (!seaExist) {
+              // Créer la séance
+              const r = await dbIns('seances', { groupe_id: g.id, date, heure: g.heure, discipline: DISC[0], moniteur_id: g.moniteur_id || null });
+              if (!r.data?.[0]) continue; created++;
+              const ns = r.data[0];
+              const cavIds = getGrpCavs(g.id);
+              const cavIdsFiltres = cavIds.filter(cid => {
+                const cav = C.cav.find(c => c.id === cid);
+                if (!cav) return true;
+                if (cav.semaine_type === 'paire' && !estPaireGen) return false;
+                if (cav.semaine_type === 'impaire' && estPaireGen) return false;
+                return true;
+              });
+              if (cavIdsFiltres.length) {
+                await dbIns('affectations_seance', cavIdsFiltres.map(cid => ({
+                  seance_id: ns.id, cavalier_id: cid, equide_id: null, absent: false, rattrapage: false
+                })));
+              }
+            } else {
+              // Séance existante → mise à jour intelligente des cavaliers
+              // Charger les affectations actuelles (sans toucher absents, rattrapages, exceptionnels)
+              const seaId = seaExist.id;
+              const affsActuelles = await dbSel('affectations_seance', {
+                select: 'id,cavalier_id,absent,rattrapage,cours_exceptionnel',
+                filter: [{ col: 'seance_id', op: 'eq', val: seaId }]
+              });
 
-            // Filtrer selon semaine_type du cavalier
-            const cavIdsFiltres = cavIds.filter(cid => {
-              const cav = C.cav.find(c => c.id === cid);
-              if (!cav) return true;
-              if (cav.semaine_type === 'paire' && !estPaireGen) return false;
-              if (cav.semaine_type === 'impaire' && estPaireGen) return false;
-              return true;
-            });
+              // Cavaliers attendus dans ce groupe pour cette semaine
+              const cavIds = getGrpCavs(g.id);
+              const cavIdsFiltres = new Set(cavIds.filter(cid => {
+                const cav = C.cav.find(c => c.id === cid);
+                if (!cav) return true;
+                if (cav.semaine_type === 'paire' && !estPaireGen) return false;
+                if (cav.semaine_type === 'impaire' && estPaireGen) return false;
+                return true;
+              }));
 
-            if (cavIdsFiltres.length) {
-              await dbIns('affectations_seance', cavIdsFiltres.map(cid => ({
-                seance_id: ns.id, cavalier_id: cid, equide_id: null, absent: false, rattrapage: false
-              })));
+              // Cavaliers déjà dans la séance (tous types)
+              const cavPresents = new Set(affsActuelles.filter(a => a.cavalier_id).map(a => a.cavalier_id));
+
+              // Ajouter les cavaliers manquants (pas encore dans la séance, ni en rattrapage/exceptionnel)
+              const aAjouter = [...cavIdsFiltres].filter(cid => !cavPresents.has(cid));
+              if (aAjouter.length) {
+                await dbIns('affectations_seance', aAjouter.map(cid => ({
+                  seance_id: seaId, cavalier_id: cid, equide_id: null, absent: false, rattrapage: false
+                })));
+                updated++;
+              }
+
+              // Supprimer les cavaliers normaux qui ne sont plus dans le groupe
+              // (seulement les affectations "propres" : pas absent, pas rattrapage, pas exceptionnel)
+              const aSupprimer = affsActuelles.filter(a =>
+                a.cavalier_id &&
+                !cavIdsFiltres.has(a.cavalier_id) &&
+                !a.absent &&
+                !a.rattrapage &&
+                !a.cours_exceptionnel
+              );
+              for (const aff of aSupprimer) {
+                await dbDel('affectations_seance', [{ col: 'id', op: 'eq', val: aff.id }]);
+                updated++;
+              }
             }
           }
           await loadSeances(date);
-          btn.disabled = true; btn.style.opacity = '.5'; btn.textContent = '✅ Séances générées';
-          toast(created > 0 ? `${created} séance${created > 1 ? 's' : ''} générée${created > 1 ? 's' : ''}` : 'Séances déjà existantes', 'ok');
+          btn.disabled = true; btn.style.opacity = '.5'; btn.textContent = '✅ Séances à jour';
+          const msg = created > 0
+            ? `${created} séance${created > 1 ? 's' : ''} créée${created > 1 ? 's' : ''}${updated > 0 ? ' · ' + updated + ' affectation(s) mise(s) à jour' : ''}`
+            : updated > 0
+              ? `${updated} affectation(s) mise(s) à jour`
+              : 'Séances déjà à jour';
+          toast(msg, 'ok');
         }
 
         // état ouvert des séances
@@ -6349,7 +6522,8 @@
 
         // ── Bannière retours ──
         async function checkRetoursBanner() {
-          if (!isAdmin) {dismissRetoursBanner(); return; } // si pas admin, pas la bannière
+          if (isDev) return; // dev ne voit pas la bannière
+          if (!isAdmin) return; // seulement admin
           try {
             const nonLus = await dbSel('ticket_retours', {
               select: 'id',
@@ -6360,21 +6534,33 @@
             if (nonLus.length) {
               const txt = document.getElementById('retours-banner-txt');
               if (txt) txt.textContent = `${nonLus.length} retour${nonLus.length > 1 ? 's' : ''} non lu${nonLus.length > 1 ? 's' : ''} sur vos tickets`;
-              // Positionner sous la bannière admin si elle est visible
-              const adminBannerVisible = document.getElementById('admin-banner').classList.contains('show');
-              banner.style.top = adminBannerVisible ? '36px' : '0';
               banner.style.display = 'flex';
-              document.getElementById('mc').classList.add('wb2');
             } else {
               banner.style.display = 'none';
-              document.getElementById('mc').classList.remove('wb2');
             }
+            updateBannerPadding();
           } catch (e) { console.warn('checkRetoursBanner', e); }
         }
 
         function dismissRetoursBanner() {
           const banner = document.getElementById('retours-banner');
           if (banner) banner.style.display = 'none';
+          updateBannerPadding();
+        }
+
+        // ── Gestion dynamique du padding selon les bandeaux visibles ──
+        function updateBannerPadding() {
+          const mc = document.getElementById('mc');
+          if (!mc) return;
+          const adminVisible = document.getElementById('admin-banner')?.classList.contains('show');
+          const retoursVisible = document.getElementById('retours-banner')?.style.display === 'flex';
+          let top = 0;
+          if (adminVisible) top += 36;
+          if (retoursVisible) top += 34;
+          mc.style.paddingTop = top > 0 ? (26 + top) + 'px' : '';
+          // Positionner le bandeau retours sous le bandeau admin
+          const retoursBanner = document.getElementById('retours-banner');
+          if (retoursBanner) retoursBanner.style.top = adminVisible ? '36px' : '0';
         }
 
         // ── Page tickets mise à jour ──
@@ -6618,6 +6804,234 @@
           } catch (e) { toast(e.message, 'err'); }
         }
 
+
+        // ══════════════════════════════════════════════════
+        //  BALADES
+        // ══════════════════════════════════════════════════
+        let C_balades = []; // cache balades
+        let C_balades_parts = []; // cache participants balades
+
+        async function loadBalades() {
+          const today = new Date().toISOString().slice(0, 10);
+          C_balades = await dbSel('balades', { order: [{ col: 'date' }, { col: 'heure' }] });
+          if (C_balades.length) {
+            const iv = `(${C_balades.map(b => `"${b.id}"`).join(',')})`;
+            C_balades_parts = await dbSel('balade_participants', {
+              select: '*,equides(nom)',
+              filter: [{ col: 'balade_id', op: 'in', val: iv }],
+              order: [{ col: 'created_at' }]
+            });
+          } else C_balades_parts = [];
+        }
+
+        async function loadBaladesPub() {
+          const el = document.getElementById('balades-pub-content');
+          if (!el) return;
+          el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
+          try {
+            await loadBalades();
+            const today = new Date().toISOString().slice(0, 10);
+            const future = C_balades.filter(b => b.date >= today).sort((a, b) => a.date.localeCompare(b.date) || (a.heure || '').localeCompare(b.heure || ''));
+            if (!future.length) {
+              el.innerHTML = '<div class="ls">Aucune balade prévue pour le moment.</div>';
+              return;
+            }
+            el.innerHTML = future.map(b => {
+              const parts = C_balades_parts.filter(p => p.balade_id === b.id);
+              return `<div class="pcc" style="margin-bottom:14px">
+  <div class="pch" style="background:linear-gradient(135deg,rgba(46,120,70,.08),rgba(46,120,70,.02));border-bottom:1px solid rgba(46,120,70,.2)">
+    <div class="pheure" style="color:#1e7a40">${(b.heure || '').slice(0, 5)}</div>
+    <div>
+      <div class="pgn">${b.titre || 'Balade'}</div>
+      <div class="pdi">🗓 ${fmtL(b.date)}${b.nb_places ? ' · ' + parts.length + '/' + b.nb_places + ' places' : ''}</div>
+      ${b.note ? `<div style="font-size:11px;color:var(--muted);margin-top:3px;font-style:italic">${b.note}</div>` : ''}
+    </div>
+  </div>
+  ${parts.length ? parts.map(p => `
+  <div class="pcr">
+    <div class="pcn">👤 ${p.prenom || '?'}</div>
+    <div class="pch2">${p.equides?.nom ? `🐎 <strong>${p.equides.nom}</strong>` : '<span style="color:var(--muted)">Sans cheval attribué</span>'}</div>
+  </div>`).join('') : `<div class="pcr"><span style="color:var(--muted);font-size:12px;font-style:italic">Aucun participant pour l'instant.</span></div>`}
+</div>`;
+            }).join('');
+          } catch (e) {
+            el.innerHTML = '<div class="ls">Erreur de chargement.</div>';
+          }
+        }
+
+        async function loadBaladesAdmin() {
+          const el = document.getElementById('balades-admin-content');
+          if (!el) return;
+          el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
+          try {
+            await loadBalades();
+            renderBaladesAdmin();
+          } catch (e) {
+            el.innerHTML = '<div class="ls">Erreur.</div>';
+          }
+        }
+
+        function renderBaladesAdmin() {
+          const el = document.getElementById('balades-admin-content');
+          if (!el) return;
+          const today = new Date().toISOString().slice(0, 10);
+          const sorted = [...C_balades].sort((a, b) => b.date.localeCompare(a.date) || (b.heure || '').localeCompare(a.heure || ''));
+          if (!sorted.length) {
+            el.innerHTML = '<div class="ls">Aucune balade. Cliquez sur "+ Nouvelle balade" pour commencer.</div>';
+            return;
+          }
+          el.innerHTML = sorted.map(b => {
+            const parts = C_balades_parts.filter(p => p.balade_id === b.id);
+            const isPast = b.date < today;
+            return `<div class="stg-wrap" style="${isPast ? 'opacity:.65' : ''}">
+  <div class="stg-hdr">
+    <div>
+      <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px">
+        ${fmtDate(b.date)} · ${(b.heure || '').slice(0, 5)}${b.nb_places ? ' · ' + parts.length + '/' + b.nb_places + ' places' : ''}
+      </div>
+      <div class="stg-ttl">🌿 ${b.titre || 'Balade'}</div>
+      ${b.note ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;font-style:italic">${b.note}</div>` : ''}
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn btn-g sm" onclick="openAddBaladePart('${b.id}')">+ Participant</button>
+      <button class="btn btn-g sm" onclick="editBalade('${b.id}')">✏️</button>
+      <button class="btn btn-d sm" onclick="delBalade('${b.id}')">🗑</button>
+    </div>
+  </div>
+  ${parts.length ? parts.map(p => `
+  <div class="pcr">
+    <div class="pcn">👤 ${p.prenom || '?'}</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span class="pch2">${p.equides?.nom ? `🐎 <strong>${p.equides.nom}</strong>` : '<span style="color:var(--muted);font-size:12px">Sans cheval</span>'}</span>
+      ${p.note ? `<span style="font-size:11px;color:var(--muted)">${p.note}</span>` : ''}
+      <button class="btn btn-g sm" onclick="editBaladePart('${p.id}','${b.id}')">✏️</button>
+      <button class="btn btn-d sm" onclick="delBaladePart('${p.id}','${b.id}')">🗑</button>
+    </div>
+  </div>`).join('') : `<div style="padding:12px 20px;font-size:12px;color:var(--muted);font-style:italic">Aucun participant — cliquez sur "+ Participant" pour en ajouter.</div>`}
+</div>`;
+          }).join('');
+        }
+
+        function newBalade() {
+          document.getElementById('mo-balade-t').textContent = '🌿 Nouvelle balade';
+          document.getElementById('balade-id').value = '';
+          document.getElementById('balade-titre').value = '';
+          document.getElementById('balade-date').value = new Date().toISOString().slice(0, 10);
+          document.getElementById('balade-heure').value = '';
+          document.getElementById('balade-nb-places').value = '';
+          document.getElementById('balade-note').value = '';
+          openMo('mo-balade');
+        }
+
+        function editBalade(id) {
+          const b = C_balades.find(x => x.id === id); if (!b) return;
+          document.getElementById('mo-balade-t').textContent = '✏️ Modifier la balade';
+          document.getElementById('balade-id').value = id;
+          document.getElementById('balade-titre').value = b.titre || '';
+          document.getElementById('balade-date').value = b.date || '';
+          document.getElementById('balade-heure').value = (b.heure || '').slice(0, 5);
+          document.getElementById('balade-nb-places').value = b.nb_places || '';
+          document.getElementById('balade-note').value = b.note || '';
+          openMo('mo-balade');
+        }
+
+        async function saveBalade() {
+          const id = document.getElementById('balade-id').value;
+          const titre = document.getElementById('balade-titre').value.trim();
+          const date = document.getElementById('balade-date').value;
+          const heure = document.getElementById('balade-heure').value || null;
+          const nb_places = parseInt(document.getElementById('balade-nb-places').value) || null;
+          const note = document.getElementById('balade-note').value.trim() || null;
+          if (!titre) { toast('Le titre est requis', 'err'); return; }
+          if (!date) { toast('La date est requise', 'err'); return; }
+          const data = { titre, date, heure, nb_places, note };
+          if (id) {
+            await dbUpd('balades', data, [{ col: 'id', op: 'eq', val: id }]);
+            const idx = C_balades.findIndex(x => x.id === id);
+            if (idx !== -1) C_balades[idx] = { ...C_balades[idx], ...data };
+            toast('Balade modifiée', 'ok');
+          } else {
+            const r = await dbIns('balades', data);
+            if (r.data?.[0]) C_balades.push(r.data[0]);
+            toast('Balade créée', 'ok');
+          }
+          closeMo('mo-balade');
+          renderBaladesAdmin();
+        }
+
+        async function delBalade(id) {
+          if (!confirm('Supprimer cette balade et tous ses participants ?')) return;
+          await dbDel('balade_participants', [{ col: 'balade_id', op: 'eq', val: id }]);
+          await dbDel('balades', [{ col: 'id', op: 'eq', val: id }]);
+          C_balades = C_balades.filter(b => b.id !== id);
+          C_balades_parts = C_balades_parts.filter(p => p.balade_id !== id);
+          toast('Balade supprimée', 'ok');
+          renderBaladesAdmin();
+        }
+
+        function openAddBaladePart(baladeId) {
+          document.getElementById('balade-part-id').value = '';
+          document.getElementById('balade-part-balade-id').value = baladeId;
+          document.getElementById('mo-balade-part-t').textContent = '👤 Ajouter un participant';
+          document.getElementById('balade-part-prenom').value = '';
+          document.getElementById('balade-part-note').value = '';
+          // Chevaux déjà pris dans cette balade
+          const prisIds = new Set(C_balades_parts.filter(p => p.balade_id === baladeId && p.equide_id).map(p => p.equide_id));
+          document.getElementById('balade-part-chv').innerHTML = '<option value="">— Sans cheval —</option>' +
+            getSortedChvDispo().map(c => `<option value="${c.id}"${prisIds.has(c.id) ? ' disabled' : ''}>${c.nom}${prisIds.has(c.id) ? ' (déjà pris)' : ''}</option>`).join('');
+          openMo('mo-balade-part');
+        }
+
+        function editBaladePart(partId, baladeId) {
+          const p = C_balades_parts.find(x => x.id === partId); if (!p) return;
+          document.getElementById('balade-part-id').value = partId;
+          document.getElementById('balade-part-balade-id').value = baladeId;
+          document.getElementById('mo-balade-part-t').textContent = '✏️ Modifier le participant';
+          document.getElementById('balade-part-prenom').value = p.prenom || '';
+          document.getElementById('balade-part-note').value = p.note || '';
+          const prisIds = new Set(C_balades_parts.filter(x => x.balade_id === baladeId && x.equide_id && x.id !== partId).map(x => x.equide_id));
+          document.getElementById('balade-part-chv').innerHTML = '<option value="">— Sans cheval —</option>' +
+            getSortedChvDispo().map(c => `<option value="${c.id}"${c.id === p.equide_id ? ' selected' : ''}${prisIds.has(c.id) ? ' disabled' : ''}>${c.nom}${prisIds.has(c.id) ? ' (déjà pris)' : ''}</option>`).join('');
+          openMo('mo-balade-part');
+        }
+
+        async function saveBaladePart() {
+          const id = document.getElementById('balade-part-id').value;
+          const baladeId = document.getElementById('balade-part-balade-id').value;
+          const prenom = document.getElementById('balade-part-prenom').value.trim();
+          const equide_id = document.getElementById('balade-part-chv').value || null;
+          const note = document.getElementById('balade-part-note').value.trim() || null;
+          if (!prenom) { toast('Le prénom est requis', 'err'); return; }
+          const data = { balade_id: baladeId, prenom, equide_id, note };
+          if (id) {
+            await dbUpd('balade_participants', { prenom, equide_id, note }, [{ col: 'id', op: 'eq', val: id }]);
+            const idx = C_balades_parts.findIndex(x => x.id === id);
+            if (idx !== -1) {
+              C_balades_parts[idx] = { ...C_balades_parts[idx], prenom, equide_id, note };
+              // Ré-attacher equides si cheval sélectionné
+              if (equide_id) C_balades_parts[idx].equides = { nom: C.chv.find(c => c.id === equide_id)?.nom || '?' };
+              else C_balades_parts[idx].equides = null;
+            }
+            toast('Participant modifié', 'ok');
+          } else {
+            const r = await dbIns('balade_participants', data);
+            if (r.data?.[0]) {
+              const newPart = r.data[0];
+              if (equide_id) newPart.equides = { nom: C.chv.find(c => c.id === equide_id)?.nom || '?' };
+              C_balades_parts.push(newPart);
+            }
+            toast('Participant ajouté', 'ok');
+          }
+          closeMo('mo-balade-part');
+          renderBaladesAdmin();
+        }
+
+        async function delBaladePart(id, baladeId) {
+          await dbDel('balade_participants', [{ col: 'id', op: 'eq', val: id }]);
+          C_balades_parts = C_balades_parts.filter(p => p.id !== id);
+          toast('Supprimé', 'ok');
+          renderBaladesAdmin();
+        }
 
         // ── Screenshot tickets ──
         let _ticketScreenshotB64 = null;

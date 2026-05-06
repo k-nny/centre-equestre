@@ -27,6 +27,7 @@ export default async function handler(req, res) {
   const ADMIN_PWD = process.env.ADMIN_PASSWORD || '';
   const MARINE_PWD = process.env.MARINE_PASSWORD || '';
   const DEV_PASSWORD = process.env.DEV_PASSWORD || '';
+  const BALADE_PASSWORD = process.env.BALADE_PASSWORD || '';
 
   // [DANS LE HANDLER, APRES LES CONST SUPA_URL, etc.]
 
@@ -39,6 +40,7 @@ export default async function handler(req, res) {
     if (password === ADMIN_PWD) return res.json({ ok: true, token: makeToken(ADMIN_PWD), role: 'admin' });
     if (password === MARINE_PWD) return res.json({ ok: true, token: makeToken(MARINE_PWD), role: 'marine' });
     if (password === DEV_PASSWORD) return res.json({ ok: true, token: makeToken(DEV_PASSWORD), role: 'dev' });
+    if (BALADE_PASSWORD && password === BALADE_PASSWORD) return res.json({ ok: true, token: makeToken(BALADE_PASSWORD), role: 'balade' });
     return res.status(401).json({ error: 'Invalide' });
   }
 
@@ -108,7 +110,7 @@ export default async function handler(req, res) {
     const resendKey = process.env.RESEND_API_KEY;
     const toEmail = process.env.NOTIF_EMAIL;
 
-    
+
 
     const html = `
   <p><strong>Retour :</strong> ${message}</p>
