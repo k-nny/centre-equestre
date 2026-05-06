@@ -1437,14 +1437,14 @@
           <button class="ni" data-p="taches-pub" onclick="go('taches-pub')">
             <span class="ic">✅</span> Tâches du jour
           </button>
-          <button class="ni" data-p="balades-pub" onclick="go('balades-pub')"><span class="ic">🌿</span>Balades</button>
+          <button class="ni" data-p="balades-pub" onclick="go('balades-pub')"><span class="ic">🦄</span>Balades</button>
           <div id="anav" style="display:none">
             <div class="nav-sec" style="margin-top:8px">Administration</div>
             <button class="ni" data-p="dash" onclick="go('dash')"><span class="ic">⬛</span>Tableau de bord</button>
             <button class="ni" data-p="groupes" onclick="go('groupes')"><span class="ic">👥</span>Groupes</button>
             <button class="ni" data-p="seances" onclick="go('seances')"><span class="ic">📋</span>Séances</button>
             <button class="ni" data-p="stages" onclick="go('stages')"><span class="ic">🏕</span>Stages</button>
-            <button class="ni" data-p="balades" onclick="go('balades')"><span class="ic">🌿</span>Balades</button>
+            <button class="ni" data-p="balades" onclick="go('balades')"><span class="ic">🦄</span>Balades</button>
             <button class="ni" data-p="cavaliers" onclick="go('cavaliers')"><span class="ic">🧑</span>Cavaliers</button>
             <button class="ni" data-p="chevaux" onclick="go('chevaux')"><span class="ic">🐎</span>Chevaux</button>
             <button class="ni" data-p="moniteurs" onclick="go('moniteurs')"><span class="ic">👤</span>Moniteurs</button>
@@ -1499,7 +1499,7 @@
         <!-- BALADES (vue publique) -->
         <div class="page" id="page-balades-pub">
           <div class="ph">
-            <h2>🌿 Balades</h2>
+            <h2>🦄 Balades</h2>
             <p id="balades-pub-lbl" class="no-upper">Planning des balades à venir</p>
           </div>
           <div id="balades-pub-content">
@@ -1513,7 +1513,7 @@
         <div class="page" id="page-balades">
           <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
             <div>
-              <h2>🌿 Balades</h2>
+              <h2>🦄 Balades</h2>
               <p class="no-upper">Gérez les balades et leurs participants.</p>
             </div>
             <button class="btn btn-p" onclick="newBalade()">+ Nouvelle balade</button>
@@ -1995,7 +1995,7 @@
       <!-- Modale balade -->
       <div class="mo" id="mo-balade">
         <div class="md" style="max-width:480px">
-          <h3 id="mo-balade-t">🌿 Nouvelle balade</h3>
+          <h3 id="mo-balade-t">🦄 Nouvelle balade</h3>
           <input type="hidden" id="balade-id">
           <div class="fg"><label>Titre *</label><input type="text" id="balade-titre" placeholder="Balade forêt"></div>
           <div class="fr">
@@ -2674,8 +2674,8 @@
         const JS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
         let DISC = []; // chargé depuis la table disciplines
         const DISC_EMOJI = {
-          'BALADE': '🌿',
-          'BALADE & MES OBS': '🌿',
+          'BALADE': '🦄',
+          'BALADE & MES OBS': '🦄',
           'BaS': '🎯',
           'DRESSAGE': '🎩',
           'EQUIFEEL': '🤝',
@@ -6884,7 +6884,7 @@
       <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px">
         ${fmtDate(b.date)} · ${(b.heure || '').slice(0, 5)}${b.nb_places ? ' · ' + parts.length + '/' + b.nb_places + ' places' : ''}
       </div>
-      <div class="stg-ttl">🌿 ${b.titre || 'Balade'}</div>
+      <div class="stg-ttl">🦄 ${b.titre || 'Balade'}</div>
       ${b.note ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;font-style:italic">${b.note}</div>` : ''}
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -6908,7 +6908,7 @@
         }
 
         function newBalade() {
-          document.getElementById('mo-balade-t').textContent = '🌿 Nouvelle balade';
+          document.getElementById('mo-balade-t').textContent = '🦄 Nouvelle balade';
           document.getElementById('balade-id').value = '';
           document.getElementById('balade-titre').value = '';
           document.getElementById('balade-date').value = new Date().toISOString().slice(0, 10);
