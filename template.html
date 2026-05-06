@@ -3112,6 +3112,7 @@
           localStorage.setItem('ce_balade_active', '1');
           // Vue balades uniquement — pas de nav admin, pas de bannière admin
           document.getElementById('admin-banner').classList.remove('show');
+          document.getElementById('atbtn').textContent = '🔒 Quitter mode balade'; document.getElementById('atbtn').classList.add('on');
           document.getElementById('anav').style.display = 'none';
           document.getElementById('atbtn').style.display = 'none';
           updateBannerPadding();
