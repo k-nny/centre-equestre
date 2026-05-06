@@ -120,21 +120,9 @@ export default async function handler(req, res) {
     const body = {
       from: 'Ecuries <onboarding@resend.dev>',
       to: toEmail,
-      subject: `[Modif Ticket] ${ticketTitre}`,
+      subject: `[Retour Ticket] ${ticketTitre}`,
       html
     };
-
-    // 👉 seulement si image
-    if (hasImage) {
-      body.attachments = [
-        {
-          filename: "image.png",
-          content: base64Data,
-          encoding: "base64",
-          cid: "my-image",
-        },
-      ];
-    }
 
     const emailRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',
