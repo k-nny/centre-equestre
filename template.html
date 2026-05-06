@@ -3114,7 +3114,6 @@
           document.getElementById('admin-banner').classList.remove('show');
           document.getElementById('atbtn').textContent = '🔒 Quitter mode balade'; document.getElementById('atbtn').classList.add('on');
           document.getElementById('anav').style.display = 'none';
-          document.getElementById('atbtn').style.display = 'none';
           updateBannerPadding();
           go('balades-pub');
         }
@@ -3124,7 +3123,7 @@
           localStorage.removeItem('ce_balade_active');
           localStorage.removeItem('ce_site_token');
           localStorage.removeItem('ce_pw_hash');
-          document.getElementById('atbtn').style.display = '';
+          document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
           document.getElementById('app').style.display = 'none';
           document.getElementById('site-login').style.display = 'flex';
           document.getElementById('site-pw-in').value = '';
