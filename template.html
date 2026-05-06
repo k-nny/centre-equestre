@@ -6647,14 +6647,11 @@
             // Admin : peut voir les champs, modifier le statut, répondre (auteur = Admin)
             editZone.style.display = 'block';
             // Désactiver titre/type/priorité/description pour admin, garder statut
-            ['td-titre', 'td-type', 'td-prio', 'td-desc'].forEach(id => {
-              const el = document.getElementById(id);
-              if (el) el.disabled = true;
-            });
-            document.getElementById('td-statut').disabled = false;
+            editZone.querySelectorAll('input,select,textarea').forEach(el => el.disabled = false);
+            editZone.style.display = 'block';
             saveBtn.style.display = '';
-            saveBtn.textContent = 'Mettre à jour le statut';
             retourZone.style.display = 'block';
+            saveBtn.textContent = 'Mettre à jour le statut';
             if (retourLabel) retourLabel.textContent = 'Répondre au ticket (Admin)';
           } else {
             // Autres : lecture seule, pas de retour
