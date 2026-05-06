@@ -1502,7 +1502,11 @@
             <h2>🌿 Balades</h2>
             <p id="balades-pub-lbl" class="no-upper">Planning des balades à venir</p>
           </div>
-          <div id="balades-pub-content"><div class="ls"><div class="spin"></div></div></div>
+          <div id="balades-pub-content">
+            <div class="ls">
+              <div class="spin"></div>
+            </div>
+          </div>
         </div>
 
         <!-- BALADES (admin) -->
@@ -1514,7 +1518,11 @@
             </div>
             <button class="btn btn-p" onclick="newBalade()">+ Nouvelle balade</button>
           </div>
-          <div id="balades-admin-content"><div class="ls"><div class="spin"></div></div></div>
+          <div id="balades-admin-content">
+            <div class="ls">
+              <div class="spin"></div>
+            </div>
+          </div>
         </div>
 
         <!-- TÂCHES (admin) -->
@@ -1994,8 +2002,10 @@
             <div class="fg"><label>Date *</label><input type="date" id="balade-date"></div>
             <div class="fg"><label>Heure</label><input type="time" id="balade-heure"></div>
           </div>
-          <div class="fg"><label>Nombre de places <span style="color:var(--muted)">(optionnel)</span></label><input type="number" id="balade-nb-places" min="1" step="1" placeholder="8"></div>
-          <div class="fg"><label>Note visible</label><textarea id="balade-note" rows="2" placeholder="Équipement recommandé, niveau requis…"></textarea></div>
+          <div class="fg"><label>Nombre de places <span style="color:var(--muted)">(optionnel)</span></label><input
+              type="number" id="balade-nb-places" min="1" step="1" placeholder="8"></div>
+          <div class="fg"><label>Note visible</label><textarea id="balade-note" rows="2"
+              placeholder="Équipement recommandé, niveau requis…"></textarea></div>
           <div class="mf">
             <button class="btn btn-g" onclick="closeMo('mo-balade')">Annuler</button>
             <button class="btn btn-p" onclick="saveBalade()">Enregistrer</button>
@@ -2005,32 +2015,19 @@
 
       <!-- Modale participant balade -->
       <div class="mo" id="mo-balade-part">
-        <div class="md" style="max-width:480px">
+        <div class="md" style="max-width:420px">
           <h3 id="mo-balade-part-t">👤 Ajouter un participant</h3>
           <input type="hidden" id="balade-part-id">
           <input type="hidden" id="balade-part-balade-id">
-          <div class="fg"><label>Prénom / Nom *</label><input type="text" id="balade-part-prenom" placeholder="Marie Dupont"></div>
+          <div class="fg"><label>Prénom / Nom *</label><input type="text" id="balade-part-prenom"
+              placeholder="Marie Dupont"></div>
           <div class="fg"><label>Cheval attribué <span style="color:var(--muted)">(optionnel)</span></label>
-            <select id="balade-part-chv"><option value="">— Sans cheval —</option></select>
+            <select id="balade-part-chv">
+              <option value="">— Sans cheval —</option>
+            </select>
           </div>
-          <div class="fg"><label>Note <span style="color:var(--muted)">(optionnel)</span></label><input type="text" id="balade-part-note" placeholder="Débutant, casque fourni…"></div>
-          <div style="border-top:1px solid var(--border);margin:12px 0 14px;padding-top:12px">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">💳 Paiement</div>
-            <div class="fr">
-              <div class="fg"><label>Montant (€)</label><input type="number" id="balade-part-montant" min="0" step="0.5" placeholder="0"></div>
-              <div class="fg"><label>Date de règlement</label><input type="date" id="balade-part-date-reg"></div>
-            </div>
-            <div class="fg"><label>Méthode de paiement <span style="color:var(--muted)">(laisser vide = non réglé)</span></label>
-              <select id="balade-part-methode">
-                <option value="">— Non réglé —</option>
-                <option value="espèces">Espèces</option>
-                <option value="chèque">Chèque</option>
-                <option value="virement">Virement</option>
-                <option value="CB">Carte bancaire</option>
-                <option value="autre">Autre</option>
-              </select>
-            </div>
-          </div>
+          <div class="fg"><label>Note <span style="color:var(--muted)">(optionnel)</span></label><input type="text"
+              id="balade-part-note" placeholder="Débutant, casque fourni…"></div>
           <div class="mf">
             <button class="btn btn-g" onclick="closeMo('mo-balade-part')">Annuler</button>
             <button class="btn btn-p" onclick="saveBaladePart()">Enregistrer</button>
@@ -3115,8 +3112,8 @@
           localStorage.setItem('ce_balade_active', '1');
           // Vue balades uniquement — pas de nav admin, pas de bannière admin
           document.getElementById('admin-banner').classList.remove('show');
+          document.getElementById('atbtn').textContent = '🔒 Quitter mode balade'; document.getElementById('atbtn').classList.add('on');
           document.getElementById('anav').style.display = 'none';
-          document.getElementById('atbtn').style.display = 'none';
           updateBannerPadding();
           go('balades-pub');
         }
@@ -3126,10 +3123,11 @@
           localStorage.removeItem('ce_balade_active');
           localStorage.removeItem('ce_site_token');
           localStorage.removeItem('ce_pw_hash');
-          document.getElementById('atbtn').style.display = '';
+          document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
           document.getElementById('app').style.display = 'none';
           document.getElementById('site-login').style.display = 'flex';
           document.getElementById('site-pw-in').value = '';
+          localStorage.setItem('ce_last_page', 'vue');
         }
 
         function enableDev(targetPage = 'dash') {
@@ -6646,17 +6644,12 @@
             retourZone.style.display = 'block';
             if (retourLabel) retourLabel.textContent = 'Ajouter un retour (Dev)';
           } else if (isAdmin) {
-            // Admin : peut voir les champs, modifier le statut, répondre (auteur = Admin)
-            editZone.style.display = 'block';
             // Désactiver titre/type/priorité/description pour admin, garder statut
-            ['td-titre', 'td-type', 'td-prio', 'td-desc'].forEach(id => {
-              const el = document.getElementById(id);
-              if (el) el.disabled = true;
-            });
-            document.getElementById('td-statut').disabled = false;
+            editZone.querySelectorAll('input,select,textarea').forEach(el => el.disabled = false);
+            editZone.style.display = 'block';
             saveBtn.style.display = '';
-            saveBtn.textContent = 'Mettre à jour le statut';
             retourZone.style.display = 'block';
+            saveBtn.textContent = 'Mettre à jour le statut';
             if (retourLabel) retourLabel.textContent = 'Répondre au ticket (Admin)';
           } else {
             // Autres : lecture seule, pas de retour
@@ -6762,7 +6755,7 @@
         }
 
         async function saveTicketEdit() {
-          if (!isDev) return;
+          if (!isDev && !isAdmin) return;
           const id = v('td-id');
           const data = {
             titre: v('td-titre').trim(),
@@ -6889,7 +6882,7 @@
   <div class="stg-hdr">
     <div>
       <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px">
-        ${fmtDate(b.date)} · ${(b.heure || '').slice(0,5)}${b.nb_places ? ' · ' + parts.length + '/' + b.nb_places + ' places' : ''}
+        ${fmtDate(b.date)} · ${(b.heure || '').slice(0, 5)}${b.nb_places ? ' · ' + parts.length + '/' + b.nb_places + ' places' : ''}
       </div>
       <div class="stg-ttl">🌿 ${b.titre || 'Balade'}</div>
       ${b.note ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;font-style:italic">${b.note}</div>` : ''}
