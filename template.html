@@ -1378,16 +1378,90 @@
       }
     }
 
+    /* ── Notif retour temps réel ── */
+    .retour-notif {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: linear-gradient(135deg, #1a5276, #2e86c1);
+      color: #fff;
+      padding: 13px 22px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      z-index: 3000;
+      box-shadow: 0 6px 28px rgba(46,134,193,.45);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: transform .35s cubic-bezier(.22,1,.36,1), opacity .35s;
+      opacity: 0;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .retour-notif.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .retour-notif button {
+      background: rgba(255,255,255,.22);
+      border: 1px solid rgba(255,255,255,.4);
+      color: #fff;
+      border-radius: 7px;
+      padding: 4px 11px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: Arial, sans-serif;
+    }
+    .retour-notif button:hover { background: rgba(255,255,255,.35); }
+
+    /* ── Filtre tickets ── */
+    .ticket-filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+    .ticket-filters select, .ticket-filters input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 5px 10px;
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      outline: none;
+    }
+    .ticket-filters select:focus, .ticket-filters input:focus { border-color: var(--gold); }
+    .ticket-filters label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--muted);
+    }
+
     .ls {
       padding: 34px;
       text-align: center;
       color: var(--muted);
-
     }
   </style>
 </head>
 
 <body>
+  <div id="retour-notif" class="retour-notif">
+    <span>💬 <span id="retour-notif-txt">Nouveau retour sur un ticket</span></span>
+    <button onclick="goToTicketsFromNotif()">Voir →</button>
+    <button onclick="dismissRetourNotif()" style="padding:4px 8px;font-size:14px;background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer">×</button>
+  </div>
+
   <div id="admin-banner">
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <span>🔐 Admin</span><span class="bwarn">⚠️ Déconnectez-vous en partant</span>
@@ -1437,14 +1511,14 @@
           <button class="ni" data-p="taches-pub" onclick="go('taches-pub')">
             <span class="ic">✅</span> Tâches du jour
           </button>
-          <button class="ni" data-p="balades-pub" onclick="go('balades-pub')"><span class="ic">🦄</span>Balades</button>
+          <button class="ni" data-p="balades-pub" onclick="go('balades-pub')"><span class="ic">🌿</span>Balades</button>
           <div id="anav" style="display:none">
             <div class="nav-sec" style="margin-top:8px">Administration</div>
             <button class="ni" data-p="dash" onclick="go('dash')"><span class="ic">⬛</span>Tableau de bord</button>
             <button class="ni" data-p="groupes" onclick="go('groupes')"><span class="ic">👥</span>Groupes</button>
             <button class="ni" data-p="seances" onclick="go('seances')"><span class="ic">📋</span>Séances</button>
             <button class="ni" data-p="stages" onclick="go('stages')"><span class="ic">🏕</span>Stages</button>
-            <button class="ni" data-p="balades" onclick="go('balades')"><span class="ic">🦄</span>Gestion des balades</button>
+            <button class="ni" data-p="balades" onclick="go('balades')"><span class="ic">🌿</span>Balades</button>
             <button class="ni" data-p="cavaliers" onclick="go('cavaliers')"><span class="ic">🧑</span>Cavaliers</button>
             <button class="ni" data-p="chevaux" onclick="go('chevaux')"><span class="ic">🐎</span>Chevaux</button>
             <button class="ni" data-p="moniteurs" onclick="go('moniteurs')"><span class="ic">👤</span>Moniteurs</button>
@@ -1499,30 +1573,22 @@
         <!-- BALADES (vue publique) -->
         <div class="page" id="page-balades-pub">
           <div class="ph">
-            <h2>🦄 Balades</h2>
+            <h2>🌿 Balades</h2>
             <p id="balades-pub-lbl" class="no-upper">Planning des balades à venir</p>
           </div>
-          <div id="balades-pub-content">
-            <div class="ls">
-              <div class="spin"></div>
-            </div>
-          </div>
+          <div id="balades-pub-content"><div class="ls"><div class="spin"></div></div></div>
         </div>
 
         <!-- BALADES (admin) -->
         <div class="page" id="page-balades">
           <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
             <div>
-              <h2>🦄 Balades</h2>
+              <h2>🌿 Balades</h2>
               <p class="no-upper">Gérez les balades et leurs participants.</p>
             </div>
             <button class="btn btn-p" onclick="newBalade()">+ Nouvelle balade</button>
           </div>
-          <div id="balades-admin-content">
-            <div class="ls">
-              <div class="spin"></div>
-            </div>
-          </div>
+          <div id="balades-admin-content"><div class="ls"><div class="spin"></div></div></div>
         </div>
 
         <!-- TÂCHES (admin) -->
@@ -1938,6 +2004,58 @@
               <h3>Liste des tickets</h3>
               <button class="btn btn-p sm" onclick="openTicketMo()">+ Nouveau ticket</button>
             </div>
+            <div class="ticket-filters">
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <label>Recherche</label>
+                <input type="text" id="tk-search" placeholder="Titre…" oninput="applyTicketFilters()" style="width:160px">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <label>Type</label>
+                <select id="tk-f-type" onchange="applyTicketFilters()">
+                  <option value="">Tous</option>
+                  <option value="bug">Bug 🐞</option>
+                  <option value="evolution">Évolution ✨</option>
+                  <option value="autre">Autre 💬</option>
+                </select>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <label>Priorité</label>
+                <select id="tk-f-prio" onchange="applyTicketFilters()">
+                  <option value="">Toutes</option>
+                  <option value="haute">Haute 🔥</option>
+                  <option value="normale">Normale</option>
+                  <option value="basse">Basse</option>
+                </select>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <label>Statut</label>
+                <select id="tk-f-statut" onchange="applyTicketFilters()">
+                  <option value="">Tous</option>
+                  <option value="nouveau">Nouveau</option>
+                  <option value="en_cours">En cours</option>
+                  <option value="termine">Terminé</option>
+                </select>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <label>Retours</label>
+                <select id="tk-f-retours" onchange="applyTicketFilters()">
+                  <option value="">Tous</option>
+                  <option value="nonlus">Non lus</option>
+                  <option value="avec">Avec retours</option>
+                </select>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <label>Trier par</label>
+                <select id="tk-sort" onchange="applyTicketFilters()">
+                  <option value="date_desc">Date ↓</option>
+                  <option value="date_asc">Date ↑</option>
+                  <option value="prio">Priorité</option>
+                  <option value="statut">Statut</option>
+                  <option value="retours">Retours non lus</option>
+                </select>
+              </div>
+              <button class="btn btn-g sm" onclick="resetTicketFilters()" style="align-self:flex-end">↺ Reset</button>
+            </div>
             <table id="tickets-table">
               <thead>
                 <tr>
@@ -1995,17 +2113,15 @@
       <!-- Modale balade -->
       <div class="mo" id="mo-balade">
         <div class="md" style="max-width:480px">
-          <h3 id="mo-balade-t">🦄 Nouvelle balade</h3>
+          <h3 id="mo-balade-t">🌿 Nouvelle balade</h3>
           <input type="hidden" id="balade-id">
           <div class="fg"><label>Titre *</label><input type="text" id="balade-titre" placeholder="Balade forêt"></div>
           <div class="fr">
             <div class="fg"><label>Date *</label><input type="date" id="balade-date"></div>
             <div class="fg"><label>Heure</label><input type="time" id="balade-heure"></div>
           </div>
-          <div class="fg"><label>Nombre de places <span style="color:var(--muted)">(optionnel)</span></label><input
-              type="number" id="balade-nb-places" min="1" step="1" placeholder="8"></div>
-          <div class="fg"><label>Note visible</label><textarea id="balade-note" rows="2"
-              placeholder="Équipement recommandé, niveau requis…"></textarea></div>
+          <div class="fg"><label>Nombre de places <span style="color:var(--muted)">(optionnel)</span></label><input type="number" id="balade-nb-places" min="1" step="1" placeholder="8"></div>
+          <div class="fg"><label>Note visible</label><textarea id="balade-note" rows="2" placeholder="Équipement recommandé, niveau requis…"></textarea></div>
           <div class="mf">
             <button class="btn btn-g" onclick="closeMo('mo-balade')">Annuler</button>
             <button class="btn btn-p" onclick="saveBalade()">Enregistrer</button>
@@ -2015,19 +2131,32 @@
 
       <!-- Modale participant balade -->
       <div class="mo" id="mo-balade-part">
-        <div class="md" style="max-width:420px">
+        <div class="md" style="max-width:480px">
           <h3 id="mo-balade-part-t">👤 Ajouter un participant</h3>
           <input type="hidden" id="balade-part-id">
           <input type="hidden" id="balade-part-balade-id">
-          <div class="fg"><label>Prénom / Nom *</label><input type="text" id="balade-part-prenom"
-              placeholder="Marie Dupont"></div>
+          <div class="fg"><label>Prénom / Nom *</label><input type="text" id="balade-part-prenom" placeholder="Marie Dupont"></div>
           <div class="fg"><label>Cheval attribué <span style="color:var(--muted)">(optionnel)</span></label>
-            <select id="balade-part-chv">
-              <option value="">— Sans cheval —</option>
-            </select>
+            <select id="balade-part-chv"><option value="">— Sans cheval —</option></select>
           </div>
-          <div class="fg"><label>Note <span style="color:var(--muted)">(optionnel)</span></label><input type="text"
-              id="balade-part-note" placeholder="Débutant, casque fourni…"></div>
+          <div class="fg"><label>Note <span style="color:var(--muted)">(optionnel)</span></label><input type="text" id="balade-part-note" placeholder="Débutant, casque fourni…"></div>
+          <div style="border-top:1px solid var(--border);margin:12px 0 14px;padding-top:12px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">💳 Paiement</div>
+            <div class="fr">
+              <div class="fg"><label>Montant (€)</label><input type="number" id="balade-part-montant" min="0" step="0.5" placeholder="0"></div>
+              <div class="fg"><label>Date de règlement</label><input type="date" id="balade-part-date-reg"></div>
+            </div>
+            <div class="fg"><label>Méthode de paiement <span style="color:var(--muted)">(laisser vide = non réglé)</span></label>
+              <select id="balade-part-methode">
+                <option value="">— Non réglé —</option>
+                <option value="espèces">Espèces</option>
+                <option value="chèque">Chèque</option>
+                <option value="virement">Virement</option>
+                <option value="CB">Carte bancaire</option>
+                <option value="autre">Autre</option>
+              </select>
+            </div>
+          </div>
           <div class="mf">
             <button class="btn btn-g" onclick="closeMo('mo-balade-part')">Annuler</button>
             <button class="btn btn-p" onclick="saveBaladePart()">Enregistrer</button>
@@ -2674,8 +2803,8 @@
         const JS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
         let DISC = []; // chargé depuis la table disciplines
         const DISC_EMOJI = {
-          'BALADE': '🦄',
-          'BALADE & MES OBS': '🦄',
+          'BALADE': '🌿',
+          'BALADE & MES OBS': '🌿',
           'BaS': '🎯',
           'DRESSAGE': '🎩',
           'EQUIFEEL': '🤝',
@@ -2897,8 +3026,9 @@
             const adminPages = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets'];
             if (localStorage.getItem('ce_admin_active') === '1') {
               sessionToken = siteToken;
-              setTimeout(() => checkRetoursBanner(), 500);
-              enableAdmin(lastPage); // on passe la page à restaurer
+              _lastRetourCount = -1;
+              setTimeout(() => pollRetoursNonLus(), 500);
+              enableAdmin(lastPage);
               return;
             }
             if (localStorage.getItem('ce_dev_active') === '1') {
@@ -2956,56 +3086,115 @@
         function hexToRgbStr(h) { const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h); return r ? `${parseInt(r[1], 16)}, ${parseInt(r[2], 16)}, ${parseInt(r[3], 16)}` : '0, 0, 0'; }
         let _realtimeChannel = null;
 
-        function initRealtime() {
-          // Utilise l'API Supabase Realtime via le proxy existant — 
-          // mais comme on passe par /api/db on ne peut pas utiliser le client Supabase directement.
-          // On utilise donc un polling intelligent : toutes les 30s si l'onglet est visible,
-          // pause si l'onglet est en arrière-plan.
+        // ── Notif retour temps réel ──
+        let _lastRetourCount = -1; // -1 = pas encore initialisé
+        let _retourNotifTimer = null;
 
+        function goToTicketsFromNotif() {
+          dismissRetourNotif();
+          go('tickets');
+        }
+
+        function dismissRetourNotif() {
+          const n = document.getElementById('retour-notif');
+          if (n) { n.classList.remove('show'); }
+          clearTimeout(_retourNotifTimer);
+        }
+
+        async function pollRetoursNonLus() {
+          if (!isAdmin) return; // seulement admin
+          try {
+            const nonLus = await dbSel('ticket_retours', {
+              select: 'id',
+              filter: [{ col: 'lu', op: 'eq', val: 'false' }]
+            });
+            const count = nonLus.length;
+            // Mise à jour bannière
+            const banner = document.getElementById('retours-banner');
+            if (banner) {
+              if (count > 0) {
+                const txt = document.getElementById('retours-banner-txt');
+                if (txt) txt.textContent = `${count} retour${count > 1 ? 's' : ''} non lu${count > 1 ? 's' : ''} sur vos tickets`;
+                banner.style.display = 'flex';
+              } else {
+                banner.style.display = 'none';
+              }
+              updateBannerPadding();
+            }
+            // Notif popup seulement si nouveau(x) retour(s) depuis la dernière vérif
+            if (_lastRetourCount >= 0 && count > _lastRetourCount) {
+              const diff = count - _lastRetourCount;
+              const txt = document.getElementById('retour-notif-txt');
+              if (txt) txt.textContent = `${diff} nouveau${diff > 1 ? 'x' : ''} retour${diff > 1 ? 's' : ''} sur vos tickets`;
+              const n = document.getElementById('retour-notif');
+              if (n) {
+                n.classList.add('show');
+                clearTimeout(_retourNotifTimer);
+                _retourNotifTimer = setTimeout(() => n.classList.remove('show'), 8000);
+              }
+            }
+            _lastRetourCount = count;
+          } catch { /* silencieux */ }
+        }
+
+        function initRealtime() {
           let _pollTimer = null;
           let _lastActivity = Date.now();
-
           const POLL_INTERVAL_ACTIVE = 300000;  // 5min si actif
           const POLL_INTERVAL_IDLE = 1800000;   // 30min si inactif
+          // Intervalle court pour les retours (30s quand admin actif)
+          const RETOUR_INTERVAL = 30000;
+          let _retourPollTimer = null;
 
           async function pollUpdates() {
             const page = document.querySelector('.page.active')?.id?.replace('page-', '');
             if (!page) return;
             try {
-              // Rafraîchir la page active silencieusement
               if (page === 'vue') await loadVue();
               else if (page === 'seances') await loadSeances(v('sea-date'));
               else if (page === 'dash') renderDash();
               else if (page === 'taches-pub') await loadTachesPub();
               else if (page === 'balades-pub') await loadBaladesPub();
-            } catch (e) { /* silencieux */ }
+            } catch { /* silencieux */ }
           }
 
           function scheduleNext() {
             clearTimeout(_pollTimer);
-            const idle = Date.now() - _lastActivity > 5 * 60 * 1000; // 5min sans interaction
+            const idle = Date.now() - _lastActivity > 5 * 60 * 1000;
             _pollTimer = setTimeout(async () => {
               if (!document.hidden) await pollUpdates();
               scheduleNext();
             }, idle ? POLL_INTERVAL_IDLE : POLL_INTERVAL_ACTIVE);
           }
 
-          // Tracker l'activité
+          function scheduleRetourPoll() {
+            clearTimeout(_retourPollTimer);
+            _retourPollTimer = setTimeout(async () => {
+              if (!document.hidden && isAdmin) await pollRetoursNonLus();
+              scheduleRetourPoll();
+            }, RETOUR_INTERVAL);
+          }
+
           ['click', 'keydown', 'scroll', 'touchstart'].forEach(ev => {
             document.addEventListener(ev, () => { _lastActivity = Date.now(); }, { passive: true });
           });
 
-          // Pause si onglet masqué, reprise sinon
           document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
-              pollUpdates(); // refresh immédiat au retour
+              pollUpdates();
+              if (isAdmin) pollRetoursNonLus();
               scheduleNext();
+              scheduleRetourPoll();
             } else {
               clearTimeout(_pollTimer);
+              clearTimeout(_retourPollTimer);
             }
           });
 
           scheduleNext();
+          scheduleRetourPoll();
+          // Premier poll retours immédiat après init si admin
+          if (isAdmin) setTimeout(() => pollRetoursNonLus(), 2000);
         }
         // ── Admin ──
         function handleAdminToggle() {
@@ -3059,19 +3248,20 @@
           document.getElementById('mc').classList.add('wb'); document.getElementById('anav').style.display = 'block';
           document.getElementById('atbtn').textContent = '🔒 Quitter admin'; document.getElementById('atbtn').classList.add('on');
           localStorage.setItem('ce_admin_active', '1');
-          setTimeout(() => checkRetoursBanner(), 300);
+          _lastRetourCount = -1;
+          setTimeout(() => pollRetoursNonLus(), 400);
           updateBannerPadding();
           renderCavaliers(); go(targetPage); toast('Mode admin activé', 'ok');
         }
         function logoutAdmin() {
           isAdmin = false; sessionToken = '';
-          localStorage.removeItem('ce_admin_active'); // effacer le flag admin
+          localStorage.removeItem('ce_admin_active');
           document.getElementById('admin-banner').classList.remove('show');
           document.getElementById('mc').classList.remove('wb'); document.getElementById('anav').style.display = 'none';
           document.getElementById('atbtn').textContent = '🔑 Mode administrateur'; document.getElementById('atbtn').classList.remove('on');
           document.getElementById('mc').style.paddingTop = '';
-          // Cacher le bandeau retours aussi
           const rb = document.getElementById('retours-banner'); if (rb) rb.style.display = 'none';
+          dismissRetourNotif(); _lastRetourCount = -1;
           renderCavaliers(); go('vue'); toast('Déconnecté', 'ok');
         }
         function enableMarine(targetPage = 'vue') {
@@ -3112,8 +3302,8 @@
           localStorage.setItem('ce_balade_active', '1');
           // Vue balades uniquement — pas de nav admin, pas de bannière admin
           document.getElementById('admin-banner').classList.remove('show');
-          document.getElementById('atbtn').textContent = '🔒 Quitter mode balade'; document.getElementById('atbtn').classList.add('on');
           document.getElementById('anav').style.display = 'none';
+          document.getElementById('atbtn').style.display = 'none';
           updateBannerPadding();
           go('balades-pub');
         }
@@ -3123,11 +3313,10 @@
           localStorage.removeItem('ce_balade_active');
           localStorage.removeItem('ce_site_token');
           localStorage.removeItem('ce_pw_hash');
-          document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
+          document.getElementById('atbtn').style.display = '';
           document.getElementById('app').style.display = 'none';
           document.getElementById('site-login').style.display = 'flex';
           document.getElementById('site-pw-in').value = '';
-          localStorage.setItem('ce_last_page', 'vue');
         }
 
         function enableDev(targetPage = 'dash') {
@@ -6563,14 +6752,13 @@
           if (retoursBanner) retoursBanner.style.top = adminVisible ? '36px' : '0';
         }
 
-        // ── Page tickets mise à jour ──
+        // ── Page tickets ──
+        let _ticketsRaw = [];
+        let _ticketsRetoursCounts = {};
+
         async function renderTicketsPage() {
-          // Vérifier retours non lus pour la bannière (utilisateurs non-dev)
           if (!isDev) checkRetoursBanner();
-
           const ts = await dbSel('tickets', { order: [{ col: 'created_at', asc: false }] });
-
-          // Charger les retours pour tous les tickets (pour indicateur)
           let retoursCounts = {};
           if (ts.length) {
             const iv = `(${ts.map(t => `"${t.id}"`).join(',')})`;
@@ -6584,21 +6772,51 @@
               if (!r.lu) retoursCounts[r.ticket_id].nonLus++;
             });
           }
+          _ticketsRaw = ts;
+          _ticketsRetoursCounts = retoursCounts;
+          applyTicketFilters();
+        }
+
+        function applyTicketFilters() {
+          const search = (document.getElementById('tk-search')?.value || '').toLowerCase();
+          const fType = document.getElementById('tk-f-type')?.value || '';
+          const fPrio = document.getElementById('tk-f-prio')?.value || '';
+          const fStatut = document.getElementById('tk-f-statut')?.value || '';
+          const fRetours = document.getElementById('tk-f-retours')?.value || '';
+          const sort = document.getElementById('tk-sort')?.value || 'date_desc';
+          const PRIO_ORDER = { haute: 0, normale: 1, basse: 2 };
+          const STATUT_ORDER = { nouveau: 0, en_cours: 1, termine: 2 };
+
+          let ts = [..._ticketsRaw];
+
+          // Filtres
+          if (search) ts = ts.filter(t => (t.titre || '').toLowerCase().includes(search) || (t.description || '').toLowerCase().includes(search));
+          if (fType) ts = ts.filter(t => t.type === fType);
+          if (fPrio) ts = ts.filter(t => t.priorite === fPrio);
+          if (fStatut) ts = ts.filter(t => t.statut === fStatut);
+          if (fRetours === 'nonlus') ts = ts.filter(t => (_ticketsRetoursCounts[t.id]?.nonLus || 0) > 0);
+          if (fRetours === 'avec') ts = ts.filter(t => (_ticketsRetoursCounts[t.id]?.total || 0) > 0);
+
+          // Tri
+          ts.sort((a, b) => {
+            if (sort === 'date_asc') return new Date(a.created_at) - new Date(b.created_at);
+            if (sort === 'date_desc') return new Date(b.created_at) - new Date(a.created_at);
+            if (sort === 'prio') return (PRIO_ORDER[a.priorite] ?? 1) - (PRIO_ORDER[b.priorite] ?? 1);
+            if (sort === 'statut') return (STATUT_ORDER[a.statut] ?? 0) - (STATUT_ORDER[b.statut] ?? 0);
+            if (sort === 'retours') return (_ticketsRetoursCounts[b.id]?.nonLus || 0) - (_ticketsRetoursCounts[a.id]?.nonLus || 0);
+            return 0;
+          });
 
           const bdy = document.getElementById('tickets-tbody');
+          if (!bdy) return;
+          if (!ts.length) { bdy.innerHTML = '<tr class="er"><td colspan="6">Aucun ticket correspondant.</td></tr>'; return; }
+
           bdy.innerHTML = ts.map(t => {
-            const isClosed = t.statut === 'termine';
-            const rc = retoursCounts[t.id] || { total: 0, nonLus: 0 };
+            const rc = _ticketsRetoursCounts[t.id] || { total: 0, nonLus: 0 };
             const retourBadge = rc.total > 0
-              ? `<span class="b ${rc.nonLus > 0 ? 'bb' : 'b'}" style="font-size:10px">
-           💬 ${rc.total}${rc.nonLus > 0 ? ` <strong>(${rc.nonLus} nouveau${rc.nonLus > 1 ? 'x' : ''})</strong>` : ''}
-         </span>`
-              : '';
-
-            let actionsHtml = `<button class="btn btn-g sm" onclick="openTicketDetail('${t.id}')">
-      ${isDev ? '✏️ Modifier' : '👁 Voir / modifier'}
-    </button>`;
-
+              ? `<span class="b ${rc.nonLus > 0 ? 'bb' : ''}" style="font-size:10px">
+                   💬 ${rc.total}${rc.nonLus > 0 ? ` <strong>(${rc.nonLus} nouveau${rc.nonLus > 1 ? 'x' : ''})</strong>` : ''}
+                 </span>` : '';
             return `<tr>
       <td>${new Date(t.created_at).toLocaleDateString('fr-FR')}</td>
       <td>
@@ -6609,9 +6827,17 @@
       <td><span class="b ${t.type === 'bug' ? 'br' : 'bb'}">${t.type}</span></td>
       <td><span class="b ${t.priorite === 'haute' ? 'bo' : ''}">${t.priorite}</span></td>
       <td><span class="b ${t.statut === 'termine' ? 'bg' : t.statut === 'en_cours' ? 'bp' : 'bgo'}">${t.statut.replace('_', ' ')}</span></td>
-      <td>${actionsHtml}</td>
+      <td><button class="btn btn-g sm" onclick="openTicketDetail('${t.id}')">${isDev ? '✏️ Modifier' : '👁 Voir / modifier'}</button></td>
     </tr>`;
           }).join('');
+        }
+
+        function resetTicketFilters() {
+          ['tk-search','tk-f-type','tk-f-prio','tk-f-statut','tk-f-retours'].forEach(id => {
+            const el = document.getElementById(id); if (el) el.value = '';
+          });
+          const sort = document.getElementById('tk-sort'); if (sort) sort.value = 'date_desc';
+          applyTicketFilters();
         }
 
         // ── Ouvrir détail ticket ──
@@ -6644,12 +6870,17 @@
             retourZone.style.display = 'block';
             if (retourLabel) retourLabel.textContent = 'Ajouter un retour (Dev)';
           } else if (isAdmin) {
-            // Désactiver titre/type/priorité/description pour admin, garder statut
-            editZone.querySelectorAll('input,select,textarea').forEach(el => el.disabled = false);
+            // Admin : peut voir les champs, modifier le statut, répondre (auteur = Admin)
             editZone.style.display = 'block';
+            // Désactiver titre/type/priorité/description pour admin, garder statut
+            ['td-titre', 'td-type', 'td-prio', 'td-desc'].forEach(id => {
+              const el = document.getElementById(id);
+              if (el) el.disabled = true;
+            });
+            document.getElementById('td-statut').disabled = false;
             saveBtn.style.display = '';
-            retourZone.style.display = 'block';
             saveBtn.textContent = 'Mettre à jour le statut';
+            retourZone.style.display = 'block';
             if (retourLabel) retourLabel.textContent = 'Répondre au ticket (Admin)';
           } else {
             // Autres : lecture seule, pas de retour
@@ -6689,9 +6920,8 @@
           toast('Retours marqués comme lus', 'ok');
           document.getElementById('td-marquer-lu-btn').style.display = 'none';
           await loadRetours(ticketId);
-          await checkRetoursBanner();
+          await pollRetoursNonLus();
           await renderTicketsPage();
-          // Mettre à jour le dashboard si visible
           if (document.getElementById('page-dash')?.classList.contains('active')) {
             await loadRetoursNonLusDash();
           }
@@ -6732,11 +6962,11 @@
             ticket_id: ticketId,
             auteur,
             message: msg,
-            lu: false
+            lu: isDev ? false : true  // dev marque comme lu immédiatement ses propres retours
           });
 
-          // Email uniquement Admin → Dev (pas Dev → Admin)
-          if (isAdmin) {
+          // Email dans les deux sens : Admin→Dev et Dev→Admin
+          if (isAdmin || isDev) {
             try {
               const ts = await dbSel('tickets', { select: 'titre', filter: [{ col: 'id', op: 'eq', val: ticketId }] });
               await dbReq({
@@ -6744,6 +6974,7 @@
                 token: sessionToken,
                 ticketTitre: ts[0]?.titre || '?',
                 message: msg,
+                auteur,
               });
             } catch (e) { console.warn('Email retour non envoyé', e); }
           }
@@ -6752,10 +6983,12 @@
           document.getElementById('td-retour-msg').value = '';
           await loadRetours(ticketId);
           await renderTicketsPage();
+          // Mettre à jour la bannière si admin (un nouveau retour non-lu vient d'être ajouté par dev)
+          if (isAdmin) await pollRetoursNonLus();
         }
 
         async function saveTicketEdit() {
-          if (!isDev && !isAdmin) return;
+          if (!isDev) return;
           const id = v('td-id');
           const data = {
             titre: v('td-titre').trim(),
@@ -6875,40 +7108,54 @@
             el.innerHTML = '<div class="ls">Aucune balade. Cliquez sur "+ Nouvelle balade" pour commencer.</div>';
             return;
           }
+          const canEdit = isAdmin || isDev;
+          const canPay = isAdmin || isDev || isBalade;
           el.innerHTML = sorted.map(b => {
             const parts = C_balades_parts.filter(p => p.balade_id === b.id);
             const isPast = b.date < today;
+            const totalParts = parts.length;
+            const totalRegle = parts.filter(p => p.regle).length;
+            const totalMontant = parts.reduce((s, p) => s + (parseFloat(p.montant) || 0), 0);
+            const totalEnAttente = parts.filter(p => !p.regle && p.montant > 0).length;
             return `<div class="stg-wrap" style="${isPast ? 'opacity:.65' : ''}">
   <div class="stg-hdr">
     <div>
       <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px">
-        ${fmtDate(b.date)} · ${(b.heure || '').slice(0, 5)}${b.nb_places ? ' · ' + parts.length + '/' + b.nb_places + ' places' : ''}
+        ${fmtDate(b.date)} · ${(b.heure || '').slice(0,5)}${b.nb_places ? ' · ' + totalParts + '/' + b.nb_places + ' places' : ''}
+        ${totalMontant > 0 ? ` · <span style="color:var(--gold)">💰 ${totalMontant.toFixed(0)}€</span>` : ''}
+        ${totalEnAttente > 0 ? ` · <span style="color:#b43728">⏳ ${totalEnAttente} en attente</span>` : (totalParts > 0 && totalRegle === totalParts ? ' · <span style="color:#1e7a40">✅ Tout réglé</span>' : '')}
       </div>
-      <div class="stg-ttl">🦄 ${b.titre || 'Balade'}</div>
+      <div class="stg-ttl">🌿 ${b.titre || 'Balade'}</div>
       ${b.note ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;font-style:italic">${b.note}</div>` : ''}
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
       <button class="btn btn-g sm" onclick="openAddBaladePart('${b.id}')">+ Participant</button>
-      <button class="btn btn-g sm" onclick="editBalade('${b.id}')">✏️</button>
-      <button class="btn btn-d sm" onclick="delBalade('${b.id}')">🗑</button>
+      ${canEdit ? `<button class="btn btn-g sm" onclick="editBalade('${b.id}')">✏️</button>
+      <button class="btn btn-d sm" onclick="delBalade('${b.id}')">🗑</button>` : ''}
     </div>
   </div>
-  ${parts.length ? parts.map(p => `
-  <div class="pcr">
+  ${parts.length ? parts.map(p => {
+    const regle = p.regle, methode = p.methode_paiement, montant = p.montant, dateR = p.date_reglement;
+    return `<div class="pcr">
     <div class="pcn">👤 ${p.prenom || '?'}</div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <span class="pch2">${p.equides?.nom ? `🐎 <strong>${p.equides.nom}</strong>` : '<span style="color:var(--muted);font-size:12px">Sans cheval</span>'}</span>
       ${p.note ? `<span style="font-size:11px;color:var(--muted)">${p.note}</span>` : ''}
-      <button class="btn btn-g sm" onclick="editBaladePart('${p.id}','${b.id}')">✏️</button>
-      <button class="btn btn-d sm" onclick="delBaladePart('${p.id}','${b.id}')">🗑</button>
+      ${montant ? `<span style="font-size:12px;font-weight:700;color:var(--gold)">${parseFloat(montant).toFixed(0)}€</span>` : ''}
+      ${regle
+        ? `<span class="b bg" style="font-size:10px">✅ Réglé${methode ? ' — ' + methode : ''}${dateR ? ' le ' + fmtDate(dateR) : ''}</span>`
+        : `<span class="b br" style="font-size:10px">⏳ En attente</span>`}
+      ${canPay ? `<button class="btn btn-g sm" onclick="editBaladePart('${p.id}','${b.id}')">✏️</button>` : ''}
+      ${canEdit ? `<button class="btn btn-d sm" onclick="delBaladePart('${p.id}','${b.id}')">🗑</button>` : ''}
     </div>
-  </div>`).join('') : `<div style="padding:12px 20px;font-size:12px;color:var(--muted);font-style:italic">Aucun participant — cliquez sur "+ Participant" pour en ajouter.</div>`}
+  </div>`;}).join('')
+  : `<div style="padding:12px 20px;font-size:12px;color:var(--muted);font-style:italic">Aucun participant — cliquez sur "+ Participant" pour en ajouter.</div>`}
 </div>`;
           }).join('');
         }
 
         function newBalade() {
-          document.getElementById('mo-balade-t').textContent = '🦄 Nouvelle balade';
+          document.getElementById('mo-balade-t').textContent = '🌿 Nouvelle balade';
           document.getElementById('balade-id').value = '';
           document.getElementById('balade-titre').value = '';
           document.getElementById('balade-date').value = new Date().toISOString().slice(0, 10);
@@ -6970,7 +7217,9 @@
           document.getElementById('mo-balade-part-t').textContent = '👤 Ajouter un participant';
           document.getElementById('balade-part-prenom').value = '';
           document.getElementById('balade-part-note').value = '';
-          // Chevaux déjà pris dans cette balade
+          document.getElementById('balade-part-montant').value = '';
+          document.getElementById('balade-part-date-reg').value = '';
+          document.getElementById('balade-part-methode').value = '';
           const prisIds = new Set(C_balades_parts.filter(p => p.balade_id === baladeId && p.equide_id).map(p => p.equide_id));
           document.getElementById('balade-part-chv').innerHTML = '<option value="">— Sans cheval —</option>' +
             getSortedChvDispo().map(c => `<option value="${c.id}"${prisIds.has(c.id) ? ' disabled' : ''}>${c.nom}${prisIds.has(c.id) ? ' (déjà pris)' : ''}</option>`).join('');
@@ -6984,6 +7233,9 @@
           document.getElementById('mo-balade-part-t').textContent = '✏️ Modifier le participant';
           document.getElementById('balade-part-prenom').value = p.prenom || '';
           document.getElementById('balade-part-note').value = p.note || '';
+          document.getElementById('balade-part-montant').value = p.montant != null ? p.montant : '';
+          document.getElementById('balade-part-date-reg').value = p.date_reglement || '';
+          document.getElementById('balade-part-methode').value = p.methode_paiement || '';
           const prisIds = new Set(C_balades_parts.filter(x => x.balade_id === baladeId && x.equide_id && x.id !== partId).map(x => x.equide_id));
           document.getElementById('balade-part-chv').innerHTML = '<option value="">— Sans cheval —</option>' +
             getSortedChvDispo().map(c => `<option value="${c.id}"${c.id === p.equide_id ? ' selected' : ''}${prisIds.has(c.id) ? ' disabled' : ''}>${c.nom}${prisIds.has(c.id) ? ' (déjà pris)' : ''}</option>`).join('');
@@ -6996,14 +7248,17 @@
           const prenom = document.getElementById('balade-part-prenom').value.trim();
           const equide_id = document.getElementById('balade-part-chv').value || null;
           const note = document.getElementById('balade-part-note').value.trim() || null;
+          const montant = parseFloat(document.getElementById('balade-part-montant').value) || null;
+          const methode_paiement = document.getElementById('balade-part-methode').value || null;
+          const date_reglement = document.getElementById('balade-part-date-reg').value || null;
+          const regle = !!methode_paiement;
           if (!prenom) { toast('Le prénom est requis', 'err'); return; }
-          const data = { balade_id: baladeId, prenom, equide_id, note };
+          const data = { balade_id: baladeId, prenom, equide_id, note, montant, methode_paiement, date_reglement, regle };
           if (id) {
-            await dbUpd('balade_participants', { prenom, equide_id, note }, [{ col: 'id', op: 'eq', val: id }]);
+            await dbUpd('balade_participants', { prenom, equide_id, note, montant, methode_paiement, date_reglement, regle }, [{ col: 'id', op: 'eq', val: id }]);
             const idx = C_balades_parts.findIndex(x => x.id === id);
             if (idx !== -1) {
-              C_balades_parts[idx] = { ...C_balades_parts[idx], prenom, equide_id, note };
-              // Ré-attacher equides si cheval sélectionné
+              C_balades_parts[idx] = { ...C_balades_parts[idx], prenom, equide_id, note, montant, methode_paiement, date_reglement, regle };
               if (equide_id) C_balades_parts[idx].equides = { nom: C.chv.find(c => c.id === equide_id)?.nom || '?' };
               else C_balades_parts[idx].equides = null;
             }

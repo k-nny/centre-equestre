@@ -101,7 +101,7 @@ export default async function handler(req, res) {
     return res.json({ ok: emailRes.ok });
   }
   if (req.method === 'POST' && req.body.action === 'send-ticket-retour-email') {
-    const { message, ticketTitre, token } = req.body;
+    const { message, ticketTitre, auteur, token } = req.body;
 
     if (!verifyToken(token, ADMIN_PWD) && !verifyToken(token, DEV_PASSWORD)) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -110,9 +110,9 @@ export default async function handler(req, res) {
     const resendKey = process.env.RESEND_API_KEY;
     const toEmail = process.env.NOTIF_EMAIL;
 
-
-
+    const auteurLabel = auteur || 'Utilisateur';
     const html = `
+  <p><strong>De :</strong> ${auteurLabel}</p>
   <p><strong>Retour :</strong> ${message}</p>
   <p><em>Envoyé depuis l'application de gestion des écuries</em></p>
 `;
@@ -120,7 +120,7 @@ export default async function handler(req, res) {
     const body = {
       from: 'Ecuries <onboarding@resend.dev>',
       to: toEmail,
-      subject: `[Retour Ticket] ${ticketTitre}`,
+      subject: `[Retour Ticket — ${auteurLabel}] ${ticketTitre}`,
       html
     };
 
@@ -265,9 +265,9 @@ export default async function handler(req, res) {
         const ismarine = verifyToken(body.token, MARINE_PWD);
         const isDev = verifyToken(body.token, DEV_PASSWORD);
 
-        // if (!isAdmin && !isDev && !ismarine) {
-        //   return res.status(403).json({ error: 'Session invalide ou expirée' });
-        // }
+        if (!isAdmin && !isDev && !ismarine) {
+          return res.status(403).json({ error: 'Session invalide ou expirée' });
+        }
       }
 
       try {
