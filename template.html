@@ -1391,23 +1391,25 @@
       font-size: 13px;
       font-weight: 700;
       z-index: 3000;
-      box-shadow: 0 6px 28px rgba(46,134,193,.45);
+      box-shadow: 0 6px 28px rgba(46, 134, 193, .45);
       display: flex;
       align-items: center;
       gap: 12px;
-      transition: transform .35s cubic-bezier(.22,1,.36,1), opacity .35s;
+      transition: transform .35s cubic-bezier(.22, 1, .36, 1), opacity .35s;
       opacity: 0;
       pointer-events: none;
       white-space: nowrap;
     }
+
     .retour-notif.show {
       transform: translateX(-50%) translateY(0);
       opacity: 1;
       pointer-events: auto;
     }
+
     .retour-notif button {
-      background: rgba(255,255,255,.22);
-      border: 1px solid rgba(255,255,255,.4);
+      background: rgba(255, 255, 255, .22);
+      border: 1px solid rgba(255, 255, 255, .4);
       color: #fff;
       border-radius: 7px;
       padding: 4px 11px;
@@ -1416,7 +1418,10 @@
       cursor: pointer;
       font-family: Arial, sans-serif;
     }
-    .retour-notif button:hover { background: rgba(255,255,255,.35); }
+
+    .retour-notif button:hover {
+      background: rgba(255, 255, 255, .35);
+    }
 
     /* ── Filtre tickets ── */
     .ticket-filters {
@@ -1428,7 +1433,9 @@
       border-bottom: 1px solid var(--border);
       background: var(--surface2);
     }
-    .ticket-filters select, .ticket-filters input {
+
+    .ticket-filters select,
+    .ticket-filters input {
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 7px;
@@ -1438,7 +1445,12 @@
       font-size: 12px;
       outline: none;
     }
-    .ticket-filters select:focus, .ticket-filters input:focus { border-color: var(--gold); }
+
+    .ticket-filters select:focus,
+    .ticket-filters input:focus {
+      border-color: var(--gold);
+    }
+
     .ticket-filters label {
       font-size: 10px;
       font-weight: 700;
@@ -1459,7 +1471,8 @@
   <div id="retour-notif" class="retour-notif">
     <span>💬 <span id="retour-notif-txt">Nouveau retour sur un ticket</span></span>
     <button onclick="goToTicketsFromNotif()">Voir →</button>
-    <button onclick="dismissRetourNotif()" style="padding:4px 8px;font-size:14px;background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer">×</button>
+    <button onclick="dismissRetourNotif()"
+      style="padding:4px 8px;font-size:14px;background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer">×</button>
   </div>
 
   <div id="admin-banner">
@@ -1576,7 +1589,11 @@
             <h2>🌿 Balades</h2>
             <p id="balades-pub-lbl" class="no-upper">Planning des balades à venir</p>
           </div>
-          <div id="balades-pub-content"><div class="ls"><div class="spin"></div></div></div>
+          <div id="balades-pub-content">
+            <div class="ls">
+              <div class="spin"></div>
+            </div>
+          </div>
         </div>
 
         <!-- BALADES (admin) -->
@@ -1588,7 +1605,11 @@
             </div>
             <button class="btn btn-p" onclick="newBalade()">+ Nouvelle balade</button>
           </div>
-          <div id="balades-admin-content"><div class="ls"><div class="spin"></div></div></div>
+          <div id="balades-admin-content">
+            <div class="ls">
+              <div class="spin"></div>
+            </div>
+          </div>
         </div>
 
         <!-- TÂCHES (admin) -->
@@ -2007,7 +2028,8 @@
             <div class="ticket-filters">
               <div style="display:flex;flex-direction:column;gap:3px">
                 <label>Recherche</label>
-                <input type="text" id="tk-search" placeholder="Titre…" oninput="applyTicketFilters()" style="width:160px">
+                <input type="text" id="tk-search" placeholder="Titre…" oninput="applyTicketFilters()"
+                  style="width:160px">
               </div>
               <div style="display:flex;flex-direction:column;gap:3px">
                 <label>Type</label>
@@ -2120,8 +2142,10 @@
             <div class="fg"><label>Date *</label><input type="date" id="balade-date"></div>
             <div class="fg"><label>Heure</label><input type="time" id="balade-heure"></div>
           </div>
-          <div class="fg"><label>Nombre de places <span style="color:var(--muted)">(optionnel)</span></label><input type="number" id="balade-nb-places" min="1" step="1" placeholder="8"></div>
-          <div class="fg"><label>Note visible</label><textarea id="balade-note" rows="2" placeholder="Équipement recommandé, niveau requis…"></textarea></div>
+          <div class="fg"><label>Nombre de places <span style="color:var(--muted)">(optionnel)</span></label><input
+              type="number" id="balade-nb-places" min="1" step="1" placeholder="8"></div>
+          <div class="fg"><label>Note visible</label><textarea id="balade-note" rows="2"
+              placeholder="Équipement recommandé, niveau requis…"></textarea></div>
           <div class="mf">
             <button class="btn btn-g" onclick="closeMo('mo-balade')">Annuler</button>
             <button class="btn btn-p" onclick="saveBalade()">Enregistrer</button>
@@ -2135,18 +2159,26 @@
           <h3 id="mo-balade-part-t">👤 Ajouter un participant</h3>
           <input type="hidden" id="balade-part-id">
           <input type="hidden" id="balade-part-balade-id">
-          <div class="fg"><label>Prénom / Nom *</label><input type="text" id="balade-part-prenom" placeholder="Marie Dupont"></div>
+          <div class="fg"><label>Prénom / Nom *</label><input type="text" id="balade-part-prenom"
+              placeholder="Marie Dupont"></div>
           <div class="fg"><label>Cheval attribué <span style="color:var(--muted)">(optionnel)</span></label>
-            <select id="balade-part-chv"><option value="">— Sans cheval —</option></select>
+            <select id="balade-part-chv">
+              <option value="">— Sans cheval —</option>
+            </select>
           </div>
-          <div class="fg"><label>Note <span style="color:var(--muted)">(optionnel)</span></label><input type="text" id="balade-part-note" placeholder="Débutant, casque fourni…"></div>
+          <div class="fg"><label>Note <span style="color:var(--muted)">(optionnel)</span></label><input type="text"
+              id="balade-part-note" placeholder="Débutant, casque fourni…"></div>
           <div style="border-top:1px solid var(--border);margin:12px 0 14px;padding-top:12px">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">💳 Paiement</div>
+            <div
+              style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">
+              💳 Paiement</div>
             <div class="fr">
-              <div class="fg"><label>Montant (€)</label><input type="number" id="balade-part-montant" min="0" step="0.5" placeholder="0"></div>
+              <div class="fg"><label>Montant (€)</label><input type="number" id="balade-part-montant" min="0" step="0.5"
+                  placeholder="0"></div>
               <div class="fg"><label>Date de règlement</label><input type="date" id="balade-part-date-reg"></div>
             </div>
-            <div class="fg"><label>Méthode de paiement <span style="color:var(--muted)">(laisser vide = non réglé)</span></label>
+            <div class="fg"><label>Méthode de paiement <span style="color:var(--muted)">(laisser vide = non
+                  réglé)</span></label>
               <select id="balade-part-methode">
                 <option value="">— Non réglé —</option>
                 <option value="espèces">Espèces</option>
@@ -3297,7 +3329,7 @@
           toast('Déconnecté', 'ok');
         }
 
-         function enableBalade() {
+        function enableBalade() {
           isBalade = true; isAdmin = false; isDev = false; isMarine = false;
           localStorage.setItem('ce_balade_active', '1');
           // Vue balades uniquement — pas de nav admin, pas de bannière admin
@@ -6834,7 +6866,7 @@
         }
 
         function resetTicketFilters() {
-          ['tk-search','tk-f-type','tk-f-prio','tk-f-statut','tk-f-retours'].forEach(id => {
+          ['tk-search', 'tk-f-type', 'tk-f-prio', 'tk-f-statut', 'tk-f-retours'].forEach(id => {
             const el = document.getElementById(id); if (el) el.value = '';
           });
           const sort = document.getElementById('tk-sort'); if (sort) sort.value = 'date_desc';
@@ -7073,7 +7105,14 @@
   ${parts.length ? parts.map(p => `
   <div class="pcr">
     <div class="pcn">👤 ${p.prenom || '?'}</div>
-    <div class="pch2">${p.equides?.nom ? `🐎 <strong>${p.equides.nom}</strong>` : '<span style="color:var(--muted)">Sans cheval attribué</span>'}</div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span class="pch2">${p.equides?.nom ? `🐎 <strong>${p.equides.nom}</strong>` : '<span style="color:var(--muted)">Sans cheval attribué</span>'}</span>
+      ${p.montant ? `<span style="font-size:12px;font-weight:700;color:var(--gold)">${parseFloat(p.montant).toFixed(0)}€</span>` : ''}
+      ${p.regle
+                  ? `<span class="b bg" style="font-size:10px">✅ Réglé</span>`
+                  : (p.montant ? `<span class="b br" style="font-size:10px">⏳ En attente</span>` : '')}
+      ${(isAdmin || isDev) ? `<button class="btn btn-g sm" onclick="editBaladePart('${p.id}','${b.id}')">✏️</button>` : ''}
+    </div>
   </div>`).join('') : `<div class="pcr"><span style="color:var(--muted);font-size:12px;font-style:italic">Aucun participant pour l'instant.</span></div>`}
 </div>`;
             }).join('');
@@ -7116,7 +7155,7 @@
   <div class="stg-hdr">
     <div>
       <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px">
-        ${fmtDate(b.date)} · ${(b.heure || '').slice(0,5)}${b.nb_places ? ' · ' + totalParts + '/' + b.nb_places + ' places' : ''}
+        ${fmtDate(b.date)} · ${(b.heure || '').slice(0, 5)}${b.nb_places ? ' · ' + totalParts + '/' + b.nb_places + ' places' : ''}
         ${totalMontant > 0 ? ` · <span style="color:var(--gold)">💰 ${totalMontant.toFixed(0)}€</span>` : ''}
         ${totalEnAttente > 0 ? ` · <span style="color:#b43728">⏳ ${totalEnAttente} en attente</span>` : (totalParts > 0 && totalRegle === totalParts ? ' · <span style="color:#1e7a40">✅ Tout réglé</span>' : '')}
       </div>
@@ -7130,21 +7169,22 @@
     </div>
   </div>
   ${parts.length ? parts.map(p => {
-    const regle = p.regle, methode = p.methode_paiement, montant = p.montant, dateR = p.date_reglement;
-    return `<div class="pcr">
+              const regle = p.regle, methode = p.methode_paiement, montant = p.montant, dateR = p.date_reglement;
+              return `<div class="pcr">
     <div class="pcn">👤 ${p.prenom || '?'}</div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <span class="pch2">${p.equides?.nom ? `🐎 <strong>${p.equides.nom}</strong>` : '<span style="color:var(--muted);font-size:12px">Sans cheval</span>'}</span>
       ${p.note ? `<span style="font-size:11px;color:var(--muted)">${p.note}</span>` : ''}
       ${montant ? `<span style="font-size:12px;font-weight:700;color:var(--gold)">${parseFloat(montant).toFixed(0)}€</span>` : ''}
       ${regle
-        ? `<span class="b bg" style="font-size:10px">✅ Réglé${methode ? ' — ' + methode : ''}${dateR ? ' le ' + fmtDate(dateR) : ''}</span>`
-        : `<span class="b br" style="font-size:10px">⏳ En attente</span>`}
+                  ? `<span class="b bg" style="font-size:10px">✅ Réglé${methode ? ' — ' + methode : ''}${dateR ? ' le ' + fmtDate(dateR) : ''}</span>`
+                  : `<span class="b br" style="font-size:10px">⏳ En attente</span>`}
       ${canPay ? `<button class="btn btn-g sm" onclick="editBaladePart('${p.id}','${b.id}')">✏️</button>` : ''}
       ${canEdit ? `<button class="btn btn-d sm" onclick="delBaladePart('${p.id}','${b.id}')">🗑</button>` : ''}
     </div>
-  </div>`;}).join('')
-  : `<div style="padding:12px 20px;font-size:12px;color:var(--muted);font-style:italic">Aucun participant — cliquez sur "+ Participant" pour en ajouter.</div>`}
+  </div>`;
+            }).join('')
+                : `<div style="padding:12px 20px;font-size:12px;color:var(--muted);font-style:italic">Aucun participant — cliquez sur "+ Participant" pour en ajouter.</div>`}
 </div>`;
           }).join('');
         }
