@@ -3270,7 +3270,7 @@
         function enableAdmin(targetPage = 'dash') {
           isAdmin = true; document.getElementById('admin-banner').classList.add('show');
           document.getElementById('mc').classList.add('wb'); document.getElementById('anav').style.display = 'block';
-          cument.getElementById('nom-pers-co').textContent = '🔐 Claire';
+          document.getElementById('nom-pers-co').textContent = '🔐 Claire';
           document.getElementById('atbtn').textContent = '🔒 Quitter Claire'; document.getElementById('atbtn').classList.add('on');
           localStorage.setItem('ce_admin_active', '1');
           _lastRetourCount = -1;
@@ -3295,7 +3295,7 @@
           document.getElementById('admin-banner').classList.add('show');
           document.getElementById('mc').classList.add('wb');
           document.getElementById('anav').style.display = 'block';
-          cument.getElementById('nom-pers-co').textContent = '🔐 Marine';
+          document.getElementById('nom-pers-co').textContent = '🔐 Marine';
           document.getElementById('atbtn').textContent = '🔒 Quitter Marine';
           document.getElementById('atbtn').classList.add('on');
           localStorage.setItem('ce_marine_active', '1');
