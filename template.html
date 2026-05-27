@@ -2800,10 +2800,7 @@
 
         dateDebut.addEventListener("change", () => {
           // Remplit automatiquement la date de fin
-          // seulement si elle est vide
-          if (!dateFin.value) {
-            dateFin.value = dateDebut.value;
-          }
+          dateFin.value = dateDebut.value;
         });
         // ══════════════════════════════════════════════════
         //  AUCUN SECRET ICI — tout passe par /api/db
