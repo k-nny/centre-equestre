@@ -6893,7 +6893,6 @@
           document.getElementById('td-retour-msg').value = '';
 
           const editZone = document.getElementById('td-edit-zone');
-          const saveBtn = document.getElementById('td-save-btn');
           const retourZone = document.getElementById('td-retour-zone');
           const retourLabel = document.querySelector('#td-retour-zone label');
 
@@ -6901,20 +6900,16 @@
             // Kenny : peut tout modifier + répondre (auteur = Kenny)
             editZone.querySelectorAll('input,select,textarea').forEach(el => el.disabled = false);
             editZone.style.display = 'block';
-            saveBtn.style.display = '';
             retourZone.style.display = 'block';
             if (retourLabel) retourLabel.textContent = 'Ajouter un retour (Kenny)';
           } else if (isAdmin) {
             editZone.querySelectorAll('input,select,textarea').forEach(el => el.disabled = false);
             editZone.style.display = 'block';
-            saveBtn.style.display = '';
             retourZone.style.display = 'block';
-            saveBtn.textContent = 'Mettre à jour le statut';
             if (retourLabel) retourLabel.textContent = 'Répondre au ticket (Admin)';
           } else {
             // Autres : lecture seule, pas de retour
             editZone.querySelectorAll('input,select,textarea').forEach(el => el.disabled = true);
-            saveBtn.style.display = 'none';
             retourZone.style.display = 'none';
           }
 
