@@ -1532,11 +1532,14 @@
             <button class="ni" data-p="cartes" onclick="go('cartes')"><span class="ic">🎫</span>Cartes</button>
             <button class="ni" data-p="chevaux" onclick="go('chevaux')"><span class="ic">🐎</span>Chevaux</button>
             <button class="ni" data-p="seances" onclick="go('seances')"><span class="ic">📋</span>Cours</button>
-            <button class="ni" data-p="disciplines" onclick="go('disciplines')"><span class="ic">🎨</span>Disciplines</button>
+            <button class="ni" data-p="disciplines" onclick="go('disciplines')"><span
+                class="ic">🎨</span>Disciplines</button>
             <button class="ni" data-p="groupes" onclick="go('groupes')"><span class="ic">👥</span>Groupes</button>
-            <button class="ni" data-p="historique" onclick="go('historique')"><span class="ic">📜</span>Historique</button>
+            <button class="ni" data-p="historique" onclick="go('historique')"><span
+                class="ic">📜</span>Historique</button>
             <button class="ni" data-p="moniteurs" onclick="go('moniteurs')"><span class="ic">👤</span>Moniteurs</button>
-            <button class="ni" id="ni-params" data-p="params" onclick="go('params')"> <span class="ic">⚙️</span>Paramètres</button>
+            <button class="ni" id="ni-params" data-p="params" onclick="go('params')"> <span
+                class="ic">⚙️</span>Paramètres</button>
             <button class="ni" id="ni-tickets" onclick="go('tickets')"> <span class="ic">📝</span> Retours</button>
             <button class="ni" data-p="stages" onclick="go('stages')"><span class="ic">🏕</span>Stages</button>
             <button class="ni" data-p="taches" onclick="go('taches')"> <span class="ic">✅</span> Tâches</button>
@@ -2289,13 +2292,11 @@
                 <label id="td-retour-label">Ajouter un retour</label>
                 <textarea id="td-retour-msg" rows="2" placeholder="Votre retour, correction apportée…"></textarea>
               </div>
-              <button class="btn btn-p sm" onclick="saveRetourTicket()">Envoyer le retour</button>
             </div>
           </div>
 
           <div class="mf">
             <button class="btn btn-g" onclick="closeMo('mo-ticket-detail')">Fermer</button>
-            <button class="btn btn-p" id="td-save-btn" onclick="saveTicketEdit()">Enregistrer</button>
           </div>
         </div>
       </div>
@@ -6572,7 +6573,7 @@
         function isLightColor(hex) { if (!hex || hex.length < 6) return false; const h = hex.replace('#', ''); const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16); return (0.299 * r + 0.587 * g + 0.114 * b) > 165; }
         const v = id => document.getElementById(id)?.value || '';
         const openMo = id => document.getElementById(id).classList.add('open');
-        const closeMo = id => document.getElementById(id).classList.remove('open');
+        const closeMo = id => { document.getElementById(id).classList.remove('open'), saveTicketEdit() , saveRetourTicket()};
         document.querySelectorAll('.mo').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
         function toast(msg, type = 'ok') { const t = document.createElement('div'); t.className = `toast ${type}`; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), type === 'warn' ? 5000 : 3200); }
 
