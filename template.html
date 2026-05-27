@@ -6977,9 +6977,6 @@
 
         async function saveRetourTicket() {
           const ticketId = v('td-id');
-          const msg = v('td-retour-msg').trim();
-          if (!msg) { toast('Saisissez un message', 'err'); return; }
-
           const auteur = isKenny ? 'Kenny' : isAdmin ? 'Admin' : 'Utilisateur';
 
           await dbIns('ticket_retours', {
