@@ -1266,14 +1266,14 @@
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 11px 16px;
-      font-size: 12px;
+      font-size: 35px;
       z-index: 2000;
       box-shadow: 0 4px 20px rgba(0, 0, 0, .15);
       animation: si .3s ease;
       max-width: 300px;
       line-height: 1.4;
 
-      font-weight: 600;
+      font-weight: 2600;
     }
 
     .toast.ok {
@@ -6977,6 +6977,9 @@
 
         async function saveRetourTicket() {
           const ticketId = v('td-id');
+          const msg = v('td-retour-msg').trim();
+          if (!msg) { return; }
+
           const auteur = isKenny ? 'Kenny' : isAdmin ? 'Admin' : 'Utilisateur';
 
           await dbIns('ticket_retours', {
