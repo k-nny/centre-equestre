@@ -1260,8 +1260,8 @@
     /* ── Toast ── */
     .toast {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
+      top: calc(50vh - 50px);
+      left: calc(50vw - 50px);
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -1270,7 +1270,6 @@
       z-index: 2000;
       box-shadow: 0 4px 20px rgba(0, 0, 0, .15);
       animation: si .3s ease;
-      max-width: 300px;
       line-height: 1.4;
 
       font-weight: 2600;
@@ -7021,7 +7020,7 @@
             statut: v('td-statut'),
             description: v('td-desc').trim()
           };
-          if (!data.titre) { toast('Titre requis', 'err'); return; }
+          if (!data.titre) { return; }
           await dbUpd('tickets', data, [{ col: 'id', op: 'eq', val: id }]);
           toast('Ticket mis à jour', 'ok');
           document.getElementById('mo-td-titre').textContent = `🎫 ${data.titre}`;
