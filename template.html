@@ -1391,23 +1391,25 @@
       font-size: 13px;
       font-weight: 700;
       z-index: 3000;
-      box-shadow: 0 6px 28px rgba(46,134,193,.45);
+      box-shadow: 0 6px 28px rgba(46, 134, 193, .45);
       display: flex;
       align-items: center;
       gap: 12px;
-      transition: transform .35s cubic-bezier(.22,1,.36,1), opacity .35s;
+      transition: transform .35s cubic-bezier(.22, 1, .36, 1), opacity .35s;
       opacity: 0;
       pointer-events: none;
       white-space: nowrap;
     }
+
     .retour-notif.show {
       transform: translateX(-50%) translateY(0);
       opacity: 1;
       pointer-events: auto;
     }
+
     .retour-notif button {
-      background: rgba(255,255,255,.22);
-      border: 1px solid rgba(255,255,255,.4);
+      background: rgba(255, 255, 255, .22);
+      border: 1px solid rgba(255, 255, 255, .4);
       color: #fff;
       border-radius: 7px;
       padding: 4px 11px;
@@ -1416,7 +1418,10 @@
       cursor: pointer;
       font-family: Arial, sans-serif;
     }
-    .retour-notif button:hover { background: rgba(255,255,255,.35); }
+
+    .retour-notif button:hover {
+      background: rgba(255, 255, 255, .35);
+    }
 
     /* ── Filtre tickets ── */
     .ticket-filters {
@@ -1428,7 +1433,9 @@
       border-bottom: 1px solid var(--border);
       background: var(--surface2);
     }
-    .ticket-filters select, .ticket-filters input {
+
+    .ticket-filters select,
+    .ticket-filters input {
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 7px;
@@ -1438,7 +1445,12 @@
       font-size: 12px;
       outline: none;
     }
-    .ticket-filters select:focus, .ticket-filters input:focus { border-color: var(--gold); }
+
+    .ticket-filters select:focus,
+    .ticket-filters input:focus {
+      border-color: var(--gold);
+    }
+
     .ticket-filters label {
       font-size: 10px;
       font-weight: 700;
@@ -1459,12 +1471,13 @@
   <div id="retour-notif" class="retour-notif">
     <span>💬 <span id="retour-notif-txt">Nouveau retour sur un ticket</span></span>
     <button onclick="goToTicketsFromNotif()">Voir →</button>
-    <button onclick="dismissRetourNotif()" style="padding:4px 8px;font-size:14px;background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer">×</button>
+    <button onclick="dismissRetourNotif()"
+      style="padding:4px 8px;font-size:14px;background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer">×</button>
   </div>
 
   <div id="admin-banner">
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <span>🔐 Admin</span><span class="bwarn">⚠️ Déconnectez-vous en partant</span>
+      <span id="nom-pers-co">🔐 Admin</span><span class="bwarn">⚠️ Déconnectez-vous en partant</span>
     </div>
     <button class="bbtn" onclick="logoutAdmin()">Quitter →</button>
   </div>
@@ -1511,31 +1524,23 @@
           <button class="ni" data-p="taches-pub" onclick="go('taches-pub')">
             <span class="ic">✅</span> Tâches du jour
           </button>
-          <button class="ni" data-p="balades-pub" onclick="go('balades-pub')"><span class="ic">🌿</span>Balades</button>
+          <button class="ni" data-p="balades-pub" onclick="go('balades-pub')"><span class="ic">🦄</span>Balades</button>
           <div id="anav" style="display:none">
             <div class="nav-sec" style="margin-top:8px">Administration</div>
-            <button class="ni" data-p="dash" onclick="go('dash')"><span class="ic">⬛</span>Tableau de bord</button>
-            <button class="ni" data-p="groupes" onclick="go('groupes')"><span class="ic">👥</span>Groupes</button>
-            <button class="ni" data-p="seances" onclick="go('seances')"><span class="ic">📋</span>Séances</button>
-            <button class="ni" data-p="stages" onclick="go('stages')"><span class="ic">🏕</span>Stages</button>
-            <button class="ni" data-p="balades" onclick="go('balades')"><span class="ic">🌿</span>Balades</button>
+            <button class="ni" data-p="balades" onclick="go('balades')"><span class="ic">🦄</span>Balades</button>
             <button class="ni" data-p="cavaliers" onclick="go('cavaliers')"><span class="ic">🧑</span>Cavaliers</button>
-            <button class="ni" data-p="chevaux" onclick="go('chevaux')"><span class="ic">🐎</span>Chevaux</button>
-            <button class="ni" data-p="moniteurs" onclick="go('moniteurs')"><span class="ic">👤</span>Moniteurs</button>
-            <button class="ni" data-p="historique" onclick="go('historique')"><span
-                class="ic">📜</span>Historique</button>
-            <button class="ni" data-p="disciplines" onclick="go('disciplines')"><span
-                class="ic">🎨</span>Disciplines</button>
             <button class="ni" data-p="cartes" onclick="go('cartes')"><span class="ic">🎫</span>Cartes</button>
-            <button class="ni" id="ni-tickets" onclick="go('tickets')">
-              <span class="ic">📝</span> Améliorations & Retours
-            </button>
-            <button class="ni" data-p="taches" onclick="go('taches')">
-              <span class="ic">✅</span> Tâches
-            </button>
-            <button class="ni" id="ni-params" data-p="params" onclick="go('params')">
-              <span class="ic">⚙️</span> Paramètres
-            </button>
+            <button class="ni" data-p="chevaux" onclick="go('chevaux')"><span class="ic">🐎</span>Chevaux</button>
+            <button class="ni" data-p="seances" onclick="go('seances')"><span class="ic">📋</span>Cours</button>
+            <button class="ni" data-p="disciplines" onclick="go('disciplines')"><span class="ic">🎨</span>Disciplines</button>
+            <button class="ni" data-p="groupes" onclick="go('groupes')"><span class="ic">👥</span>Groupes</button>
+            <button class="ni" data-p="historique" onclick="go('historique')"><span class="ic">📜</span>Historique</button>
+            <button class="ni" data-p="moniteurs" onclick="go('moniteurs')"><span class="ic">👤</span>Moniteurs</button>
+            <button class="ni" id="ni-params" data-p="params" onclick="go('params')"> <span class="ic">⚙️</span>Paramètres</button>
+            <button class="ni" id="ni-tickets" onclick="go('tickets')"> <span class="ic">📝</span> Retours</button>
+            <button class="ni" data-p="stages" onclick="go('stages')"><span class="ic">🏕</span>Stages</button>
+            <button class="ni" data-p="taches" onclick="go('taches')"> <span class="ic">✅</span> Tâches</button>
+            <button class="ni" data-p="dash" onclick="go('dash')"><span class="ic">⬛</span>Tableau de bord</button>
           </div>
         </div>
         <div class="sb-bot"><button class="atbtn" id="atbtn" onclick="handleAdminToggle()">🔑 Mode
@@ -1576,7 +1581,11 @@
             <h2>🌿 Balades</h2>
             <p id="balades-pub-lbl" class="no-upper">Planning des balades à venir</p>
           </div>
-          <div id="balades-pub-content"><div class="ls"><div class="spin"></div></div></div>
+          <div id="balades-pub-content">
+            <div class="ls">
+              <div class="spin"></div>
+            </div>
+          </div>
         </div>
 
         <!-- BALADES (admin) -->
@@ -1588,7 +1597,11 @@
             </div>
             <button class="btn btn-p" onclick="newBalade()">+ Nouvelle balade</button>
           </div>
-          <div id="balades-admin-content"><div class="ls"><div class="spin"></div></div></div>
+          <div id="balades-admin-content">
+            <div class="ls">
+              <div class="spin"></div>
+            </div>
+          </div>
         </div>
 
         <!-- TÂCHES (admin) -->
@@ -2007,7 +2020,8 @@
             <div class="ticket-filters">
               <div style="display:flex;flex-direction:column;gap:3px">
                 <label>Recherche</label>
-                <input type="text" id="tk-search" placeholder="Titre…" oninput="applyTicketFilters()" style="width:160px">
+                <input type="text" id="tk-search" placeholder="Titre…" oninput="applyTicketFilters()"
+                  style="width:160px">
               </div>
               <div style="display:flex;flex-direction:column;gap:3px">
                 <label>Type</label>
@@ -2120,8 +2134,10 @@
             <div class="fg"><label>Date *</label><input type="date" id="balade-date"></div>
             <div class="fg"><label>Heure</label><input type="time" id="balade-heure"></div>
           </div>
-          <div class="fg"><label>Nombre de places <span style="color:var(--muted)">(optionnel)</span></label><input type="number" id="balade-nb-places" min="1" step="1" placeholder="8"></div>
-          <div class="fg"><label>Note visible</label><textarea id="balade-note" rows="2" placeholder="Équipement recommandé, niveau requis…"></textarea></div>
+          <div class="fg"><label>Nombre de places <span style="color:var(--muted)">(optionnel)</span></label><input
+              type="number" id="balade-nb-places" min="1" step="1" placeholder="8"></div>
+          <div class="fg"><label>Note visible</label><textarea id="balade-note" rows="2"
+              placeholder="Équipement recommandé, niveau requis…"></textarea></div>
           <div class="mf">
             <button class="btn btn-g" onclick="closeMo('mo-balade')">Annuler</button>
             <button class="btn btn-p" onclick="saveBalade()">Enregistrer</button>
@@ -2135,18 +2151,26 @@
           <h3 id="mo-balade-part-t">👤 Ajouter un participant</h3>
           <input type="hidden" id="balade-part-id">
           <input type="hidden" id="balade-part-balade-id">
-          <div class="fg"><label>Prénom / Nom *</label><input type="text" id="balade-part-prenom" placeholder="Marie Dupont"></div>
+          <div class="fg"><label>Prénom / Nom *</label><input type="text" id="balade-part-prenom"
+              placeholder="Marie Dupont"></div>
           <div class="fg"><label>Cheval attribué <span style="color:var(--muted)">(optionnel)</span></label>
-            <select id="balade-part-chv"><option value="">— Sans cheval —</option></select>
+            <select id="balade-part-chv">
+              <option value="">— Sans cheval —</option>
+            </select>
           </div>
-          <div class="fg"><label>Note <span style="color:var(--muted)">(optionnel)</span></label><input type="text" id="balade-part-note" placeholder="Débutant, casque fourni…"></div>
+          <div class="fg"><label>Note <span style="color:var(--muted)">(optionnel)</span></label><input type="text"
+              id="balade-part-note" placeholder="Débutant, casque fourni…"></div>
           <div style="border-top:1px solid var(--border);margin:12px 0 14px;padding-top:12px">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">💳 Paiement</div>
+            <div
+              style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">
+              💳 Paiement</div>
             <div class="fr">
-              <div class="fg"><label>Montant (€)</label><input type="number" id="balade-part-montant" min="0" step="0.5" placeholder="0"></div>
+              <div class="fg"><label>Montant (€)</label><input type="number" id="balade-part-montant" min="0" step="0.5"
+                  placeholder="0"></div>
               <div class="fg"><label>Date de règlement</label><input type="date" id="balade-part-date-reg"></div>
             </div>
-            <div class="fg"><label>Méthode de paiement <span style="color:var(--muted)">(laisser vide = non réglé)</span></label>
+            <div class="fg"><label>Méthode de paiement <span style="color:var(--muted)">(laisser vide = non
+                  réglé)</span></label>
               <select id="balade-part-methode">
                 <option value="">— Non réglé —</option>
                 <option value="espèces">Espèces</option>
@@ -2211,13 +2235,13 @@
           </div>
         </div>
       </div>
-      <!-- Modale édition ticket + retours (DEV) -->
+      <!-- Modale édition ticket + retours (Kenny) -->
       <div class="mo" id="mo-ticket-detail">
         <div class="md" style="max-width:600px">
           <h3 id="mo-td-titre">Ticket</h3>
           <input type="hidden" id="td-id">
 
-          <!-- Champs éditables (dev only) -->
+          <!-- Champs éditables (Kenny only) -->
           <div id="td-edit-zone">
             <div class="fg"><label>Titre</label><input type="text" id="td-titre"></div>
             <div class="fr">
@@ -2771,6 +2795,16 @@
       </div>
 
       <script>
+        const dateDebut = document.getElementById("stage-deb");
+        const dateFin = document.getElementById("stage-fin");
+
+        dateDebut.addEventListener("change", () => {
+          // Remplit automatiquement la date de fin
+          // seulement si elle est vide
+          if (!dateFin.value) {
+            dateFin.value = dateDebut.value;
+          }
+        });
         // ══════════════════════════════════════════════════
         //  AUCUN SECRET ICI — tout passe par /api/db
         // ══════════════════════════════════════════════════
@@ -2866,7 +2900,7 @@
         const statutsActifsADate = (date) => C.statuts.filter(s => statutActifADate(s, date));
         const SBDG = { attache: 'bo', veto: 'br', marechal: 'bp', repos: 'b' };
 
-        let isAdmin = false, isDev = false, isMarine = false, isBalade = false, sessionToken = '', histTab = 'couples';
+        let isAdmin = false, isKenny = false, isMarine = false, isBalade = false, sessionToken = '', histTab = 'couples';
         let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [], taches: [], tachesComp: [] };
         // ── Historique d'annulation (undo) ──
         let _undoStack = []; // [{ label, fn }]
@@ -3031,9 +3065,9 @@
               enableAdmin(lastPage);
               return;
             }
-            if (localStorage.getItem('ce_dev_active') === '1') {
+            if (localStorage.getItem('ce_Kenny_active') === '1') {
               sessionToken = siteToken;
-              enableDev(lastPage);
+              enableKenny(lastPage);
               return;
             }
             if (localStorage.getItem('ce_marine_active') === '1') {
@@ -3200,7 +3234,7 @@
         function handleAdminToggle() {
           if (isAdmin) { logoutAdmin(); return; }
           if (isMarine) { logoutMarine(); return; }
-          if (isDev) { logoutDev(); return; }
+          if (isKenny) { logoutKenny(); return; }
           if (isBalade) { logoutBalade(); return; }
           document.getElementById('pw-in').value = '';
           document.getElementById('pw-err').style.display = 'none';
@@ -3215,17 +3249,17 @@
             const j = await res.json();
             if (j && j.ok) {
               sessionToken = j.token;
-              isDev = (j.role === 'dev');
+              isKenny = (j.role === 'Kenny');
               isMarine = (j.role === 'marine');
               const isBaladeRole = (j.role === 'balade');
               localStorage.removeItem('ce_admin_active');
-              localStorage.removeItem('ce_dev_active');
+              localStorage.removeItem('ce_Kenny_active');
               localStorage.removeItem('ce_marine_active');
               localStorage.removeItem('ce_balade_active');
               closeMo('mo-pw');
-              if (isDev) {
-                localStorage.setItem('ce_dev_active', '1');
-                enableDev();
+              if (isKenny) {
+                localStorage.setItem('ce_Kenny_active', '1');
+                enableKenny();
               } else if (isMarine) {
                 localStorage.setItem('ce_marine_active', '1');
                 enableMarine();
@@ -3246,7 +3280,8 @@
         function enableAdmin(targetPage = 'dash') {
           isAdmin = true; document.getElementById('admin-banner').classList.add('show');
           document.getElementById('mc').classList.add('wb'); document.getElementById('anav').style.display = 'block';
-          document.getElementById('atbtn').textContent = '🔒 Quitter admin'; document.getElementById('atbtn').classList.add('on');
+          document.getElementById('nom-pers-co').textContent = '🔐 Claire';
+          document.getElementById('atbtn').textContent = '🔒 Quitter Claire'; document.getElementById('atbtn').classList.add('on');
           localStorage.setItem('ce_admin_active', '1');
           _lastRetourCount = -1;
           setTimeout(() => pollRetoursNonLus(), 400);
@@ -3270,7 +3305,8 @@
           document.getElementById('admin-banner').classList.add('show');
           document.getElementById('mc').classList.add('wb');
           document.getElementById('anav').style.display = 'block';
-          document.getElementById('atbtn').textContent = '🔒 Quitter';
+          document.getElementById('nom-pers-co').textContent = '🔐 Marine';
+          document.getElementById('atbtn').textContent = '🔒 Quitter Marine';
           document.getElementById('atbtn').classList.add('on');
           localStorage.setItem('ce_marine_active', '1');
           document.querySelectorAll('#anav .ni').forEach(btn => {
@@ -3297,8 +3333,12 @@
           toast('Déconnecté', 'ok');
         }
 
-         function enableBalade() {
+        function enableBalade() {
+<<<<<<< HEAD
           isBalade = true; isAdmin = false; isDev = false; isMarine = false;
+=======
+          isBalade = true; isAdmin = false; isKenny = false; isMarine = false;
+>>>>>>> 85389f0e5c6a88041d51c05f2f04d5cd2fc3b120
           localStorage.setItem('ce_balade_active', '1');
           // Vue balades uniquement — pas de nav admin, pas de bannière admin
           document.getElementById('admin-banner').classList.remove('show');
@@ -3320,23 +3360,23 @@
           localStorage.setItem('ce_last_page', 'vue');
         }
 
-        function enableDev(targetPage = 'dash') {
-          isDev = true; isAdmin = false;
+        function enableKenny(targetPage = 'dash') {
+          isKenny = true; isAdmin = false;
           sessionToken = localStorage.getItem('ce_site_token') || '';
           document.getElementById('admin-banner').classList.add('show');
           document.getElementById('mc').classList.add('wb');
           document.getElementById('anav').style.display = 'block';
-          document.getElementById('atbtn').textContent = '🔒 Quitter dev';
+          document.getElementById('atbtn').textContent = '🔒 Quitter Kenny';
           document.getElementById('atbtn').classList.add('on');
-          localStorage.setItem('ce_dev_active', '1');
+          localStorage.setItem('ce_Kenny_active', '1');
           renderCavaliers();
           go(targetPage);
-          toast('Mode dev activé', 'ok');
+          toast('Mode Kenny activé', 'ok');
         }
 
-        function logoutDev() {
-          isDev = false; sessionToken = '';
-          localStorage.removeItem('ce_dev_active');
+        function logoutKenny() {
+          isKenny = false; sessionToken = '';
+          localStorage.removeItem('ce_Kenny_active');
           document.getElementById('admin-banner').classList.remove('show');
           document.getElementById('mc').classList.remove('wb');
           document.getElementById('anav').style.display = 'none';
@@ -3352,11 +3392,11 @@
         function go(p) {
           const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches', 'balades'];
           // Bloquer les pages admin si pas de rôle élevé
-          if (!isAdmin && !isDev && !isMarine && adm.includes(p)) return;
+          if (!isAdmin && !isKenny && !isMarine && adm.includes(p)) return;
           // Marine : seulement séances (+ vue est déjà publique)
-          if (isMarine && !isAdmin && !isDev && !['seances'].includes(p) && adm.includes(p)) return;
+          if (isMarine && !isAdmin && !isKenny && !['seances'].includes(p) && adm.includes(p)) return;
           // Balade : seulement balades-pub
-          if (isBalade && p !== 'balades-pub') return;
+          if (isBalade && p !== 'balades-pub' && p != 'taches-pub') return;
           document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
           document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
           document.getElementById('page-' + p)?.classList.add('active');
@@ -3454,7 +3494,7 @@
           renderSeances();
         }
         async function loadStages() {
-          C.stages = await dbSel('stages', { order: [{ col: 'date_debut', asc: false }] });
+          C.stages = await dbSel('stages', { order: [{ col: 'date_debut', asc: true }] });
           if (C.stages.length) {
             const iv = `(${C.stages.map(s => `"${s.id}"`).join(',')})`;
             [C.parts, C.chvS] = await Promise.all([
@@ -5697,7 +5737,7 @@
             return `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(201,122,48,.12);border:1px solid rgba(201,122,48,.25);border-radius:20px;padding:3px 10px;font-size:12px;white-space:nowrap"><strong>${s.titre}</strong> ${d}</span>`;
           }).join('');
           txt.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px">
-    <div style="font-size:20px">🏕 <strong>Stage${stagesAvenir.length > 1 ? 's' : ''} à venir</strong> — Pour plus d'informations, renseignez-vous auprès de <strong>${contact.prenom}</strong>.</div>
+    <div style="font-size:20px">🏕 <strong>Stage${stagesAvenir.length > 1 ? 's' : ''} à venir</strong> — Pour plus d'informations, renseignez-vous auprès de <strong>${contact.prenom} au 07.81.31.29.27</strong>.</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px">${liste}</div>
   </div>`;
           banner.style.display = 'flex';
@@ -6712,7 +6752,7 @@
 
         // ── Bannière retours ──
         async function checkRetoursBanner() {
-          if (isDev) return; // dev ne voit pas la bannière
+          if (isKenny) return; // Kenny ne voit pas la bannière
           if (!isAdmin) return; // seulement admin
           try {
             const nonLus = await dbSel('ticket_retours', {
@@ -6758,7 +6798,7 @@
         let _ticketsRetoursCounts = {};
 
         async function renderTicketsPage() {
-          if (!isDev) checkRetoursBanner();
+          if (!isKenny) checkRetoursBanner();
           const ts = await dbSel('tickets', { order: [{ col: 'created_at', asc: false }] });
           let retoursCounts = {};
           if (ts.length) {
@@ -6828,13 +6868,13 @@
       <td><span class="b ${t.type === 'bug' ? 'br' : 'bb'}">${t.type}</span></td>
       <td><span class="b ${t.priorite === 'haute' ? 'bo' : ''}">${t.priorite}</span></td>
       <td><span class="b ${t.statut === 'termine' ? 'bg' : t.statut === 'en_cours' ? 'bp' : 'bgo'}">${t.statut.replace('_', ' ')}</span></td>
-      <td><button class="btn btn-g sm" onclick="openTicketDetail('${t.id}')">${isDev ? '✏️ Modifier' : '👁 Voir / modifier'}</button></td>
+      <td><button class="btn btn-g sm" onclick="openTicketDetail('${t.id}')">${isKenny ? '✏️ Modifier' : '👁 Voir / modifier'}</button></td>
     </tr>`;
           }).join('');
         }
 
         function resetTicketFilters() {
-          ['tk-search','tk-f-type','tk-f-prio','tk-f-statut','tk-f-retours'].forEach(id => {
+          ['tk-search', 'tk-f-type', 'tk-f-prio', 'tk-f-statut', 'tk-f-retours'].forEach(id => {
             const el = document.getElementById(id); if (el) el.value = '';
           });
           const sort = document.getElementById('tk-sort'); if (sort) sort.value = 'date_desc';
@@ -6863,13 +6903,13 @@
           const retourZone = document.getElementById('td-retour-zone');
           const retourLabel = document.querySelector('#td-retour-zone label');
 
-          if (isDev) {
-            // Dev : peut tout modifier + répondre (auteur = Dev)
+          if (isKenny) {
+            // Kenny : peut tout modifier + répondre (auteur = Kenny)
             editZone.querySelectorAll('input,select,textarea').forEach(el => el.disabled = false);
             editZone.style.display = 'block';
             saveBtn.style.display = '';
             retourZone.style.display = 'block';
-            if (retourLabel) retourLabel.textContent = 'Ajouter un retour (Dev)';
+            if (retourLabel) retourLabel.textContent = 'Ajouter un retour (Kenny)';
           } else if (isAdmin) {
             editZone.querySelectorAll('input,select,textarea').forEach(el => el.disabled = false);
             editZone.style.display = 'block';
@@ -6895,7 +6935,7 @@
             marquerBtn.style.display = (isAdmin && hasNonLus.length > 0) ? '' : 'none';
           }
 
-          if (!isDev && !isAdmin) {
+          if (!isKenny && !isAdmin) {
             await dbUpd('ticket_retours', { lu: true },
               [{ col: 'ticket_id', op: 'eq', val: ticketId }, { col: 'lu', op: 'eq', val: 'false' }]
             );
@@ -6933,13 +6973,13 @@
             return;
           }
           el.innerHTML = retours.map(r => `
-    <div style="background:${r.lu || isDev ? 'var(--surface2)' : 'rgba(40,90,160,.07)'};border:1px solid ${r.lu || isDev ? 'var(--border)' : 'rgba(40,90,160,.25)'};border-radius:8px;padding:10px 13px">
+    <div style="background:${r.lu || isKenny ? 'var(--surface2)' : 'rgba(40,90,160,.07)'};border:1px solid ${r.lu || isKenny ? 'var(--border)' : 'rgba(40,90,160,.25)'};border-radius:8px;padding:10px 13px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
         <span style="font-size:11px;font-weight:700;color:var(--gold)">👤 ${r.auteur}</span>
         <span style="font-size:10px;color:var(--muted)">${new Date(r.created_at).toLocaleDateString('fr-FR')} ${new Date(r.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
       </div>
       <div style="font-size:13px;color:var(--text);white-space:pre-wrap">${r.message}</div>
-      ${!r.lu && !isDev ? '<div style="font-size:10px;color:#2856a0;font-weight:700;margin-top:4px">● Nouveau</div>' : ''}
+      ${!r.lu && !isKenny ? '<div style="font-size:10px;color:#2856a0;font-weight:700;margin-top:4px">● Nouveau</div>' : ''}
     </div>
   `).join('');
           // Scroll en bas
@@ -6951,17 +6991,17 @@
           const msg = v('td-retour-msg').trim();
           if (!msg) { toast('Saisissez un message', 'err'); return; }
 
-          const auteur = isDev ? 'Dev' : isAdmin ? 'Admin' : 'Utilisateur';
+          const auteur = isKenny ? 'Kenny' : isAdmin ? 'Admin' : 'Utilisateur';
 
           await dbIns('ticket_retours', {
             ticket_id: ticketId,
             auteur,
             message: msg,
-            lu: isDev ? false : true  // dev marque comme lu immédiatement ses propres retours
+            lu: isKenny ? false : true  // Kenny marque comme lu immédiatement ses propres retours
           });
 
-          // Email dans les deux sens : Admin→Dev et Dev→Admin
-          if (isAdmin || isDev) {
+          // Email dans les deux sens : Admin→Kenny et Kenny→Admin
+          if (isAdmin || isKenny) {
             try {
               const ts = await dbSel('tickets', { select: 'titre', filter: [{ col: 'id', op: 'eq', val: ticketId }] });
               await dbReq({
@@ -6978,12 +7018,12 @@
           document.getElementById('td-retour-msg').value = '';
           await loadRetours(ticketId);
           await renderTicketsPage();
-          // Mettre à jour la bannière si admin (un nouveau retour non-lu vient d'être ajouté par dev)
+          // Mettre à jour la bannière si admin (un nouveau retour non-lu vient d'être ajouté par Kenny)
           if (isAdmin) await pollRetoursNonLus();
         }
 
         async function saveTicketEdit() {
-          if (!isDev && !isAdmin) return;
+          if (!isKenny && !isAdmin) return;
           const id = v('td-id');
           const data = {
             titre: v('td-titre').trim(),
@@ -7073,7 +7113,14 @@
   ${parts.length ? parts.map(p => `
   <div class="pcr">
     <div class="pcn">👤 ${p.prenom || '?'}</div>
-    <div class="pch2">${p.equides?.nom ? `🐎 <strong>${p.equides.nom}</strong>` : '<span style="color:var(--muted)">Sans cheval attribué</span>'}</div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span class="pch2">${p.equides?.nom ? `🐎 <strong>${p.equides.nom}</strong>` : '<span style="color:var(--muted)">Sans cheval attribué</span>'}</span>
+      ${p.montant ? `<span style="font-size:12px;font-weight:700;color:var(--gold)">${parseFloat(p.montant).toFixed(0)}€</span>` : ''}
+      ${p.regle
+                  ? `<span class="b bg" style="font-size:10px">✅ Réglé</span>`
+                  : (p.montant ? `<span class="b br" style="font-size:10px">⏳ En attente</span>` : '')}
+      ${(isAdmin || isKenny) ? `<button class="btn btn-g sm" onclick="editBaladePart('${p.id}','${b.id}')">✏️</button>` : ''}
+    </div>
   </div>`).join('') : `<div class="pcr"><span style="color:var(--muted);font-size:12px;font-style:italic">Aucun participant pour l'instant.</span></div>`}
 </div>`;
             }).join('');
@@ -7103,8 +7150,8 @@
             el.innerHTML = '<div class="ls">Aucune balade. Cliquez sur "+ Nouvelle balade" pour commencer.</div>';
             return;
           }
-          const canEdit = isAdmin || isDev;
-          const canPay = isAdmin || isDev || isBalade;
+          const canEdit = isAdmin || isKenny;
+          const canPay = isAdmin || isKenny || isBalade;
           el.innerHTML = sorted.map(b => {
             const parts = C_balades_parts.filter(p => p.balade_id === b.id);
             const isPast = b.date < today;
@@ -7116,7 +7163,7 @@
   <div class="stg-hdr">
     <div>
       <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px">
-        ${fmtDate(b.date)} · ${(b.heure || '').slice(0,5)}${b.nb_places ? ' · ' + totalParts + '/' + b.nb_places + ' places' : ''}
+        ${fmtDate(b.date)} · ${(b.heure || '').slice(0, 5)}${b.nb_places ? ' · ' + totalParts + '/' + b.nb_places + ' places' : ''}
         ${totalMontant > 0 ? ` · <span style="color:var(--gold)">💰 ${totalMontant.toFixed(0)}€</span>` : ''}
         ${totalEnAttente > 0 ? ` · <span style="color:#b43728">⏳ ${totalEnAttente} en attente</span>` : (totalParts > 0 && totalRegle === totalParts ? ' · <span style="color:#1e7a40">✅ Tout réglé</span>' : '')}
       </div>
@@ -7130,21 +7177,22 @@
     </div>
   </div>
   ${parts.length ? parts.map(p => {
-    const regle = p.regle, methode = p.methode_paiement, montant = p.montant, dateR = p.date_reglement;
-    return `<div class="pcr">
+              const regle = p.regle, methode = p.methode_paiement, montant = p.montant, dateR = p.date_reglement;
+              return `<div class="pcr">
     <div class="pcn">👤 ${p.prenom || '?'}</div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <span class="pch2">${p.equides?.nom ? `🐎 <strong>${p.equides.nom}</strong>` : '<span style="color:var(--muted);font-size:12px">Sans cheval</span>'}</span>
       ${p.note ? `<span style="font-size:11px;color:var(--muted)">${p.note}</span>` : ''}
       ${montant ? `<span style="font-size:12px;font-weight:700;color:var(--gold)">${parseFloat(montant).toFixed(0)}€</span>` : ''}
       ${regle
-        ? `<span class="b bg" style="font-size:10px">✅ Réglé${methode ? ' — ' + methode : ''}${dateR ? ' le ' + fmtDate(dateR) : ''}</span>`
-        : `<span class="b br" style="font-size:10px">⏳ En attente</span>`}
+                  ? `<span class="b bg" style="font-size:10px">✅ Réglé${methode ? ' — ' + methode : ''}${dateR ? ' le ' + fmtDate(dateR) : ''}</span>`
+                  : `<span class="b br" style="font-size:10px">⏳ En attente</span>`}
       ${canPay ? `<button class="btn btn-g sm" onclick="editBaladePart('${p.id}','${b.id}')">✏️</button>` : ''}
       ${canEdit ? `<button class="btn btn-d sm" onclick="delBaladePart('${p.id}','${b.id}')">🗑</button>` : ''}
     </div>
-  </div>`;}).join('')
-  : `<div style="padding:12px 20px;font-size:12px;color:var(--muted);font-style:italic">Aucun participant — cliquez sur "+ Participant" pour en ajouter.</div>`}
+  </div>`;
+            }).join('')
+                : `<div style="padding:12px 20px;font-size:12px;color:var(--muted);font-style:italic">Aucun participant — cliquez sur "+ Participant" pour en ajouter.</div>`}
 </div>`;
           }).join('');
         }
