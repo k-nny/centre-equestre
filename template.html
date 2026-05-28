@@ -1516,7 +1516,7 @@
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <span id="nom-pers-co">🔐 Admin</span><span class="bwarn">⚠️ Déconnectez-vous en partant</span>
     </div>
-    <button class="bbtn" onclick="logoutAdmin()">Quitter →</button>
+    <button class="bbtn" onclick="handleAdminToggle()">Quitter →</button>
   </div>
   <div id="retours-banner"
     style="display:none;position:fixed;top:0;left:0;right:0;z-index:9997;background:linear-gradient(90deg,#1a5276,#2e86c1,#1a5276);color:#fff;padding:8px 14px 8px 56px;align-items:center;justify-content:space-between;font-size:12px;font-weight:700;gap:8px;box-shadow:0 2px 12px rgba(46,134,193,.4);flex-wrap:wrap">
@@ -2333,7 +2333,7 @@
           </div>
 
           <div class="mf">
-            <button class="btn btn-p" onclick="closeMo('mo-ticket-detail')">Enregistrer & Fermer</button>
+            <button class="btn btn-p" onclick="saveAndCloseTicket()">✅ Enregistrer & Fermer</button>
           </div>
         </div>
       </div>
@@ -3284,24 +3284,20 @@
             const j = await res.json();
             if (j && j.ok) {
               sessionToken = j.token;
-              isKenny = (j.role === 'Kenny');
-              isMarine = (j.role === 'marine');
-              const isBaladeRole = (j.role === 'balade');
+              const role = (j.role || '').toLowerCase();
+              isKenny = false; isMarine = false; isBalade = false; isAdmin = false;
               localStorage.removeItem('ce_admin_active');
               localStorage.removeItem('ce_Kenny_active');
               localStorage.removeItem('ce_marine_active');
               localStorage.removeItem('ce_balade_active');
               closeMo('mo-pw');
-              if (isKenny) {
-                localStorage.setItem('ce_Kenny_active', '1');
+              if (role === 'dev' || role === 'kenny') {
                 enableKenny();
-              } else if (isMarine) {
-                localStorage.setItem('ce_marine_active', '1');
+              } else if (role === 'marine') {
                 enableMarine();
-              } else if (isBaladeRole) {
+              } else if (role === 'balade') {
                 enableBalade();
               } else {
-                localStorage.setItem('ce_admin_active', '1');
                 enableAdmin();
               }
             } else {
@@ -3392,17 +3388,17 @@
         }
 
         function enableKenny(targetPage = 'dash') {
-          isKenny = true; isAdmin = false;
+          isKenny = true; isAdmin = false; isMarine = false; isBalade = false;
           sessionToken = localStorage.getItem('ce_site_token') || '';
           document.getElementById('admin-banner').classList.add('show');
           document.getElementById('mc').classList.add('wb');
           document.getElementById('anav').style.display = 'block';
+          document.getElementById('nom-pers-co').textContent = '🔐 Kenny';
           document.getElementById('atbtn').textContent = '🔒 Quitter Kenny';
           document.getElementById('atbtn').classList.add('on');
           localStorage.setItem('ce_Kenny_active', '1');
-          renderCavaliers();
-          go(targetPage);
-          toast('Mode Kenny activé', 'ok');
+          updateBannerPadding();
+          renderCavaliers(); go(targetPage); toast('Mode Kenny activé', 'ok');
         }
 
         function logoutKenny() {
@@ -3410,12 +3406,11 @@
           localStorage.removeItem('ce_Kenny_active');
           document.getElementById('admin-banner').classList.remove('show');
           document.getElementById('mc').classList.remove('wb');
+          document.getElementById('mc').style.paddingTop = '';
           document.getElementById('anav').style.display = 'none';
           document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
           document.getElementById('atbtn').classList.remove('on');
-          renderCavaliers();
-          go('vue');
-          toast('Déconnecté', 'ok');
+          renderCavaliers(); go('vue'); toast('Déconnecté', 'ok');
         }
         function togPw() { const i = document.getElementById('pw-in'); i.type = i.type === 'password' ? 'text' : 'password'; }
 
@@ -5763,13 +5758,16 @@
           if (!contact || stagesAvenir.length === 0) { banner.style.display = 'none'; return; }
           const liste = stagesAvenir.map(s => {
             const d = s.date_debut === s.date_fin
-              ? `<em>${fmtDate(s.date_debut)}</em>`
-              : `<em>${fmtDate(s.date_debut)} → ${fmtDate(s.date_fin)}</em>`;
-            return `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(201,122,48,.12);border:1px solid rgba(201,122,48,.25);border-radius:20px;padding:3px 10px;font-size:12px;white-space:nowrap"><strong>${s.titre}</strong> ${d}</span>`;
+              ? fmtDate(s.date_debut)
+              : `${fmtDate(s.date_debut)} → ${fmtDate(s.date_fin)}`;
+            return `<span style="display:inline-flex;flex-direction:column;align-items:flex-start;background:rgba(201,122,48,.12);border:1px solid rgba(201,122,48,.25);border-radius:12px;padding:5px 12px;font-size:12px;max-width:180px">
+              <strong style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;display:block">${s.titre}</strong>
+              <em style="font-size:11px;color:var(--gold);white-space:nowrap">${d}</em>
+            </span>`;
           }).join('');
           txt.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px">
     <div style="font-size:20px">🏕 <strong>Stage${stagesAvenir.length > 1 ? 's' : ''} à venir</strong> — Pour plus d'informations, renseignez-vous auprès de <strong>${contact.prenom} au 07.81.31.29.27</strong>.</div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px">${liste}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:stretch">${liste}</div>
   </div>`;
           banner.style.display = 'flex';
         }
@@ -6781,27 +6779,8 @@
           } catch (e) { toast('Erreur : ' + e.message, 'err'); }
         }
 
-        // ── Bannière retours ──
-        async function checkRetoursBanner() {
-          if (isKenny) return; // Kenny ne voit pas la bannière
-          if (!isAdmin) return; // seulement admin
-          try {
-            const nonLus = await dbSel('ticket_retours', {
-              select: 'id',
-              filter: [{ col: 'lu', op: 'eq', val: 'false' }]
-            });
-            const banner = document.getElementById('retours-banner');
-            if (!banner) return;
-            if (nonLus.length) {
-              const txt = document.getElementById('retours-banner-txt');
-              if (txt) txt.textContent = `${nonLus.length} retour${nonLus.length > 1 ? 's' : ''} non lu${nonLus.length > 1 ? 's' : ''} sur vos tickets`;
-              banner.style.display = 'flex';
-            } else {
-              banner.style.display = 'none';
-            }
-            updateBannerPadding();
-          } catch (e) { console.warn('checkRetoursBanner', e); }
-        }
+        // ── Bannière retours (alias pour compatibilité) ──
+        function checkRetoursBanner() { pollRetoursNonLus(); }
 
         function dismissRetoursBanner() {
           const banner = document.getElementById('retours-banner');
@@ -6829,7 +6808,7 @@
         let _ticketsRetoursCounts = {};
 
         async function renderTicketsPage() {
-          if (!isKenny) checkRetoursBanner();
+          if (!isKenny) pollRetoursNonLus();
           const ts = await dbSel('tickets', { order: [{ col: 'created_at', asc: false }] });
           let retoursCounts = {};
           if (ts.length) {
@@ -7010,6 +6989,13 @@
   `).join('');
           // Scroll en bas
           el.scrollTop = el.scrollHeight;
+        }
+
+        async function saveAndCloseTicket() {
+          const msg = (document.getElementById('td-retour-msg')?.value || '').trim();
+          if (msg) await saveRetourTicket();
+          if (isKenny || isAdmin) await saveTicketEdit();
+          closeMo('mo-ticket-detail');
         }
 
         async function saveRetourTicket() {
