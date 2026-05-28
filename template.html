@@ -75,11 +75,6 @@
       padding-top: 88px;
     }
 
-    /* Décalage dynamique selon les bandeaux visibles */
-    .main.wb-auto {
-      transition: padding-top .15s;
-    }
-
 
     #retours-banner {
       display: none;
@@ -1257,49 +1252,55 @@
       font-size: 14px;
     }
 
-    /* ── Toast ── */
+    /* ── Toast overlay bloquant ── */
+    .toast-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 3999;
+      pointer-events: all;
+    }
     .toast {
       position: fixed;
-      top: calc(50vh - 50px);
-      left: calc(50vw - 50px);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(.92);
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 11px 16px;
-      font-size: 35px;
-      z-index: 2000;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, .15);
-      animation: si .3s ease;
-      line-height: 1.4;
-
-      font-weight: 2600;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 32px;
+      font-size: 15px;
+      z-index: 4000;
+      box-shadow: 0 8px 40px rgba(0,0,0,.22);
+      animation: toast-in .25s cubic-bezier(.22,1,.36,1) forwards;
+      max-width: 420px;
+      min-width: 220px;
+      line-height: 1.5;
+      font-weight: 700;
+      text-align: center;
+      pointer-events: none;
     }
-
     .toast.ok {
-      border-color: rgba(46, 120, 70, .4);
+      border-color: rgba(46,120,70,.5);
       color: #1e7a40;
+      background: linear-gradient(135deg, var(--surface), rgba(46,120,70,.06));
     }
-
     .toast.err {
-      border-color: rgba(180, 55, 40, .4);
+      border-color: rgba(180,55,40,.5);
       color: #b43728;
+      background: linear-gradient(135deg, var(--surface), rgba(180,55,40,.06));
     }
-
     .toast.warn {
-      border-color: rgba(180, 100, 20, .4);
+      border-color: rgba(180,100,20,.5);
       color: #b46414;
+      background: linear-gradient(135deg, var(--surface), rgba(180,100,20,.06));
     }
-
-    @keyframes si {
-      from {
-        opacity: 0;
-        transform: translateY(14px);
-      }
-
-      to {
-        opacity: 1;
-        transform: none;
-      }
+    @keyframes toast-in {
+      from { opacity: 0; transform: translate(-50%, -50%) scale(.88); }
+      to   { opacity: 1; transform: translate(-50%, -50%) scale(1);   }
+    }
+    @keyframes toast-out {
+      from { opacity: 1; transform: translate(-50%, -50%) scale(1);   }
+      to   { opacity: 0; transform: translate(-50%, -50%) scale(.94); }
     }
 
     /* ── Mobile ── */
@@ -1377,108 +1378,27 @@
       }
     }
 
-    /* ── Notif retour temps réel ── */
-    .retour-notif {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(80px);
-      background: linear-gradient(135deg, #1a5276, #2e86c1);
-      color: #fff;
-      padding: 13px 22px;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: 700;
-      z-index: 3000;
-      box-shadow: 0 6px 28px rgba(46, 134, 193, .45);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: transform .35s cubic-bezier(.22, 1, .36, 1), opacity .35s;
-      opacity: 0;
-      pointer-events: none;
-      white-space: nowrap;
-    }
-
-    .retour-notif.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .retour-notif button {
-      background: rgba(255, 255, 255, .22);
-      border: 1px solid rgba(255, 255, 255, .4);
-      color: #fff;
-      border-radius: 7px;
-      padding: 4px 11px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: Arial, sans-serif;
-    }
-
-    .retour-notif button:hover {
-      background: rgba(255, 255, 255, .35);
-    }
-
-    /* ── Filtre tickets ── */
-    .ticket-filters {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface2);
-    }
-
-    .ticket-filters select,
-    .ticket-filters input {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      padding: 5px 10px;
-      color: var(--text);
-      font-family: Arial, sans-serif;
-      font-size: 12px;
-      outline: none;
-    }
-
-    .ticket-filters select:focus,
-    .ticket-filters input:focus {
-      border-color: var(--gold);
-    }
-
-    .ticket-filters label {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-      color: var(--muted);
-    }
-
     .ls {
       padding: 34px;
       text-align: center;
       color: var(--muted);
+
     }
   </style>
 </head>
 
 <body>
-  <div id="retour-notif" class="retour-notif">
+  <div id="retour-notif" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,#1a5276,#2e86c1);color:#fff;padding:13px 22px;border-radius:12px;font-size:13px;font-weight:700;z-index:5000;box-shadow:0 6px 28px rgba(46,134,193,.45);display:flex;align-items:center;gap:12px;transition:transform .35s cubic-bezier(.22,1,.36,1),opacity .35s;opacity:0;pointer-events:none;white-space:nowrap">
     <span>💬 <span id="retour-notif-txt">Nouveau retour sur un ticket</span></span>
-    <button onclick="goToTicketsFromNotif()">Voir →</button>
-    <button onclick="dismissRetourNotif()"
-      style="padding:4px 8px;font-size:14px;background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer">×</button>
+    <button onclick="goToTicketsFromNotif()" style="background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:7px;padding:4px 11px;font-size:12px;font-weight:700;cursor:pointer">Voir →</button>
+    <button onclick="dismissRetourNotif()" style="padding:4px 8px;font-size:14px;background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer">×</button>
   </div>
 
   <div id="admin-banner">
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <span id="nom-pers-co">🔐 Admin</span><span class="bwarn">⚠️ Déconnectez-vous en partant</span>
+      <span id="banner-nom">🔐 Admin</span><span class="bwarn">⚠️ Déconnectez-vous en partant</span>
     </div>
-    <button class="bbtn" onclick="logoutAdmin()">Quitter →</button>
+    <button class="bbtn" onclick="handleAdminToggle()">Quitter →</button>
   </div>
   <div id="retours-banner"
     style="display:none;position:fixed;top:0;left:0;right:0;z-index:9997;background:linear-gradient(90deg,#1a5276,#2e86c1,#1a5276);color:#fff;padding:8px 14px 8px 56px;align-items:center;justify-content:space-between;font-size:12px;font-weight:700;gap:8px;box-shadow:0 2px 12px rgba(46,134,193,.4);flex-wrap:wrap">
@@ -1523,26 +1443,29 @@
           <button class="ni" data-p="taches-pub" onclick="go('taches-pub')">
             <span class="ic">✅</span> Tâches du jour
           </button>
-          <button class="ni" data-p="balades-pub" onclick="go('balades-pub')"><span class="ic">🦄</span>Balades</button>
           <div id="anav" style="display:none">
             <div class="nav-sec" style="margin-top:8px">Administration</div>
-            <button class="ni" data-p="balades" onclick="go('balades')"><span class="ic">🦄</span>Balades</button>
-            <button class="ni" data-p="cavaliers" onclick="go('cavaliers')"><span class="ic">🧑</span>Cavaliers</button>
-            <button class="ni" data-p="cartes" onclick="go('cartes')"><span class="ic">🎫</span>Cartes</button>
-            <button class="ni" data-p="chevaux" onclick="go('chevaux')"><span class="ic">🐎</span>Chevaux</button>
-            <button class="ni" data-p="seances" onclick="go('seances')"><span class="ic">📋</span>Cours</button>
-            <button class="ni" data-p="disciplines" onclick="go('disciplines')"><span
-                class="ic">🎨</span>Disciplines</button>
+            <button class="ni" data-p="dash" onclick="go('dash')"><span class="ic">⬛</span>Tableau de bord</button>
             <button class="ni" data-p="groupes" onclick="go('groupes')"><span class="ic">👥</span>Groupes</button>
+            <button class="ni" data-p="seances" onclick="go('seances')"><span class="ic">📋</span>Séances</button>
+            <button class="ni" data-p="stages" onclick="go('stages')"><span class="ic">🏕</span>Stages</button>
+            <button class="ni" data-p="cavaliers" onclick="go('cavaliers')"><span class="ic">🧑</span>Cavaliers</button>
+            <button class="ni" data-p="chevaux" onclick="go('chevaux')"><span class="ic">🐎</span>Chevaux</button>
+            <button class="ni" data-p="moniteurs" onclick="go('moniteurs')"><span class="ic">👤</span>Moniteurs</button>
             <button class="ni" data-p="historique" onclick="go('historique')"><span
                 class="ic">📜</span>Historique</button>
-            <button class="ni" data-p="moniteurs" onclick="go('moniteurs')"><span class="ic">👤</span>Moniteurs</button>
-            <button class="ni" id="ni-params" data-p="params" onclick="go('params')"> <span
-                class="ic">⚙️</span>Paramètres</button>
-            <button class="ni" id="ni-tickets" onclick="go('tickets')"> <span class="ic">📝</span> Retours</button>
-            <button class="ni" data-p="stages" onclick="go('stages')"><span class="ic">🏕</span>Stages</button>
-            <button class="ni" data-p="taches" onclick="go('taches')"> <span class="ic">✅</span> Tâches</button>
-            <button class="ni" data-p="dash" onclick="go('dash')"><span class="ic">⬛</span>Tableau de bord</button>
+            <button class="ni" data-p="disciplines" onclick="go('disciplines')"><span
+                class="ic">🎨</span>Disciplines</button>
+            <button class="ni" data-p="cartes" onclick="go('cartes')"><span class="ic">🎫</span>Cartes</button>
+            <button class="ni" id="ni-tickets" onclick="go('tickets')">
+              <span class="ic">📝</span> Améliorations & Retours
+            </button>
+            <button class="ni" data-p="taches" onclick="go('taches')">
+              <span class="ic">✅</span> Tâches
+            </button>
+            <button class="ni" id="ni-params" data-p="params" onclick="go('params')">
+              <span class="ic">⚙️</span> Paramètres
+            </button>
           </div>
         </div>
         <div class="sb-bot"><button class="atbtn" id="atbtn" onclick="handleAdminToggle()">🔑 Mode
@@ -1575,35 +1498,6 @@
             <p id="taches-pub-lbl" class="no-upper"></p>
           </div>
           <div id="taches-pub-content"></div>
-        </div>
-
-        <!-- BALADES (vue publique) -->
-        <div class="page" id="page-balades-pub">
-          <div class="ph">
-            <h2>🌿 Balades</h2>
-            <p id="balades-pub-lbl" class="no-upper">Planning des balades à venir</p>
-          </div>
-          <div id="balades-pub-content">
-            <div class="ls">
-              <div class="spin"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- BALADES (admin) -->
-        <div class="page" id="page-balades">
-          <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-            <div>
-              <h2>🌿 Balades</h2>
-              <p class="no-upper">Gérez les balades et leurs participants.</p>
-            </div>
-            <button class="btn btn-p" onclick="newBalade()">+ Nouvelle balade</button>
-          </div>
-          <div id="balades-admin-content">
-            <div class="ls">
-              <div class="spin"></div>
-            </div>
-          </div>
         </div>
 
         <!-- TÂCHES (admin) -->
@@ -2019,59 +1913,6 @@
               <h3>Liste des tickets</h3>
               <button class="btn btn-p sm" onclick="openTicketMo()">+ Nouveau ticket</button>
             </div>
-            <div class="ticket-filters">
-              <div style="display:flex;flex-direction:column;gap:3px">
-                <label>Recherche</label>
-                <input type="text" id="tk-search" placeholder="Titre…" oninput="applyTicketFilters()"
-                  style="width:160px">
-              </div>
-              <div style="display:flex;flex-direction:column;gap:3px">
-                <label>Type</label>
-                <select id="tk-f-type" onchange="applyTicketFilters()">
-                  <option value="">Tous</option>
-                  <option value="bug">Bug 🐞</option>
-                  <option value="evolution">Évolution ✨</option>
-                  <option value="autre">Autre 💬</option>
-                </select>
-              </div>
-              <div style="display:flex;flex-direction:column;gap:3px">
-                <label>Priorité</label>
-                <select id="tk-f-prio" onchange="applyTicketFilters()">
-                  <option value="">Toutes</option>
-                  <option value="haute">Haute 🔥</option>
-                  <option value="normale">Normale</option>
-                  <option value="basse">Basse</option>
-                </select>
-              </div>
-              <div style="display:flex;flex-direction:column;gap:3px">
-                <label>Statut</label>
-                <select id="tk-f-statut" onchange="applyTicketFilters()">
-                  <option value="">Tous</option>
-                  <option value="nouveau">Nouveau</option>
-                  <option value="en_cours">En cours</option>
-                  <option value="termine">Terminé</option>
-                </select>
-              </div>
-              <div style="display:flex;flex-direction:column;gap:3px">
-                <label>Retours</label>
-                <select id="tk-f-retours" onchange="applyTicketFilters()">
-                  <option value="">Tous</option>
-                  <option value="nonlus">Non lus</option>
-                  <option value="avec">Avec retours</option>
-                </select>
-              </div>
-              <div style="display:flex;flex-direction:column;gap:3px">
-                <label>Trier par</label>
-                <select id="tk-sort" onchange="applyTicketFilters()">
-                  <option value="date_desc">Date ↓</option>
-                  <option value="date_asc">Date ↑</option>
-                  <option value="prio">Priorité</option>
-                  <option value="statut">Statut</option>
-                  <option value="retours">Retours non lus</option>
-                </select>
-              </div>
-              <button class="btn btn-g sm" onclick="resetTicketFilters()" style="align-self:flex-end">↺ Reset</button>
-            </div>
             <table id="tickets-table">
               <thead>
                 <tr>
@@ -2126,71 +1967,6 @@
 
 
       <!-- ═══════════════ MODALS ═══════════════ -->
-      <!-- Modale balade -->
-      <div class="mo" id="mo-balade">
-        <div class="md" style="max-width:480px">
-          <h3 id="mo-balade-t">🌿 Nouvelle balade</h3>
-          <input type="hidden" id="balade-id">
-          <div class="fg"><label>Titre *</label><input type="text" id="balade-titre" placeholder="Balade forêt"></div>
-          <div class="fr">
-            <div class="fg"><label>Date *</label><input type="date" id="balade-date"></div>
-            <div class="fg"><label>Heure</label><input type="time" id="balade-heure"></div>
-          </div>
-          <div class="fg"><label>Nombre de places <span style="color:var(--muted)">(optionnel)</span></label><input
-              type="number" id="balade-nb-places" min="1" step="1" placeholder="8"></div>
-          <div class="fg"><label>Note visible</label><textarea id="balade-note" rows="2"
-              placeholder="Équipement recommandé, niveau requis…"></textarea></div>
-          <div class="mf">
-            <button class="btn btn-g" onclick="closeMo('mo-balade')">Annuler</button>
-            <button class="btn btn-p" onclick="saveBalade()">Enregistrer</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Modale participant balade -->
-      <div class="mo" id="mo-balade-part">
-        <div class="md" style="max-width:480px">
-          <h3 id="mo-balade-part-t">👤 Ajouter un participant</h3>
-          <input type="hidden" id="balade-part-id">
-          <input type="hidden" id="balade-part-balade-id">
-          <div class="fg"><label>Prénom / Nom *</label><input type="text" id="balade-part-prenom"
-              placeholder="Marie Dupont"></div>
-          <div class="fg"><label>Cheval attribué <span style="color:var(--muted)">(optionnel)</span></label>
-            <select id="balade-part-chv">
-              <option value="">— Sans cheval —</option>
-            </select>
-          </div>
-          <div class="fg"><label>Note <span style="color:var(--muted)">(optionnel)</span></label><input type="text"
-              id="balade-part-note" placeholder="Débutant, casque fourni…"></div>
-          <div style="border-top:1px solid var(--border);margin:12px 0 14px;padding-top:12px">
-            <div
-              style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">
-              💳 Paiement</div>
-            <div class="fr">
-              <div class="fg"><label>Montant (€)</label><input type="number" id="balade-part-montant" min="0" step="0.5"
-                  placeholder="0"></div>
-              <div class="fg"><label>Date de règlement</label><input type="date" id="balade-part-date-reg"></div>
-            </div>
-            <div class="fg"><label>Méthode de paiement <span style="color:var(--muted)">(laisser vide = non
-                  réglé)</span></label>
-              <select id="balade-part-methode">
-                <option value="">— Non réglé —</option>
-                <option value="espèces">Espèces</option>
-                <option value="chèque">Chèque</option>
-                <option value="virement">Virement</option>
-                <option value="CB">Carte bancaire</option>
-                <option value="autre">Autre</option>
-              </select>
-            </div>
-          </div>
-          <div class="mf">
-            <button class="btn btn-g" onclick="closeMo('mo-balade-part')">Annuler</button>
-            <button class="btn btn-p" onclick="saveBaladePart()">Enregistrer</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ═══════════════ FIN MODALS BALADES ═══════════════ -->
       <div class="mo" id="mo-ticket">
         <div class="md">
           <h3>🎫 Nouveau Ticket</h3>
@@ -2237,13 +2013,13 @@
           </div>
         </div>
       </div>
-      <!-- Modale édition ticket + retours (Kenny) -->
+      <!-- Modale édition ticket + retours (DEV) -->
       <div class="mo" id="mo-ticket-detail">
         <div class="md" style="max-width:600px">
           <h3 id="mo-td-titre">Ticket</h3>
           <input type="hidden" id="td-id">
 
-          <!-- Champs éditables (Kenny only) -->
+          <!-- Champs éditables (dev only) -->
           <div id="td-edit-zone">
             <div class="fg"><label>Titre</label><input type="text" id="td-titre"></div>
             <div class="fr">
@@ -2291,11 +2067,12 @@
                 <label id="td-retour-label">Ajouter un retour</label>
                 <textarea id="td-retour-msg" rows="2" placeholder="Votre retour, correction apportée…"></textarea>
               </div>
+              <button class="btn btn-g sm" onclick="saveRetourTicket()">📨 Envoyer le retour</button>
             </div>
           </div>
 
           <div class="mf">
-            <button class="btn btn-p" onclick="closeMo('mo-ticket-detail')">Enregistrer & Fermer</button>
+            <button class="btn btn-p" onclick="saveAndCloseTicket()">✅ Enregistrer & Fermer</button>
           </div>
         </div>
       </div>
@@ -2795,13 +2572,6 @@
       </div>
 
       <script>
-        const dateDebut = document.getElementById("stage-deb");
-        const dateFin = document.getElementById("stage-fin");
-
-        dateDebut.addEventListener("change", () => {
-          // Remplit automatiquement la date de fin
-          dateFin.value = dateDebut.value;
-        });
         // ══════════════════════════════════════════════════
         //  AUCUN SECRET ICI — tout passe par /api/db
         // ══════════════════════════════════════════════════
@@ -3022,8 +2792,6 @@
               // Stocker le hash du mot de passe pour détecter un changement ultérieur
               const ph = fnv32Client(pw);
               localStorage.setItem('ce_pw_hash', ph);
-              // Stocker le rôle pour la reconnexion auto
-              if (j.role === 'balade') localStorage.setItem('ce_balade_active', '1');
               document.getElementById('site-login').style.display = 'none';
               await initApp(j.token);
             } else {
@@ -3041,7 +2809,7 @@
           ['pub-date', 'sea-date'].forEach(id => { const e = document.getElementById(id); if (e) e.value = today; });
           document.getElementById('pub-lbl').textContent = fmtL(today);
           const tdl = document.getElementById('td-lbl'); if (tdl) tdl.textContent = fmtL(today);
-          document.getElementById('site-login').style.display = 'none'; // masquer l'écran de connexion dans tous les cas
+          document.getElementById('site-login').style.display = 'none';
           document.getElementById('ld').style.display = 'flex';
           try {
             await chargerVacancesZoneA();
@@ -3049,12 +2817,8 @@
             document.getElementById('ld').style.display = 'none';
             document.getElementById('app').style.display = 'block';
             initRealtime();
-            // Vérifier les retours non lus après chargement (admin et marine)
-            // Restaurer le mode admin seulement si l'utilisateur l'avait explicitement activé
-            // (flag posé par enableAdmin, effacé par logoutAdmin — indépendant du token site)
-            // Restaurer la dernière page visitée
             const lastPage = localStorage.getItem('ce_last_page') || 'vue';
-            const adminPages = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets'];
+            const adminPages = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'balades', 'taches'];
             if (localStorage.getItem('ce_admin_active') === '1') {
               sessionToken = siteToken;
               _lastRetourCount = -1;
@@ -3073,6 +2837,7 @@
               return;
             }
             if (localStorage.getItem('ce_balade_active') === '1') {
+              sessionToken = siteToken;
               enableBalade();
               return;
             }
@@ -3117,115 +2882,56 @@
         function hexToRgbStr(h) { const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h); return r ? `${parseInt(r[1], 16)}, ${parseInt(r[2], 16)}, ${parseInt(r[3], 16)}` : '0, 0, 0'; }
         let _realtimeChannel = null;
 
-        // ── Notif retour temps réel ──
-        let _lastRetourCount = -1; // -1 = pas encore initialisé
-        let _retourNotifTimer = null;
-
-        function goToTicketsFromNotif() {
-          dismissRetourNotif();
-          go('tickets');
-        }
-
-        function dismissRetourNotif() {
-          const n = document.getElementById('retour-notif');
-          if (n) { n.classList.remove('show'); }
-          clearTimeout(_retourNotifTimer);
-        }
-
-        async function pollRetoursNonLus() {
-          if (!isAdmin) return; // seulement admin
-          try {
-            const nonLus = await dbSel('ticket_retours', {
-              select: 'id',
-              filter: [{ col: 'lu', op: 'eq', val: 'false' }]
-            });
-            const count = nonLus.length;
-            // Mise à jour bannière
-            const banner = document.getElementById('retours-banner');
-            if (banner) {
-              if (count > 0) {
-                const txt = document.getElementById('retours-banner-txt');
-                if (txt) txt.textContent = `${count} retour${count > 1 ? 's' : ''} non lu${count > 1 ? 's' : ''} sur vos tickets`;
-                banner.style.display = 'flex';
-              } else {
-                banner.style.display = 'none';
-              }
-              updateBannerPadding();
-            }
-            // Notif popup seulement si nouveau(x) retour(s) depuis la dernière vérif
-            if (_lastRetourCount >= 0 && count > _lastRetourCount) {
-              const diff = count - _lastRetourCount;
-              const txt = document.getElementById('retour-notif-txt');
-              if (txt) txt.textContent = `${diff} nouveau${diff > 1 ? 'x' : ''} retour${diff > 1 ? 's' : ''} sur vos tickets`;
-              const n = document.getElementById('retour-notif');
-              if (n) {
-                n.classList.add('show');
-                clearTimeout(_retourNotifTimer);
-                _retourNotifTimer = setTimeout(() => n.classList.remove('show'), 8000);
-              }
-            }
-            _lastRetourCount = count;
-          } catch { /* silencieux */ }
-        }
-
         function initRealtime() {
+          // Utilise l'API Supabase Realtime via le proxy existant — 
+          // mais comme on passe par /api/db on ne peut pas utiliser le client Supabase directement.
+          // On utilise donc un polling intelligent : toutes les 30s si l'onglet est visible,
+          // pause si l'onglet est en arrière-plan.
+
           let _pollTimer = null;
           let _lastActivity = Date.now();
+
           const POLL_INTERVAL_ACTIVE = 300000;  // 5min si actif
           const POLL_INTERVAL_IDLE = 1800000;   // 30min si inactif
-          // Intervalle court pour les retours (30s quand admin actif)
-          const RETOUR_INTERVAL = 30000;
-          let _retourPollTimer = null;
 
           async function pollUpdates() {
             const page = document.querySelector('.page.active')?.id?.replace('page-', '');
             if (!page) return;
             try {
+              // Rafraîchir la page active silencieusement
               if (page === 'vue') await loadVue();
               else if (page === 'seances') await loadSeances(v('sea-date'));
               else if (page === 'dash') renderDash();
               else if (page === 'taches-pub') await loadTachesPub();
               else if (page === 'balades-pub') await loadBaladesPub();
-            } catch { /* silencieux */ }
+            } catch (e) { /* silencieux */ }
           }
 
           function scheduleNext() {
             clearTimeout(_pollTimer);
-            const idle = Date.now() - _lastActivity > 5 * 60 * 1000;
+            const idle = Date.now() - _lastActivity > 5 * 60 * 1000; // 5min sans interaction
             _pollTimer = setTimeout(async () => {
               if (!document.hidden) await pollUpdates();
               scheduleNext();
             }, idle ? POLL_INTERVAL_IDLE : POLL_INTERVAL_ACTIVE);
           }
 
-          function scheduleRetourPoll() {
-            clearTimeout(_retourPollTimer);
-            _retourPollTimer = setTimeout(async () => {
-              if (!document.hidden && isAdmin) await pollRetoursNonLus();
-              scheduleRetourPoll();
-            }, RETOUR_INTERVAL);
-          }
-
+          // Tracker l'activité
           ['click', 'keydown', 'scroll', 'touchstart'].forEach(ev => {
             document.addEventListener(ev, () => { _lastActivity = Date.now(); }, { passive: true });
           });
 
+          // Pause si onglet masqué, reprise sinon
           document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
-              pollUpdates();
-              if (isAdmin) pollRetoursNonLus();
+              pollUpdates(); // refresh immédiat au retour
               scheduleNext();
-              scheduleRetourPoll();
             } else {
               clearTimeout(_pollTimer);
-              clearTimeout(_retourPollTimer);
             }
           });
 
           scheduleNext();
-          scheduleRetourPoll();
-          // Premier poll retours immédiat après init si admin
-          if (isAdmin) setTimeout(() => pollRetoursNonLus(), 2000);
         }
         // ── Admin ──
         function handleAdminToggle() {
@@ -3246,26 +2952,15 @@
             const j = await res.json();
             if (j && j.ok) {
               sessionToken = j.token;
-              isKenny = (j.role === 'Kenny');
-              isMarine = (j.role === 'marine');
-              const isBaladeRole = (j.role === 'balade');
               localStorage.removeItem('ce_admin_active');
               localStorage.removeItem('ce_Kenny_active');
               localStorage.removeItem('ce_marine_active');
               localStorage.removeItem('ce_balade_active');
               closeMo('mo-pw');
-              if (isKenny) {
-                localStorage.setItem('ce_Kenny_active', '1');
-                enableKenny();
-              } else if (isMarine) {
-                localStorage.setItem('ce_marine_active', '1');
-                enableMarine();
-              } else if (isBaladeRole) {
-                enableBalade();
-              } else {
-                localStorage.setItem('ce_admin_active', '1');
-                enableAdmin();
-              }
+              if (j.role === 'dev' || j.role === 'kenny') { enableKenny(); }
+              else if (j.role === 'marine') { enableMarine(); }
+              else if (j.role === 'balade') { enableBalade(); }
+              else { enableAdmin(); }
             } else {
               document.getElementById('pw-err').style.display = 'block';
               document.getElementById('pw-in').value = '';
@@ -3274,11 +2969,74 @@
           } catch { document.getElementById('pw-err').style.display = 'block'; }
           btn.textContent = 'Connexion'; btn.disabled = false;
         }
+        // ── Helpers bannière + padding ──
+        function setBannerNom(txt) {
+          const el = document.getElementById('banner-nom'); if (el) el.textContent = txt;
+        }
+        function updateBannerPadding() {
+          const mc = document.getElementById('mc'); if (!mc) return;
+          const adminVisible = document.getElementById('admin-banner')?.classList.contains('show');
+          const retoursVisible = document.getElementById('retours-banner')?.style.display === 'flex';
+          let top = 0;
+          if (adminVisible) top += 36;
+          if (retoursVisible) top += 34;
+          mc.style.paddingTop = top > 0 ? (26 + top) + 'px' : '';
+          const rb = document.getElementById('retours-banner');
+          if (rb) rb.style.top = adminVisible ? '36px' : '0';
+        }
+
+        // ── Retours notif temps réel ──
+        let _lastRetourCount = -1, _retourNotifTimer = null;
+        function goToTicketsFromNotif() { dismissRetourNotif(); go('tickets'); }
+        function dismissRetourNotif() {
+          const n = document.getElementById('retour-notif');
+          if (n) { n.style.transform = 'translateX(-50%) translateY(80px)'; n.style.opacity = '0'; n.style.pointerEvents = 'none'; }
+          clearTimeout(_retourNotifTimer);
+        }
+        async function pollRetoursNonLus() {
+          if (!isAdmin) return;
+          try {
+            const nonLus = await dbSel('ticket_retours', { select: 'id', filter: [{ col: 'lu', op: 'eq', val: 'false' }] });
+            const count = nonLus.length;
+            const banner = document.getElementById('retours-banner');
+            if (banner) {
+              if (count > 0) {
+                const txt = document.getElementById('retours-banner-txt');
+                if (txt) txt.textContent = `${count} retour${count > 1 ? 's' : ''} non lu${count > 1 ? 's' : ''} sur vos tickets`;
+                banner.style.display = 'flex';
+              } else { banner.style.display = 'none'; }
+              updateBannerPadding();
+            }
+            if (_lastRetourCount >= 0 && count > _lastRetourCount) {
+              const diff = count - _lastRetourCount;
+              const txt = document.getElementById('retour-notif-txt');
+              if (txt) txt.textContent = `${diff} nouveau${diff > 1 ? 'x' : ''} retour${diff > 1 ? 's' : ''} sur vos tickets`;
+              const n = document.getElementById('retour-notif');
+              if (n) {
+                n.style.transform = 'translateX(-50%) translateY(0)'; n.style.opacity = '1'; n.style.pointerEvents = 'auto';
+                clearTimeout(_retourNotifTimer);
+                _retourNotifTimer = setTimeout(() => dismissRetourNotif(), 8000);
+              }
+            }
+            _lastRetourCount = count;
+          } catch { /* silencieux */ }
+        }
+
+        function dismissRetoursBanner() {
+          const banner = document.getElementById('retours-banner');
+          if (banner) banner.style.display = 'none';
+          updateBannerPadding();
+        }
+
+        // ── Enable/Logout roles ──
         function enableAdmin(targetPage = 'dash') {
-          isAdmin = true; document.getElementById('admin-banner').classList.add('show');
-          document.getElementById('mc').classList.add('wb'); document.getElementById('anav').style.display = 'block';
-          document.getElementById('nom-pers-co').textContent = '🔐 Claire';
-          document.getElementById('atbtn').textContent = '🔒 Quitter Claire'; document.getElementById('atbtn').classList.add('on');
+          isAdmin = true; isKenny = false; isMarine = false; isBalade = false;
+          document.getElementById('admin-banner').classList.add('show');
+          document.getElementById('mc').classList.add('wb');
+          document.getElementById('anav').style.display = 'block';
+          document.getElementById('atbtn').textContent = '🔒 Quitter Claire';
+          document.getElementById('atbtn').classList.add('on');
+          setBannerNom('🔐 Claire');
           localStorage.setItem('ce_admin_active', '1');
           _lastRetourCount = -1;
           setTimeout(() => pollRetoursNonLus(), 400);
@@ -3289,115 +3047,104 @@
           isAdmin = false; sessionToken = '';
           localStorage.removeItem('ce_admin_active');
           document.getElementById('admin-banner').classList.remove('show');
-          document.getElementById('mc').classList.remove('wb'); document.getElementById('anav').style.display = 'none';
-          document.getElementById('atbtn').textContent = '🔑 Mode administrateur'; document.getElementById('atbtn').classList.remove('on');
+          document.getElementById('mc').classList.remove('wb');
+          document.getElementById('anav').style.display = 'none';
+          document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
+          document.getElementById('atbtn').classList.remove('on');
           document.getElementById('mc').style.paddingTop = '';
           const rb = document.getElementById('retours-banner'); if (rb) rb.style.display = 'none';
           dismissRetourNotif(); _lastRetourCount = -1;
           renderCavaliers(); go('vue'); toast('Déconnecté', 'ok');
         }
         function enableMarine(targetPage = 'vue') {
-          isMarine = true; isAdmin = false;
+          isMarine = true; isAdmin = false; isKenny = false; isBalade = false;
           sessionToken = localStorage.getItem('ce_site_token') || '';
           document.getElementById('admin-banner').classList.add('show');
           document.getElementById('mc').classList.add('wb');
           document.getElementById('anav').style.display = 'block';
-          document.getElementById('nom-pers-co').textContent = '🔐 Marine';
           document.getElementById('atbtn').textContent = '🔒 Quitter Marine';
           document.getElementById('atbtn').classList.add('on');
+          setBannerNom('🔐 Marine');
           localStorage.setItem('ce_marine_active', '1');
           document.querySelectorAll('#anav .ni').forEach(btn => {
-            const page = btn.dataset.p;
-            if (!['seances'].includes(page)) btn.style.display = 'none';
+            if (!['seances'].includes(btn.dataset.p)) btn.style.display = 'none';
           });
           updateBannerPadding();
-          go(targetPage);
-          toast('Mode Marine activé', 'ok');
+          go(targetPage); toast('Mode Marine activé', 'ok');
         }
-
         function logoutMarine() {
           isMarine = false; sessionToken = '';
           localStorage.removeItem('ce_marine_active');
           document.getElementById('admin-banner').classList.remove('show');
           document.getElementById('mc').classList.remove('wb');
+          document.getElementById('mc').style.paddingTop = '';
           document.getElementById('anav').style.display = 'none';
           document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
           document.getElementById('atbtn').classList.remove('on');
           document.querySelectorAll('#anav .ni').forEach(btn => btn.style.display = '');
-          document.getElementById('mc').style.paddingTop = '';
-          updateBannerPadding();
-          go('vue');
-          toast('Déconnecté', 'ok');
+          go('vue'); toast('Déconnecté', 'ok');
         }
-
-        function enableBalade() {
-          isBalade = true; isAdmin = false; isKenny = false; isMarine = false;
-          localStorage.setItem('ce_balade_active', '1');
-          // Vue balades uniquement — pas de nav admin, pas de bannière admin
-          document.getElementById('admin-banner').classList.remove('show');
-          document.getElementById('atbtn').textContent = '🔒 Quitter mode balade'; document.getElementById('atbtn').classList.add('on');
-          document.getElementById('anav').style.display = 'none';
-          updateBannerPadding();
-          go('balades-pub');
-        }
-
-        function logoutBalade() {
-          isBalade = false;
-          localStorage.removeItem('ce_balade_active');
-          localStorage.removeItem('ce_site_token');
-          localStorage.removeItem('ce_pw_hash');
-          document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
-          document.getElementById('app').style.display = 'none';
-          document.getElementById('site-login').style.display = 'flex';
-          document.getElementById('site-pw-in').value = '';
-          localStorage.setItem('ce_last_page', 'vue');
-        }
-
         function enableKenny(targetPage = 'dash') {
-          isKenny = true; isAdmin = false;
+          isKenny = true; isAdmin = false; isMarine = false; isBalade = false;
           sessionToken = localStorage.getItem('ce_site_token') || '';
           document.getElementById('admin-banner').classList.add('show');
           document.getElementById('mc').classList.add('wb');
           document.getElementById('anav').style.display = 'block';
           document.getElementById('atbtn').textContent = '🔒 Quitter Kenny';
           document.getElementById('atbtn').classList.add('on');
+          setBannerNom('🔐 Kenny');
           localStorage.setItem('ce_Kenny_active', '1');
-          renderCavaliers();
-          go(targetPage);
-          toast('Mode Kenny activé', 'ok');
+          updateBannerPadding();
+          renderCavaliers(); go(targetPage); toast('Mode Kenny activé', 'ok');
         }
-
         function logoutKenny() {
           isKenny = false; sessionToken = '';
           localStorage.removeItem('ce_Kenny_active');
           document.getElementById('admin-banner').classList.remove('show');
           document.getElementById('mc').classList.remove('wb');
+          document.getElementById('mc').style.paddingTop = '';
           document.getElementById('anav').style.display = 'none';
           document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
           document.getElementById('atbtn').classList.remove('on');
-          renderCavaliers();
-          go('vue');
-          toast('Déconnecté', 'ok');
+          renderCavaliers(); go('vue'); toast('Déconnecté', 'ok');
+        }
+        function enableBalade() {
+          isBalade = true; isAdmin = false; isKenny = false; isMarine = false;
+          sessionToken = localStorage.getItem('ce_site_token') || '';
+          localStorage.setItem('ce_balade_active', '1');
+          document.getElementById('admin-banner').classList.remove('show');
+          document.getElementById('mc').classList.remove('wb');
+          document.getElementById('mc').style.paddingTop = '';
+          document.getElementById('anav').style.display = 'none';
+          document.getElementById('atbtn').textContent = '🔒 Quitter mode balade';
+          document.getElementById('atbtn').classList.add('on');
+          go('balades-pub');
+        }
+        function logoutBalade() {
+          isBalade = false; sessionToken = '';
+          localStorage.removeItem('ce_balade_active');
+          localStorage.removeItem('ce_site_token');
+          localStorage.removeItem('ce_pw_hash');
+          document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
+          document.getElementById('atbtn').classList.remove('on');
+          document.getElementById('app').style.display = 'none';
+          document.getElementById('site-login').style.display = 'flex';
+          document.getElementById('site-pw-in').value = '';
         }
         function togPw() { const i = document.getElementById('pw-in'); i.type = i.type === 'password' ? 'text' : 'password'; }
 
         // ── Nav ──
         function go(p) {
           const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches', 'balades'];
-          // Bloquer les pages admin si pas de rôle élevé
-          if (!isAdmin && !isKenny && !isMarine && adm.includes(p)) return;
-          // Marine : seulement séances (+ vue est déjà publique)
+          if (!isAdmin && !isKenny && !isMarine && !isBalade && adm.includes(p)) return;
           if (isMarine && !isAdmin && !isKenny && !['seances'].includes(p) && adm.includes(p)) return;
-          // Balade : seulement balades-pub
-          if (isBalade && p !== 'balades-pub' && p != 'taches-pub') return;
+          if (isBalade && adm.includes(p)) return; // balade : vue publique seulement
           document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
           document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
           document.getElementById('page-' + p)?.classList.add('active');
           const b = document.querySelector('[data-p="' + p + '"]'); if (b) b.classList.add('active');
-          // 💾 Persistance de la page active
           try { localStorage.setItem('ce_last_page', p); } catch { }
-          if (p === 'vue') loadVue();
-          else stopVueRefresh();
+          if (p === 'vue') loadVue(); else stopVueRefresh();
           if (p === 'dashboard') { if (!C.affSem.length) loadSemaine().then(() => renderAlerts()); else renderAlerts(); }
           if (p === 'dash') renderDash();
           if (p === 'seances') onSeaDate();
@@ -3411,10 +3158,7 @@
           if (p === 'taches-pub') loadTachesPub();
           if (p === 'balades-pub') loadBaladesPub();
           if (p === 'balades') loadBaladesAdmin();
-          if (p === 'taches') {
-            document.getElementById('taches-date').value = new Date().toISOString().slice(0, 10);
-            renderTachesAdmin();
-          }
+          if (p === 'taches') { document.getElementById('taches-date').value = new Date().toISOString().slice(0, 10); renderTachesAdmin(); }
           if (p === 'params') renderParamsPage();
           if (window.innerWidth <= 768) { document.getElementById('sb').classList.remove('open'); document.getElementById('sbo').classList.remove('open'); }
         }
@@ -3487,7 +3231,7 @@
           renderSeances();
         }
         async function loadStages() {
-          C.stages = await dbSel('stages', { order: [{ col: 'date_debut', asc: true }] });
+          C.stages = await dbSel('stages', { order: [{ col: 'date_debut', asc: false }] });
           if (C.stages.length) {
             const iv = `(${C.stages.map(s => `"${s.id}"`).join(',')})`;
             [C.parts, C.chvS] = await Promise.all([
@@ -4237,94 +3981,48 @@
             btn.disabled = false; btn.style.opacity = '1'; btn.textContent = '⚡ Générer séances';
             return;
           }
-          // Calcul numéro de semaine ISO
           const getNumSemISO = (d) => {
-            const dt = new Date(d + 'T00:00:00');
-            dt.setHours(0, 0, 0, 0);
+            const dt = new Date(d + 'T00:00:00'); dt.setHours(0,0,0,0);
             dt.setDate(dt.getDate() + 3 - (dt.getDay() + 6) % 7);
             const w = new Date(dt.getFullYear(), 0, 4);
             return 1 + Math.round(((dt - w) / 86400000 - 3 + (w.getDay() + 6) % 7) / 7);
           };
           const numSemGen = getNumSemISO(date);
           const estPaireGen = numSemGen % 2 === 0;
-
           const existantes = await dbSel('seances', { filter: [{ col: 'date', op: 'eq', val: date }], select: 'id,groupe_id' });
           let created = 0, updated = 0;
-
           for (const g of gj) {
             const seaExist = existantes.find(s => s.groupe_id === g.id);
-
             if (!seaExist) {
-              // Créer la séance
               const r = await dbIns('seances', { groupe_id: g.id, date, heure: g.heure, discipline: DISC[0], moniteur_id: g.moniteur_id || null });
               if (!r.data?.[0]) continue; created++;
               const ns = r.data[0];
-              const cavIds = getGrpCavs(g.id);
-              const cavIdsFiltres = cavIds.filter(cid => {
-                const cav = C.cav.find(c => c.id === cid);
-                if (!cav) return true;
+              const cavIdsFiltres = getGrpCavs(g.id).filter(cid => {
+                const cav = C.cav.find(c => c.id === cid); if (!cav) return true;
                 if (cav.semaine_type === 'paire' && !estPaireGen) return false;
                 if (cav.semaine_type === 'impaire' && estPaireGen) return false;
                 return true;
               });
-              if (cavIdsFiltres.length) {
-                await dbIns('affectations_seance', cavIdsFiltres.map(cid => ({
-                  seance_id: ns.id, cavalier_id: cid, equide_id: null, absent: false, rattrapage: false
-                })));
-              }
+              if (cavIdsFiltres.length) await dbIns('affectations_seance', cavIdsFiltres.map(cid => ({ seance_id: ns.id, cavalier_id: cid, equide_id: null, absent: false, rattrapage: false })));
             } else {
-              // Séance existante → mise à jour intelligente des cavaliers
-              // Charger les affectations actuelles (sans toucher absents, rattrapages, exceptionnels)
               const seaId = seaExist.id;
-              const affsActuelles = await dbSel('affectations_seance', {
-                select: 'id,cavalier_id,absent,rattrapage,cours_exceptionnel',
-                filter: [{ col: 'seance_id', op: 'eq', val: seaId }]
-              });
-
-              // Cavaliers attendus dans ce groupe pour cette semaine
-              const cavIds = getGrpCavs(g.id);
-              const cavIdsFiltres = new Set(cavIds.filter(cid => {
-                const cav = C.cav.find(c => c.id === cid);
-                if (!cav) return true;
+              const affsActuelles = await dbSel('affectations_seance', { select: 'id,cavalier_id,absent,rattrapage,cours_exceptionnel', filter: [{ col: 'seance_id', op: 'eq', val: seaId }] });
+              const cavIdsFiltres = new Set(getGrpCavs(g.id).filter(cid => {
+                const cav = C.cav.find(c => c.id === cid); if (!cav) return true;
                 if (cav.semaine_type === 'paire' && !estPaireGen) return false;
                 if (cav.semaine_type === 'impaire' && estPaireGen) return false;
                 return true;
               }));
-
-              // Cavaliers déjà dans la séance (tous types)
               const cavPresents = new Set(affsActuelles.filter(a => a.cavalier_id).map(a => a.cavalier_id));
-
-              // Ajouter les cavaliers manquants (pas encore dans la séance, ni en rattrapage/exceptionnel)
               const aAjouter = [...cavIdsFiltres].filter(cid => !cavPresents.has(cid));
-              if (aAjouter.length) {
-                await dbIns('affectations_seance', aAjouter.map(cid => ({
-                  seance_id: seaId, cavalier_id: cid, equide_id: null, absent: false, rattrapage: false
-                })));
-                updated++;
-              }
-
-              // Supprimer les cavaliers normaux qui ne sont plus dans le groupe
-              // (seulement les affectations "propres" : pas absent, pas rattrapage, pas exceptionnel)
-              const aSupprimer = affsActuelles.filter(a =>
-                a.cavalier_id &&
-                !cavIdsFiltres.has(a.cavalier_id) &&
-                !a.absent &&
-                !a.rattrapage &&
-                !a.cours_exceptionnel
-              );
-              for (const aff of aSupprimer) {
-                await dbDel('affectations_seance', [{ col: 'id', op: 'eq', val: aff.id }]);
-                updated++;
-              }
+              if (aAjouter.length) { await dbIns('affectations_seance', aAjouter.map(cid => ({ seance_id: seaId, cavalier_id: cid, equide_id: null, absent: false, rattrapage: false }))); updated++; }
+              const aSupprimer = affsActuelles.filter(a => a.cavalier_id && !cavIdsFiltres.has(a.cavalier_id) && !a.absent && !a.rattrapage && !a.cours_exceptionnel);
+              for (const aff of aSupprimer) { await dbDel('affectations_seance', [{ col: 'id', op: 'eq', val: aff.id }]); updated++; }
             }
           }
           await loadSeances(date);
           btn.disabled = true; btn.style.opacity = '.5'; btn.textContent = '✅ Séances à jour';
-          const msg = created > 0
-            ? `${created} séance${created > 1 ? 's' : ''} créée${created > 1 ? 's' : ''}${updated > 0 ? ' · ' + updated + ' affectation(s) mise(s) à jour' : ''}`
-            : updated > 0
-              ? `${updated} affectation(s) mise(s) à jour`
-              : 'Séances déjà à jour';
+          const msg = created > 0 ? `${created} séance${created>1?'s':''} créée${created>1?'s':''}${updated>0?' · '+updated+' affectation(s) mise(s) à jour':''}` : updated > 0 ? `${updated} affectation(s) mise(s) à jour` : 'Séances déjà à jour';
           toast(msg, 'ok');
         }
 
@@ -5730,7 +5428,7 @@
             return `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(201,122,48,.12);border:1px solid rgba(201,122,48,.25);border-radius:20px;padding:3px 10px;font-size:12px;white-space:nowrap"><strong>${s.titre}</strong> ${d}</span>`;
           }).join('');
           txt.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px">
-    <div style="font-size:20px">🏕 <strong>Stage${stagesAvenir.length > 1 ? 's' : ''} à venir</strong> — Pour plus d'informations, renseignez-vous auprès de <strong>${contact.prenom} au 07.81.31.29.27</strong>.</div>
+    <div style="font-size:20px">🏕 <strong>Stage${stagesAvenir.length > 1 ? 's' : ''} à venir</strong> — Pour plus d'informations, renseignez-vous auprès de <strong>${contact.prenom}</strong>.</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px">${liste}</div>
   </div>`;
           banner.style.display = 'flex';
@@ -6572,9 +6270,27 @@
         function isLightColor(hex) { if (!hex || hex.length < 6) return false; const h = hex.replace('#', ''); const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16); return (0.299 * r + 0.587 * g + 0.114 * b) > 165; }
         const v = id => document.getElementById(id)?.value || '';
         const openMo = id => document.getElementById(id).classList.add('open');
-        const closeMo = id => { document.getElementById(id).classList.remove('open'), saveTicketEdit() , saveRetourTicket()};
+        const closeMo = id => document.getElementById(id).classList.remove('open');
         document.querySelectorAll('.mo').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
-        function toast(msg, type = 'ok') { const t = document.createElement('div'); t.className = `toast ${type}`; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), type === 'warn' ? 5000 : 3200); }
+
+        function toast(msg, type = 'ok') {
+          return new Promise(resolve => {
+            const duration = type === 'warn' ? 5000 : type === 'err' ? 3500 : 2500;
+            const overlay = document.createElement('div');
+            overlay.className = 'toast-overlay';
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.textContent = msg;
+            document.body.appendChild(overlay);
+            document.body.appendChild(t);
+            const remove = () => {
+              t.style.animation = 'toast-out .2s ease forwards';
+              setTimeout(() => { t.remove(); overlay.remove(); resolve(); }, 200);
+            };
+            overlay.addEventListener('click', remove, { once: true });
+            setTimeout(remove, duration);
+          });
+        }
 
         // ══════════════════════════════════════════════════
         //  DISCIPLINES — Gestion des icônes
@@ -6743,63 +6459,16 @@
           } catch (e) { toast('Erreur : ' + e.message, 'err'); }
         }
 
-        // ── Bannière retours ──
-        async function checkRetoursBanner() {
-          if (isKenny) return; // Kenny ne voit pas la bannière
-          if (!isAdmin) return; // seulement admin
-          try {
-            const nonLus = await dbSel('ticket_retours', {
-              select: 'id',
-              filter: [{ col: 'lu', op: 'eq', val: 'false' }]
-            });
-            const banner = document.getElementById('retours-banner');
-            if (!banner) return;
-            if (nonLus.length) {
-              const txt = document.getElementById('retours-banner-txt');
-              if (txt) txt.textContent = `${nonLus.length} retour${nonLus.length > 1 ? 's' : ''} non lu${nonLus.length > 1 ? 's' : ''} sur vos tickets`;
-              banner.style.display = 'flex';
-            } else {
-              banner.style.display = 'none';
-            }
-            updateBannerPadding();
-          } catch (e) { console.warn('checkRetoursBanner', e); }
-        }
-
-        function dismissRetoursBanner() {
-          const banner = document.getElementById('retours-banner');
-          if (banner) banner.style.display = 'none';
-          updateBannerPadding();
-        }
-
-        // ── Gestion dynamique du padding selon les bandeaux visibles ──
-        function updateBannerPadding() {
-          const mc = document.getElementById('mc');
-          if (!mc) return;
-          const adminVisible = document.getElementById('admin-banner')?.classList.contains('show');
-          const retoursVisible = document.getElementById('retours-banner')?.style.display === 'flex';
-          let top = 0;
-          if (adminVisible) top += 36;
-          if (retoursVisible) top += 34;
-          mc.style.paddingTop = top > 0 ? (26 + top) + 'px' : '';
-          // Positionner le bandeau retours sous le bandeau admin
-          const retoursBanner = document.getElementById('retours-banner');
-          if (retoursBanner) retoursBanner.style.top = adminVisible ? '36px' : '0';
-        }
-
         // ── Page tickets ──
-        let _ticketsRaw = [];
-        let _ticketsRetoursCounts = {};
+        let _ticketsRaw = [], _ticketsRetoursCounts = {};
 
         async function renderTicketsPage() {
-          if (!isKenny) checkRetoursBanner();
+          if (!isKenny) pollRetoursNonLus();
           const ts = await dbSel('tickets', { order: [{ col: 'created_at', asc: false }] });
           let retoursCounts = {};
           if (ts.length) {
             const iv = `(${ts.map(t => `"${t.id}"`).join(',')})`;
-            const retours = await dbSel('ticket_retours', {
-              select: 'id,ticket_id,lu',
-              filter: [{ col: 'ticket_id', op: 'in', val: iv }]
-            });
+            const retours = await dbSel('ticket_retours', { select: 'id,ticket_id,lu', filter: [{ col: 'ticket_id', op: 'in', val: iv }] });
             retours.forEach(r => {
               if (!retoursCounts[r.ticket_id]) retoursCounts[r.ticket_id] = { total: 0, nonLus: 0 };
               retoursCounts[r.ticket_id].total++;
@@ -6820,18 +6489,13 @@
           const sort = document.getElementById('tk-sort')?.value || 'date_desc';
           const PRIO_ORDER = { haute: 0, normale: 1, basse: 2 };
           const STATUT_ORDER = { nouveau: 0, en_cours: 1, termine: 2 };
-
           let ts = [..._ticketsRaw];
-
-          // Filtres
           if (search) ts = ts.filter(t => (t.titre || '').toLowerCase().includes(search) || (t.description || '').toLowerCase().includes(search));
           if (fType) ts = ts.filter(t => t.type === fType);
           if (fPrio) ts = ts.filter(t => t.priorite === fPrio);
           if (fStatut) ts = ts.filter(t => t.statut === fStatut);
           if (fRetours === 'nonlus') ts = ts.filter(t => (_ticketsRetoursCounts[t.id]?.nonLus || 0) > 0);
           if (fRetours === 'avec') ts = ts.filter(t => (_ticketsRetoursCounts[t.id]?.total || 0) > 0);
-
-          // Tri
           ts.sort((a, b) => {
             if (sort === 'date_asc') return new Date(a.created_at) - new Date(b.created_at);
             if (sort === 'date_desc') return new Date(b.created_at) - new Date(a.created_at);
@@ -6840,37 +6504,25 @@
             if (sort === 'retours') return (_ticketsRetoursCounts[b.id]?.nonLus || 0) - (_ticketsRetoursCounts[a.id]?.nonLus || 0);
             return 0;
           });
-
-          const bdy = document.getElementById('tickets-tbody');
-          if (!bdy) return;
+          const bdy = document.getElementById('tickets-tbody'); if (!bdy) return;
           if (!ts.length) { bdy.innerHTML = '<tr class="er"><td colspan="6">Aucun ticket correspondant.</td></tr>'; return; }
-
           bdy.innerHTML = ts.map(t => {
             const rc = _ticketsRetoursCounts[t.id] || { total: 0, nonLus: 0 };
-            const retourBadge = rc.total > 0
-              ? `<span class="b ${rc.nonLus > 0 ? 'bb' : ''}" style="font-size:10px">
-                   💬 ${rc.total}${rc.nonLus > 0 ? ` <strong>(${rc.nonLus} nouveau${rc.nonLus > 1 ? 'x' : ''})</strong>` : ''}
-                 </span>` : '';
+            const retourBadge = rc.total > 0 ? `<span class="b ${rc.nonLus > 0 ? 'bb' : ''}" style="font-size:10px">💬 ${rc.total}${rc.nonLus > 0 ? ` <strong>(${rc.nonLus} nouveau${rc.nonLus > 1 ? 'x' : ''})</strong>` : ''}</span>` : '';
             return `<tr>
       <td>${new Date(t.created_at).toLocaleDateString('fr-FR')}</td>
-      <td>
-        <strong>${t.titre}</strong>
-        <div style="font-size:10px;color:var(--muted)">${(t.description || '').slice(0, 80)}${(t.description || '').length > 80 ? '…' : ''}</div>
-        ${retourBadge}
-      </td>
-      <td><span class="b ${t.type === 'bug' ? 'br' : 'bb'}">${t.type}</span></td>
-      <td><span class="b ${t.priorite === 'haute' ? 'bo' : ''}">${t.priorite}</span></td>
-      <td><span class="b ${t.statut === 'termine' ? 'bg' : t.statut === 'en_cours' ? 'bp' : 'bgo'}">${t.statut.replace('_', ' ')}</span></td>
-      <td><button class="btn btn-g sm" onclick="openTicketDetail('${t.id}')">${isKenny ? '✏️ Modifier' : '👁 Voir / modifier'}</button></td>
+      <td><strong>${t.titre}</strong><div style="font-size:10px;color:var(--muted)">${(t.description || '').slice(0,80)}${(t.description||'').length>80?'…':''}</div>${retourBadge}</td>
+      <td><span class="b ${t.type==='bug'?'br':'bb'}">${t.type}</span></td>
+      <td><span class="b ${t.priorite==='haute'?'bo':''}">${t.priorite}</span></td>
+      <td><span class="b ${t.statut==='termine'?'bg':t.statut==='en_cours'?'bp':'bgo'}">${t.statut.replace('_',' ')}</span></td>
+      <td><button class="btn btn-g sm" onclick="openTicketDetail('${t.id}')">${isKenny?'✏️ Modifier':'👁 Voir / modifier'}</button></td>
     </tr>`;
           }).join('');
         }
 
         function resetTicketFilters() {
-          ['tk-search', 'tk-f-type', 'tk-f-prio', 'tk-f-statut', 'tk-f-retours'].forEach(id => {
-            const el = document.getElementById(id); if (el) el.value = '';
-          });
-          const sort = document.getElementById('tk-sort'); if (sort) sort.value = 'date_desc';
+          ['tk-search','tk-f-type','tk-f-prio','tk-f-statut','tk-f-retours'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+          const s=document.getElementById('tk-sort');if(s)s.value='date_desc';
           applyTicketFilters();
         }
 
@@ -6896,58 +6548,47 @@
           const retourLabel = document.querySelector('#td-retour-zone label');
 
           if (isKenny) {
-            // Kenny : peut tout modifier + répondre (auteur = Kenny)
             editZone.querySelectorAll('input,select,textarea').forEach(el => el.disabled = false);
             editZone.style.display = 'block';
             retourZone.style.display = 'block';
             if (retourLabel) retourLabel.textContent = 'Ajouter un retour (Kenny)';
           } else if (isAdmin) {
-            editZone.querySelectorAll('input,select,textarea').forEach(el => el.disabled = false);
             editZone.style.display = 'block';
+            ['td-titre','td-type','td-prio','td-desc'].forEach(id => { const el=document.getElementById(id); if(el) el.disabled=true; });
+            document.getElementById('td-statut').disabled = false;
             retourZone.style.display = 'block';
             if (retourLabel) retourLabel.textContent = 'Répondre au ticket (Admin)';
           } else {
-            // Autres : lecture seule, pas de retour
             editZone.querySelectorAll('input,select,textarea').forEach(el => el.disabled = true);
             retourZone.style.display = 'none';
           }
 
           await loadRetours(ticketId);
-          // Afficher le bouton "marquer lu" pour admin si retours non lus
           const marquerBtn = document.getElementById('td-marquer-lu-btn');
           if (marquerBtn) {
-            const hasNonLus = await dbSel('ticket_retours', {
-              select: 'id',
-              filter: [{ col: 'ticket_id', op: 'eq', val: ticketId }, { col: 'lu', op: 'eq', val: 'false' }]
-            });
+            const hasNonLus = await dbSel('ticket_retours', { select: 'id', filter: [{ col: 'ticket_id', op: 'eq', val: ticketId }, { col: 'lu', op: 'eq', val: 'false' }] });
             marquerBtn.style.display = (isAdmin && hasNonLus.length > 0) ? '' : 'none';
-          }
-
-          if (!isKenny && !isAdmin) {
-            await dbUpd('ticket_retours', { lu: true },
-              [{ col: 'ticket_id', op: 'eq', val: ticketId }, { col: 'lu', op: 'eq', val: 'false' }]
-            );
-            dismissRetoursBanner();
           }
 
           openMo('mo-ticket-detail');
         }
 
+        async function saveAndCloseTicket() {
+          const msg = (document.getElementById('td-retour-msg')?.value || '').trim();
+          if (msg) await saveRetourTicket();
+          if (isKenny || isAdmin) await saveTicketEdit();
+          closeMo('mo-ticket-detail');
+        }
+
         async function marquerRetoursLus() {
-          const ticketId = v('td-id');
-          if (!ticketId) return;
-          await dbUpd('ticket_retours', { lu: true }, [
-            { col: 'ticket_id', op: 'eq', val: ticketId },
-            { col: 'lu', op: 'eq', val: 'false' }
-          ]);
+          const ticketId = v('td-id'); if (!ticketId) return;
+          await dbUpd('ticket_retours', { lu: true }, [{ col: 'ticket_id', op: 'eq', val: ticketId }, { col: 'lu', op: 'eq', val: 'false' }]);
           toast('Retours marqués comme lus', 'ok');
           document.getElementById('td-marquer-lu-btn').style.display = 'none';
           await loadRetours(ticketId);
           await pollRetoursNonLus();
           await renderTicketsPage();
-          if (document.getElementById('page-dash')?.classList.contains('active')) {
-            await loadRetoursNonLusDash();
-          }
+          if (document.getElementById('page-dash')?.classList.contains('active')) await loadRetoursNonLusDash();
         }
         async function loadRetours(ticketId) {
           const retours = await dbSel('ticket_retours', {
@@ -6977,53 +6618,37 @@
         async function saveRetourTicket() {
           const ticketId = v('td-id');
           const msg = v('td-retour-msg').trim();
-          if (!msg) { return; }
-
+          if (!msg) { toast('Saisissez un message', 'err'); return; }
           const auteur = isKenny ? 'Kenny' : isAdmin ? 'Admin' : 'Utilisateur';
-
-          await dbIns('ticket_retours', {
-            ticket_id: ticketId,
-            auteur,
-            message: msg,
-            lu: isKenny ? false : true  // Kenny marque comme lu immédiatement ses propres retours
-          });
-
+          await dbIns('ticket_retours', { ticket_id: ticketId, auteur, message: msg, lu: false });
           // Email dans les deux sens : Admin→Kenny et Kenny→Admin
           if (isAdmin || isKenny) {
             try {
               const ts = await dbSel('tickets', { select: 'titre', filter: [{ col: 'id', op: 'eq', val: ticketId }] });
-              await dbReq({
-                action: 'send-ticket-retour-email',
-                token: sessionToken,
-                ticketTitre: ts[0]?.titre || '?',
-                message: msg,
-                auteur,
-              });
+              await dbReq({ action: 'send-ticket-retour-email', token: sessionToken, ticketTitre: ts[0]?.titre || '?', message: msg, auteur });
             } catch (e) { console.warn('Email retour non envoyé', e); }
           }
-
           toast('Retour envoyé', 'ok');
           document.getElementById('td-retour-msg').value = '';
           await loadRetours(ticketId);
           await renderTicketsPage();
-          // Mettre à jour la bannière si admin (un nouveau retour non-lu vient d'être ajouté par Kenny)
           if (isAdmin) await pollRetoursNonLus();
         }
 
         async function saveTicketEdit() {
           if (!isKenny && !isAdmin) return;
-          const id = v('td-id');
+          const id = v('td-id'); if (!id) return;
           const data = {
-            titre: v('td-titre').trim(),
-            type: v('td-type'),
-            priorite: v('td-prio'),
+            titre: v('td-titre').trim() || undefined,
+            type: v('td-type') || undefined,
+            priorite: v('td-prio') || undefined,
             statut: v('td-statut'),
-            description: v('td-desc').trim()
+            description: v('td-desc').trim() || undefined
           };
-          if (!data.titre) { return; }
-          await dbUpd('tickets', data, [{ col: 'id', op: 'eq', val: id }]);
-          toast('Ticket mis à jour', 'ok');
-          document.getElementById('mo-td-titre').textContent = `🎫 ${data.titre}`;
+          // Admin : ne met à jour que le statut
+          const update = isKenny ? data : { statut: data.statut };
+          await dbUpd('tickets', update, [{ col: 'id', op: 'eq', val: id }]);
+          if (isKenny && data.titre) document.getElementById('mo-td-titre').textContent = `🎫 ${data.titre}`;
           await renderTicketsPage();
         }
 
@@ -7055,264 +6680,6 @@
           } catch (e) { toast(e.message, 'err'); }
         }
 
-
-        // ══════════════════════════════════════════════════
-        //  BALADES
-        // ══════════════════════════════════════════════════
-        let C_balades = []; // cache balades
-        let C_balades_parts = []; // cache participants balades
-
-        async function loadBalades() {
-          const today = new Date().toISOString().slice(0, 10);
-          C_balades = await dbSel('balades', { order: [{ col: 'date' }, { col: 'heure' }] });
-          if (C_balades.length) {
-            const iv = `(${C_balades.map(b => `"${b.id}"`).join(',')})`;
-            C_balades_parts = await dbSel('balade_participants', {
-              select: '*,equides(nom)',
-              filter: [{ col: 'balade_id', op: 'in', val: iv }],
-              order: [{ col: 'created_at' }]
-            });
-          } else C_balades_parts = [];
-        }
-
-        async function loadBaladesPub() {
-          const el = document.getElementById('balades-pub-content');
-          if (!el) return;
-          el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
-          try {
-            await loadBalades();
-            const today = new Date().toISOString().slice(0, 10);
-            const future = C_balades.filter(b => b.date >= today).sort((a, b) => a.date.localeCompare(b.date) || (a.heure || '').localeCompare(b.heure || ''));
-            if (!future.length) {
-              el.innerHTML = '<div class="ls">Aucune balade prévue pour le moment.</div>';
-              return;
-            }
-            el.innerHTML = future.map(b => {
-              const parts = C_balades_parts.filter(p => p.balade_id === b.id);
-              return `<div class="pcc" style="margin-bottom:14px">
-  <div class="pch" style="background:linear-gradient(135deg,rgba(46,120,70,.08),rgba(46,120,70,.02));border-bottom:1px solid rgba(46,120,70,.2)">
-    <div class="pheure" style="color:#1e7a40">${(b.heure || '').slice(0, 5)}</div>
-    <div>
-      <div class="pgn">${b.titre || 'Balade'}</div>
-      <div class="pdi">🗓 ${fmtL(b.date)}${b.nb_places ? ' · ' + parts.length + '/' + b.nb_places + ' places' : ''}</div>
-      ${b.note ? `<div style="font-size:11px;color:var(--muted);margin-top:3px;font-style:italic">${b.note}</div>` : ''}
-    </div>
-  </div>
-  ${parts.length ? parts.map(p => `
-  <div class="pcr">
-    <div class="pcn">👤 ${p.prenom || '?'}</div>
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <span class="pch2">${p.equides?.nom ? `🐎 <strong>${p.equides.nom}</strong>` : '<span style="color:var(--muted)">Sans cheval attribué</span>'}</span>
-      ${p.montant ? `<span style="font-size:12px;font-weight:700;color:var(--gold)">${parseFloat(p.montant).toFixed(0)}€</span>` : ''}
-      ${p.regle
-                  ? `<span class="b bg" style="font-size:10px">✅ Réglé</span>`
-                  : (p.montant ? `<span class="b br" style="font-size:10px">⏳ En attente</span>` : '')}
-      ${(isAdmin || isKenny) ? `<button class="btn btn-g sm" onclick="editBaladePart('${p.id}','${b.id}')">✏️</button>` : ''}
-    </div>
-  </div>`).join('') : `<div class="pcr"><span style="color:var(--muted);font-size:12px;font-style:italic">Aucun participant pour l'instant.</span></div>`}
-</div>`;
-            }).join('');
-          } catch (e) {
-            el.innerHTML = '<div class="ls">Erreur de chargement.</div>';
-          }
-        }
-
-        async function loadBaladesAdmin() {
-          const el = document.getElementById('balades-admin-content');
-          if (!el) return;
-          el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
-          try {
-            await loadBalades();
-            renderBaladesAdmin();
-          } catch (e) {
-            el.innerHTML = '<div class="ls">Erreur.</div>';
-          }
-        }
-
-        function renderBaladesAdmin() {
-          const el = document.getElementById('balades-admin-content');
-          if (!el) return;
-          const today = new Date().toISOString().slice(0, 10);
-          const sorted = [...C_balades].sort((a, b) => b.date.localeCompare(a.date) || (b.heure || '').localeCompare(a.heure || ''));
-          if (!sorted.length) {
-            el.innerHTML = '<div class="ls">Aucune balade. Cliquez sur "+ Nouvelle balade" pour commencer.</div>';
-            return;
-          }
-          const canEdit = isAdmin || isKenny;
-          const canPay = isAdmin || isKenny || isBalade;
-          el.innerHTML = sorted.map(b => {
-            const parts = C_balades_parts.filter(p => p.balade_id === b.id);
-            const isPast = b.date < today;
-            const totalParts = parts.length;
-            const totalRegle = parts.filter(p => p.regle).length;
-            const totalMontant = parts.reduce((s, p) => s + (parseFloat(p.montant) || 0), 0);
-            const totalEnAttente = parts.filter(p => !p.regle && p.montant > 0).length;
-            return `<div class="stg-wrap" style="${isPast ? 'opacity:.65' : ''}">
-  <div class="stg-hdr">
-    <div>
-      <div style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px">
-        ${fmtDate(b.date)} · ${(b.heure || '').slice(0, 5)}${b.nb_places ? ' · ' + totalParts + '/' + b.nb_places + ' places' : ''}
-        ${totalMontant > 0 ? ` · <span style="color:var(--gold)">💰 ${totalMontant.toFixed(0)}€</span>` : ''}
-        ${totalEnAttente > 0 ? ` · <span style="color:#b43728">⏳ ${totalEnAttente} en attente</span>` : (totalParts > 0 && totalRegle === totalParts ? ' · <span style="color:#1e7a40">✅ Tout réglé</span>' : '')}
-      </div>
-      <div class="stg-ttl">🌿 ${b.titre || 'Balade'}</div>
-      ${b.note ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;font-style:italic">${b.note}</div>` : ''}
-    </div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <button class="btn btn-g sm" onclick="openAddBaladePart('${b.id}')">+ Participant</button>
-      ${canEdit ? `<button class="btn btn-g sm" onclick="editBalade('${b.id}')">✏️</button>
-      <button class="btn btn-d sm" onclick="delBalade('${b.id}')">🗑</button>` : ''}
-    </div>
-  </div>
-  ${parts.length ? parts.map(p => {
-              const regle = p.regle, methode = p.methode_paiement, montant = p.montant, dateR = p.date_reglement;
-              return `<div class="pcr">
-    <div class="pcn">👤 ${p.prenom || '?'}</div>
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <span class="pch2">${p.equides?.nom ? `🐎 <strong>${p.equides.nom}</strong>` : '<span style="color:var(--muted);font-size:12px">Sans cheval</span>'}</span>
-      ${p.note ? `<span style="font-size:11px;color:var(--muted)">${p.note}</span>` : ''}
-      ${montant ? `<span style="font-size:12px;font-weight:700;color:var(--gold)">${parseFloat(montant).toFixed(0)}€</span>` : ''}
-      ${regle
-                  ? `<span class="b bg" style="font-size:10px">✅ Réglé${methode ? ' — ' + methode : ''}${dateR ? ' le ' + fmtDate(dateR) : ''}</span>`
-                  : `<span class="b br" style="font-size:10px">⏳ En attente</span>`}
-      ${canPay ? `<button class="btn btn-g sm" onclick="editBaladePart('${p.id}','${b.id}')">✏️</button>` : ''}
-      ${canEdit ? `<button class="btn btn-d sm" onclick="delBaladePart('${p.id}','${b.id}')">🗑</button>` : ''}
-    </div>
-  </div>`;
-            }).join('')
-                : `<div style="padding:12px 20px;font-size:12px;color:var(--muted);font-style:italic">Aucun participant — cliquez sur "+ Participant" pour en ajouter.</div>`}
-</div>`;
-          }).join('');
-        }
-
-        function newBalade() {
-          document.getElementById('mo-balade-t').textContent = '🌿 Nouvelle balade';
-          document.getElementById('balade-id').value = '';
-          document.getElementById('balade-titre').value = '';
-          document.getElementById('balade-date').value = new Date().toISOString().slice(0, 10);
-          document.getElementById('balade-heure').value = '';
-          document.getElementById('balade-nb-places').value = '';
-          document.getElementById('balade-note').value = '';
-          openMo('mo-balade');
-        }
-
-        function editBalade(id) {
-          const b = C_balades.find(x => x.id === id); if (!b) return;
-          document.getElementById('mo-balade-t').textContent = '✏️ Modifier la balade';
-          document.getElementById('balade-id').value = id;
-          document.getElementById('balade-titre').value = b.titre || '';
-          document.getElementById('balade-date').value = b.date || '';
-          document.getElementById('balade-heure').value = (b.heure || '').slice(0, 5);
-          document.getElementById('balade-nb-places').value = b.nb_places || '';
-          document.getElementById('balade-note').value = b.note || '';
-          openMo('mo-balade');
-        }
-
-        async function saveBalade() {
-          const id = document.getElementById('balade-id').value;
-          const titre = document.getElementById('balade-titre').value.trim();
-          const date = document.getElementById('balade-date').value;
-          const heure = document.getElementById('balade-heure').value || null;
-          const nb_places = parseInt(document.getElementById('balade-nb-places').value) || null;
-          const note = document.getElementById('balade-note').value.trim() || null;
-          if (!titre) { toast('Le titre est requis', 'err'); return; }
-          if (!date) { toast('La date est requise', 'err'); return; }
-          const data = { titre, date, heure, nb_places, note };
-          if (id) {
-            await dbUpd('balades', data, [{ col: 'id', op: 'eq', val: id }]);
-            const idx = C_balades.findIndex(x => x.id === id);
-            if (idx !== -1) C_balades[idx] = { ...C_balades[idx], ...data };
-            toast('Balade modifiée', 'ok');
-          } else {
-            const r = await dbIns('balades', data);
-            if (r.data?.[0]) C_balades.push(r.data[0]);
-            toast('Balade créée', 'ok');
-          }
-          closeMo('mo-balade');
-          renderBaladesAdmin();
-        }
-
-        async function delBalade(id) {
-          if (!confirm('Supprimer cette balade et tous ses participants ?')) return;
-          await dbDel('balade_participants', [{ col: 'balade_id', op: 'eq', val: id }]);
-          await dbDel('balades', [{ col: 'id', op: 'eq', val: id }]);
-          C_balades = C_balades.filter(b => b.id !== id);
-          C_balades_parts = C_balades_parts.filter(p => p.balade_id !== id);
-          toast('Balade supprimée', 'ok');
-          renderBaladesAdmin();
-        }
-
-        function openAddBaladePart(baladeId) {
-          document.getElementById('balade-part-id').value = '';
-          document.getElementById('balade-part-balade-id').value = baladeId;
-          document.getElementById('mo-balade-part-t').textContent = '👤 Ajouter un participant';
-          document.getElementById('balade-part-prenom').value = '';
-          document.getElementById('balade-part-note').value = '';
-          document.getElementById('balade-part-montant').value = '';
-          document.getElementById('balade-part-date-reg').value = '';
-          document.getElementById('balade-part-methode').value = '';
-          const prisIds = new Set(C_balades_parts.filter(p => p.balade_id === baladeId && p.equide_id).map(p => p.equide_id));
-          document.getElementById('balade-part-chv').innerHTML = '<option value="">— Sans cheval —</option>' +
-            getSortedChvDispo().map(c => `<option value="${c.id}"${prisIds.has(c.id) ? ' disabled' : ''}>${c.nom}${prisIds.has(c.id) ? ' (déjà pris)' : ''}</option>`).join('');
-          openMo('mo-balade-part');
-        }
-
-        function editBaladePart(partId, baladeId) {
-          const p = C_balades_parts.find(x => x.id === partId); if (!p) return;
-          document.getElementById('balade-part-id').value = partId;
-          document.getElementById('balade-part-balade-id').value = baladeId;
-          document.getElementById('mo-balade-part-t').textContent = '✏️ Modifier le participant';
-          document.getElementById('balade-part-prenom').value = p.prenom || '';
-          document.getElementById('balade-part-note').value = p.note || '';
-          document.getElementById('balade-part-montant').value = p.montant != null ? p.montant : '';
-          document.getElementById('balade-part-date-reg').value = p.date_reglement || '';
-          document.getElementById('balade-part-methode').value = p.methode_paiement || '';
-          const prisIds = new Set(C_balades_parts.filter(x => x.balade_id === baladeId && x.equide_id && x.id !== partId).map(x => x.equide_id));
-          document.getElementById('balade-part-chv').innerHTML = '<option value="">— Sans cheval —</option>' +
-            getSortedChvDispo().map(c => `<option value="${c.id}"${c.id === p.equide_id ? ' selected' : ''}${prisIds.has(c.id) ? ' disabled' : ''}>${c.nom}${prisIds.has(c.id) ? ' (déjà pris)' : ''}</option>`).join('');
-          openMo('mo-balade-part');
-        }
-
-        async function saveBaladePart() {
-          const id = document.getElementById('balade-part-id').value;
-          const baladeId = document.getElementById('balade-part-balade-id').value;
-          const prenom = document.getElementById('balade-part-prenom').value.trim();
-          const equide_id = document.getElementById('balade-part-chv').value || null;
-          const note = document.getElementById('balade-part-note').value.trim() || null;
-          const montant = parseFloat(document.getElementById('balade-part-montant').value) || null;
-          const methode_paiement = document.getElementById('balade-part-methode').value || null;
-          const date_reglement = document.getElementById('balade-part-date-reg').value || null;
-          const regle = !!methode_paiement;
-          if (!prenom) { toast('Le prénom est requis', 'err'); return; }
-          const data = { balade_id: baladeId, prenom, equide_id, note, montant, methode_paiement, date_reglement, regle };
-          if (id) {
-            await dbUpd('balade_participants', { prenom, equide_id, note, montant, methode_paiement, date_reglement, regle }, [{ col: 'id', op: 'eq', val: id }]);
-            const idx = C_balades_parts.findIndex(x => x.id === id);
-            if (idx !== -1) {
-              C_balades_parts[idx] = { ...C_balades_parts[idx], prenom, equide_id, note, montant, methode_paiement, date_reglement, regle };
-              if (equide_id) C_balades_parts[idx].equides = { nom: C.chv.find(c => c.id === equide_id)?.nom || '?' };
-              else C_balades_parts[idx].equides = null;
-            }
-            toast('Participant modifié', 'ok');
-          } else {
-            const r = await dbIns('balade_participants', data);
-            if (r.data?.[0]) {
-              const newPart = r.data[0];
-              if (equide_id) newPart.equides = { nom: C.chv.find(c => c.id === equide_id)?.nom || '?' };
-              C_balades_parts.push(newPart);
-            }
-            toast('Participant ajouté', 'ok');
-          }
-          closeMo('mo-balade-part');
-          renderBaladesAdmin();
-        }
-
-        async function delBaladePart(id, baladeId) {
-          await dbDel('balade_participants', [{ col: 'id', op: 'eq', val: id }]);
-          C_balades_parts = C_balades_parts.filter(p => p.id !== id);
-          toast('Supprimé', 'ok');
-          renderBaladesAdmin();
-        }
 
         // ── Screenshot tickets ──
         let _ticketScreenshotB64 = null;
