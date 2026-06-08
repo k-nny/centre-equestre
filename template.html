@@ -3801,10 +3801,10 @@
                 // 5. On reformate en "HH:MM" (en ajoutant un '0' devant si nécessaire)
                 const h = `${String(heures).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 
+                console.log('Filtrage séance', s.id, 'heure : ', h, 'now : ', nowTime);
+                if (!h) return true; // si pas d'heure définie, on garde (cours ponctuel sans heure)
+                return h >= nowTime;
               }
-              console.log('Filtrage séance', s.id, 'heure : ', h, 'now : ', nowTime);
-              if (!h) return true; // si pas d'heure définie, on garde (cours ponctuel sans heure)
-              return h >= nowTime;
             });
           }
           let affs = [];
