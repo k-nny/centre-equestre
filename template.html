@@ -3590,7 +3590,6 @@
           <div style="font-weight:700;font-size:14px;${done ? 'text-decoration:line-through;color:var(--muted)' : ''}">${t.titre}</div>
           ${t.description ? `<div style="font-size:12px;color:var(--muted);margin-top:2px">${t.description}</div>` : ''}
         </div>
-        ${done ? `<span class="b bg" style="font-size:11px">✅ Fait${comp.completee_par ? ' par ' + comp.completee_par : ''}</span>` : '<span class="b br" style="font-size:11px">⏳ À faire</span>'}
       </div>
     </div>`;
           }).join('');
