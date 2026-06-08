@@ -3783,7 +3783,7 @@
           if (!(isAdmin || isMarine) && date === todayStr) {
             seances = seances.filter(s => {
               const h = (s.groupes?.heure || s.heure || '').slice(0, 5) + 30; // on ajoute 30 min pour laisser une marge après le début du cours  
-              console.log('Filtrage séance', s.id, 'heure : ', h, 'now : ', nowTime);
+              console.warn('Filtrage séance', s.id, 'heure : ', h, 'now : ', nowTime);
               if (!h) return true; // si pas d'heure définie, on garde (cours ponctuel sans heure)
               return h >= nowTime;
             });
