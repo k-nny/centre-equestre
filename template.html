@@ -3783,7 +3783,8 @@
           // Filtrer les séances passées si c'est aujourd'hui (vue client)
           if (!(isAdmin || isMarine) && date === todayStr) {
             seances = seances.filter(s => {
-              const h = (s.groupes?.heure || s.heure || '').slice(0, 5);
+              const h = (s.groupes?.heure || s.heure || '').slice(0, 5) + 30; // on ajoute 30 min pour laisser une marge après le début du cours  
+              console.log('Filtrage séance', s.id, 'heure : ', h, 'now : ', nowTime);
               if (!h) return true; // si pas d'heure définie, on garde (cours ponctuel sans heure)
               return h >= nowTime;
             });
@@ -5767,7 +5768,6 @@
           }).join('');
           txt.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px">
     <div style="font-size:20px">🏕 <strong>Stage${stagesAvenir.length > 1 ? 's' : ''} à venir</strong> — Pour plus d'informations, renseignez-vous auprès de <strong>${contact.prenom} au 07.81.31.29.27</strong>.</div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:stretch">${liste}</div>
   </div>`;
           banner.style.display = 'flex';
         }
