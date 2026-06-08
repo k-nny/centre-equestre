@@ -3782,7 +3782,26 @@
           // Filtrer les séances passées si c'est aujourd'hui (vue client)
           if (!(isAdmin || isMarine) && date === todayStr) {
             seances = seances.filter(s => {
-              const h = (s.groupes?.heure || s.heure || '').slice(0, 5) + 30; // on ajoute 30 min pour laisser une marge après le début du cours  
+              // 1. On récupère l'heure sous forme de chaîne (ex: "14:10")
+              const heureStr = (s.groupes?.heure || s.heure || '').slice(0, 5);
+
+              if (heureStr) {
+                // 2. On sépare les heures et les minutes et on les transforme en nombres
+                let [heures, minutes] = heureStr.split(':').map(Number);
+
+                // 3. On ajoute les 30 minutes de marge
+                minutes += 30;
+
+                // 4. On gère le dépassement si les minutes dépassent 59
+                if (minutes >= 60) {
+                  minutes -= 60;
+                  heures = (heures + 1) % 24; // % 24 permet de repasser à 00h après 23h
+                }
+
+                // 5. On reformate en "HH:MM" (en ajoutant un '0' devant si nécessaire)
+                const h = `${String(heures).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+              }
               console.log('Filtrage séance', s.id, 'heure : ', h, 'now : ', nowTime);
               if (!h) return true; // si pas d'heure définie, on garde (cours ponctuel sans heure)
               return h >= nowTime;
