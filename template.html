@@ -3447,10 +3447,8 @@
 
         function enableTravaux() {
           isTravaux = true; isAdmin = false; isKenny = false; isMarine = false; isBalade = false;
-          sessionToken = localStorage.getItem('ce_site_token') || sessionToken;
           localStorage.setItem('ce_travaux_active', '1');
           // Accès restreint : uniquement l'onglet Travaux — pas de bandeau admin, pas d'autre nav
-          document.getElementById('admin-banner').classList.remove('show');
           document.getElementById('atbtn').textContent = '🔒 Quitter mode travaux';
           document.getElementById('atbtn').classList.add('on');
           document.getElementById('anav').style.display = 'block';
