@@ -3464,12 +3464,12 @@
         function logoutTravaux() {
           isTravaux = false; sessionToken = '';
           localStorage.removeItem('ce_travaux_active');
+          document.getElementById('mc').classList.remove('wb');
+          document.getElementById('mc').style.paddingTop = '';
+          document.getElementById('anav').style.display = 'none';
           document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
-          document.querySelectorAll('.sb-nav .ni').forEach(btn => btn.style.display = '');
-          document.getElementById('app').style.display = 'none';
-          document.getElementById('site-login').style.display = 'flex';
-          document.getElementById('site-pw-in').value = '';
-          localStorage.setItem('ce_last_page', 'vue');
+          document.getElementById('atbtn').classList.remove('on');
+          renderCavaliers(); go('vue'); toast('Déconnecté', 'ok');
         }
 
         function enableKenny(targetPage = 'dash') {
