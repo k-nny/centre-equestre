@@ -3670,10 +3670,16 @@
             el.innerHTML = '<div class="ls">Aucune tâche pour aujourd\'hui</div>';
             return;
           }
-          el.innerHTML = taches.sort((a, b) => a.ordre - b.ordre).map(t => {
+          const sorted = [...taches].sort((a, b) => {
+            const doneA = !!C.tachesComp.find(c => c.tache_id === a.id)?.completee;
+            const doneB = !!C.tachesComp.find(c => c.tache_id === b.id)?.completee;
+            if (doneA !== doneB) return doneA ? 1 : -1;
+            return a.ordre - b.ordre;
+          });
+          el.innerHTML = sorted.map(t => {
             const comp = C.tachesComp.find(c => c.tache_id === t.id);
             const done = !!comp?.completee;
-            return `<div class="tc" style="margin-bottom:10px">
+            return `<div class="tc" style="margin-bottom:10px;${done ? 'opacity:.6' : ''}">
       <div style="padding:14px 18px;display:flex;align-items:center;gap:14px">
         <label class="tog" style="flex-shrink:0">
           <input type="checkbox" ${done ? 'checked' : ''}
@@ -3690,22 +3696,28 @@
         }
 
         async function toggleTache(tacheId, date, checked) {
-          const existing = C.tachesComp.find(c => c.tache_id === tacheId && c.date === date);
-          if (existing) {
-            await dbUpd('taches_completions', {
-              completee: checked,
-              completed_at: checked ? new Date().toISOString() : null
-            }, [{ col: 'id', op: 'eq', val: existing.id }]);
-            existing.completee = checked;
-          } else {
-            const r = await dbIns('taches_completions', {
-              tache_id: tacheId, date, completee: checked,
-              completed_at: checked ? new Date().toISOString() : null
-            });
-            if (r.data?.[0]) C.tachesComp.push(r.data[0]);
+          try {
+            const existing = C.tachesComp.find(c => c.tache_id === tacheId && c.date === date);
+            if (existing) {
+              await dbUpd('taches_completions', {
+                completee: checked,
+                completed_at: checked ? new Date().toISOString() : null
+              }, [{ col: 'id', op: 'eq', val: existing.id }]);
+              existing.completee = checked;
+            } else {
+              const r = await dbIns('taches_completions', {
+                tache_id: tacheId, date, completee: checked,
+                completed_at: checked ? new Date().toISOString() : null
+              });
+              if (r.data?.[0]) C.tachesComp.push(r.data[0]);
+            }
+            toast(checked ? 'Tâche complétée ✅' : 'Tâche décochée', 'ok');
+          } catch (e) {
+            toast('Erreur : ' + e.message, 'err');
           }
-          toast(checked ? 'Tâche complétée ✅' : 'Tâche décochée', 'ok');
-          loadTachesPub(); // refresh la vue
+          // Rafraîchit la vue actuellement affichée (publique ou admin) sans planter
+          if (document.getElementById('page-taches-pub')?.classList.contains('active')) await loadTachesPub();
+          if (document.getElementById('page-taches')?.classList.contains('active')) await renderTachesAdmin();
         }
         let _tachesFreqFilter = 'all';
 
@@ -3726,7 +3738,12 @@
           const el = document.getElementById('taches-admin-content');
           el.innerHTML = `<div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">
     Tâches du ${fmtDate(date)} — ${taches.filter(t => C.tachesComp.find(c => c.tache_id === t.id && c.completee)).length}/${taches.length} complétées
-  </div>` + (taches.length ? taches.sort((a, b) => a.ordre - b.ordre).map(t => {
+  </div>` + (taches.length ? [...taches].sort((a, b) => {
+            const doneA = !!C.tachesComp.find(c => c.tache_id === a.id)?.completee;
+            const doneB = !!C.tachesComp.find(c => c.tache_id === b.id)?.completee;
+            if (doneA !== doneB) return doneA ? 1 : -1;
+            return a.ordre - b.ordre;
+          }).map(t => {
             const comp = C.tachesComp.find(c => c.tache_id === t.id);
             const done = !!comp?.completee;
             const freq = { quotidien: '🔁 Quotidien', hebdo: '📅 ' + JOURS[t.jour_semaine], ponctuel: '1️⃣ Ponctuel' }[t.frequence] || '';

@@ -266,9 +266,33 @@ export default async function handler(req, res) {
         const isAdmin = verifyToken(body.token, ADMIN_PWD);
         const ismarine = verifyToken(body.token, MARINE_PWD);
         const isDev = verifyToken(body.token, DEV_PASSWORD);
+        const isTravaux = verifyToken(body.token, TRAVAUX_PASSWORD);
 
-        if (!isAdmin && !isDev && !ismarine) {
+        // Exception : cocher/décocher une tâche du jour est accessible SANS connexion
+        // (checklist affichée publiquement), mais limité à l'insert/update des seuls
+        // champs completee / completed_at (+ tache_id / date à la création).
+        const TACHES_COMP_PUBLIC_FIELDS = ['completee', 'completed_at', 'tache_id', 'date'];
+        const isTachesCompletionPublic =
+          body.table === 'taches_completions' &&
+          ['insert', 'update'].includes(body.method) &&
+          Object.keys(body.data || {}).every(k => TACHES_COMP_PUBLIC_FIELDS.includes(k));
+
+        if (!isAdmin && !isDev && !ismarine && !isTravaux && !isTachesCompletionPublic) {
           return res.status(403).json({ error: 'Session invalide ou expirée' });
+        }
+        // Le rôle Travaux (seul, sans admin/dev) : lecture + "marquer fait" uniquement
+        if (isTravaux && !isAdmin && !isDev) {
+          if (body.table !== 'travaux') {
+            return res.status(403).json({ error: 'Accès restreint au module Travaux' });
+          }
+          if (body.method !== 'update') {
+            return res.status(403).json({ error: 'Le rôle Travaux ne peut que consulter et marquer les travaux comme faits' });
+          }
+          const allowedFields = ['fait', 'completed_at', 'fait_par'];
+          const dataKeys = Object.keys(body.data || {});
+          if (dataKeys.some(k => !allowedFields.includes(k))) {
+            return res.status(403).json({ error: 'Le rôle Travaux ne peut pas modifier ces champs' });
+          }
         }
       }
 
