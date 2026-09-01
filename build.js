@@ -21,11 +21,14 @@ function build() {
   console.log('   →', dst);
   console.log('');
   console.log('   Variables requises dans Vercel → Settings → Environment Variables :');
-  console.log('   • SUPABASE_URL');
-  console.log('   • SUPABASE_ANON');
+  console.log('   • SUPA_URL');
+  console.log('   • SUPA_ANON');
   console.log('   • APP_KEY');
-  console.log('   • ADMIN_PASSWORD');
-  console.log('   • MARINE_PASSWORD');
+  console.log('   • ADMIN_PWD');
+  console.log('   • MARINE_PWD');
+  console.log('   • DEV_PASSWORD');
+  console.log('   • BALADE_PASSWORD');
+  console.log('   • TRAVAUX_PASSWORD');
 }
 
 build();

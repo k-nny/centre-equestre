@@ -1580,6 +1580,7 @@
             <button class="ni" id="ni-tickets" onclick="go('tickets')"> <span class="ic">📝</span> Retours</button>
             <button class="ni" data-p="stages" onclick="go('stages')"><span class="ic">🏕</span>Stages</button>
             <button class="ni" data-p="taches" onclick="go('taches')"> <span class="ic">✅</span> Tâches</button>
+            <button class="ni" data-p="travaux" onclick="go('travaux')"> <span class="ic">🔧</span> Travaux</button>
             <button class="ni" data-p="dash" onclick="go('dash')"><span class="ic">⬛</span>Tableau de bord</button>
           </div>
         </div>
@@ -1671,6 +1672,26 @@
             </div>
             <div id="taches-liste-content"></div>
           </div>
+        </div>
+
+        <!-- TRAVAUX -->
+        <div class="page" id="page-travaux">
+          <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div>
+              <h2>🔧 Travaux</h2>
+              <p class="no-upper">Liste des travaux à réaliser.</p>
+            </div>
+            <button class="btn btn-p" id="travaux-new-btn" onclick="newTravail()">+ Nouveau travail</button>
+          </div>
+          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+            <div class="seg">
+              <button onclick="setTravauxPrioFilter('all')" class="on" id="tvf-all">Toutes</button>
+              <button onclick="setTravauxPrioFilter('haute')" id="tvf-haute">Haute 🔥</button>
+              <button onclick="setTravauxPrioFilter('normale')" id="tvf-normale">Normale</button>
+              <button onclick="setTravauxPrioFilter('basse')" id="tvf-basse">Basse</button>
+            </div>
+          </div>
+          <div id="travaux-content"></div>
         </div>
 
         <!-- DASHBOARD -->
@@ -1802,6 +1823,29 @@
             <div class="mf">
               <button class="btn btn-g" onclick="closeMo('mo-tache')">Annuler</button>
               <button class="btn btn-p" onclick="saveTache()">Enregistrer</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Travail -->
+        <div class="mo" id="mo-travail">
+          <div class="md" style="max-width:480px">
+            <h3 id="mo-travail-t">Nouveau travail</h3>
+            <input type="hidden" id="travail-id">
+            <div class="fg"><label>Titre *</label><input type="text" id="travail-titre"
+                placeholder="Ex : Réparer la clôture du paddock"></div>
+            <div class="fg"><label>Description</label><textarea id="travail-desc" rows="3"
+                placeholder="Détails optionnels…"></textarea></div>
+            <div class="fg"><label>Priorité</label>
+              <select id="travail-prio">
+                <option value="basse">Basse</option>
+                <option value="normale" selected>Normale</option>
+                <option value="haute">Haute 🔥</option>
+              </select>
+            </div>
+            <div class="mf">
+              <button class="btn btn-g" onclick="closeMo('mo-travail')">Annuler</button>
+              <button class="btn btn-p" onclick="saveTravail()">Enregistrer</button>
             </div>
           </div>
         </div>
@@ -2935,8 +2979,8 @@
         const statutsActifsADate = (date) => C.statuts.filter(s => statutActifADate(s, date));
         const SBDG = { attache: 'bo', veto: 'br', marechal: 'bp', repos: 'b' };
 
-        let isAdmin = false, isKenny = false, isMarine = false, isBalade = false, sessionToken = '', histTab = 'couples';
-        let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [], taches: [], tachesComp: [] };
+        let isAdmin = false, isKenny = false, isMarine = false, isBalade = false, isTravaux = false, sessionToken = '', histTab = 'couples';
+        let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [], taches: [], tachesComp: [], travaux: [] };
         // ── Historique d'annulation (undo) ──
         let _undoStack = []; // [{ label, fn }]
         const MAX_UNDO = 15;
@@ -3062,6 +3106,7 @@
               localStorage.setItem('ce_pw_hash', ph);
               // Stocker le rôle pour la reconnexion auto
               if (j.role === 'balade') localStorage.setItem('ce_balade_active', '1');
+              if (j.role === 'travaux') localStorage.setItem('ce_travaux_active', '1');
               document.getElementById('site-login').style.display = 'none';
               await initApp(j.token);
             } else {
@@ -3092,7 +3137,7 @@
             // (flag posé par enableAdmin, effacé par logoutAdmin — indépendant du token site)
             // Restaurer la dernière page visitée
             const lastPage = localStorage.getItem('ce_last_page') || 'vue';
-            const adminPages = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets'];
+            const adminPages = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'travaux'];
             if (localStorage.getItem('ce_admin_active') === '1') {
               sessionToken = siteToken;
               _lastRetourCount = -1;
@@ -3112,6 +3157,11 @@
             }
             if (localStorage.getItem('ce_balade_active') === '1') {
               enableBalade();
+              return;
+            }
+            if (localStorage.getItem('ce_travaux_active') === '1') {
+              sessionToken = siteToken;
+              enableTravaux();
               return;
             }
             go(adminPages.includes(lastPage) ? 'vue' : lastPage);
@@ -3271,6 +3321,7 @@
           if (isMarine) { logoutMarine(); return; }
           if (isKenny) { logoutKenny(); return; }
           if (isBalade) { logoutBalade(); return; }
+          if (isTravaux) { logoutTravaux(); return; }
           document.getElementById('pw-in').value = '';
           document.getElementById('pw-err').style.display = 'none';
           openMo('mo-pw');
@@ -3285,11 +3336,12 @@
             if (j && j.ok) {
               sessionToken = j.token;
               const role = (j.role || '').toLowerCase();
-              isKenny = false; isMarine = false; isBalade = false; isAdmin = false;
+              isKenny = false; isMarine = false; isBalade = false; isAdmin = false; isTravaux = false;
               localStorage.removeItem('ce_admin_active');
               localStorage.removeItem('ce_Kenny_active');
               localStorage.removeItem('ce_marine_active');
               localStorage.removeItem('ce_balade_active');
+              localStorage.removeItem('ce_travaux_active');
               closeMo('mo-pw');
               if (role === 'dev' || role === 'kenny') {
                 enableKenny();
@@ -3297,6 +3349,8 @@
                 enableMarine();
               } else if (role === 'balade') {
                 enableBalade();
+              } else if (role === 'travaux') {
+                enableTravaux();
               } else {
                 enableAdmin();
               }
@@ -3387,6 +3441,35 @@
           localStorage.setItem('ce_last_page', 'vue');
         }
 
+        function enableTravaux() {
+          isTravaux = true; isAdmin = false; isKenny = false; isMarine = false; isBalade = false;
+          sessionToken = localStorage.getItem('ce_site_token') || sessionToken;
+          localStorage.setItem('ce_travaux_active', '1');
+          // Accès restreint : uniquement l'onglet Travaux — pas de bandeau admin, pas d'autre nav
+          document.getElementById('admin-banner').classList.remove('show');
+          document.getElementById('atbtn').textContent = '🔒 Quitter mode travaux';
+          document.getElementById('atbtn').classList.add('on');
+          document.getElementById('anav').style.display = 'block';
+          document.querySelectorAll('.sb-nav .ni').forEach(btn => {
+            btn.style.display = btn.dataset.p === 'travaux' ? '' : 'none';
+          });
+          updateBannerPadding();
+          go('travaux');
+        }
+
+        function logoutTravaux() {
+          isTravaux = false; sessionToken = '';
+          localStorage.removeItem('ce_travaux_active');
+          localStorage.removeItem('ce_site_token');
+          localStorage.removeItem('ce_pw_hash');
+          document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
+          document.querySelectorAll('.sb-nav .ni').forEach(btn => btn.style.display = '');
+          document.getElementById('app').style.display = 'none';
+          document.getElementById('site-login').style.display = 'flex';
+          document.getElementById('site-pw-in').value = '';
+          localStorage.setItem('ce_last_page', 'vue');
+        }
+
         function enableKenny(targetPage = 'dash') {
           isKenny = true; isAdmin = false; isMarine = false; isBalade = false;
           sessionToken = localStorage.getItem('ce_site_token') || '';
@@ -3416,13 +3499,15 @@
 
         // ── Nav ──
         function go(p) {
-          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches', 'balades'];
+          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches', 'balades', 'travaux'];
           // Bloquer les pages admin si pas de rôle élevé
-          if (!isAdmin && !isKenny && !isMarine && adm.includes(p)) return;
+          if (!isAdmin && !isKenny && !isMarine && !isTravaux && adm.includes(p)) return;
           // Marine : seulement séances (+ vue est déjà publique)
           if (isMarine && !isAdmin && !isKenny && !['seances'].includes(p) && adm.includes(p)) return;
           // Balade : seulement balades-pub
           if (isBalade && p !== 'balades-pub' && p != 'taches-pub') return;
+          // Travaux : uniquement la page travaux, aucune autre
+          if (isTravaux && !isAdmin && !isKenny && p !== 'travaux') return;
           document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
           document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
           document.getElementById('page-' + p)?.classList.add('active');
@@ -3449,6 +3534,7 @@
             renderTachesAdmin();
           }
           if (p === 'params') renderParamsPage();
+          if (p === 'travaux') loadTravauxPage();
           if (window.innerWidth <= 768) { document.getElementById('sb').classList.remove('open'); document.getElementById('sbo').classList.remove('open'); }
         }
         function toggleSB() { document.getElementById('sb').classList.toggle('open'); document.getElementById('sbo').classList.toggle('open'); }
@@ -3728,6 +3814,117 @@
           toast('Supprimée', 'ok');
           await loadTaches();
           renderTachesAdmin();
+        }
+
+        // ══════════════════════════════════════════════════
+        //  TRAVAUX
+        // ══════════════════════════════════════════════════
+        const TRAVAUX_PRIO_ORDER = { haute: 0, normale: 1, basse: 2 };
+        const TRAVAUX_PRIO_LABEL = { haute: 'Haute 🔥', normale: 'Normale', basse: 'Basse' };
+        const TRAVAUX_PRIO_BADGE = { haute: 'bo', normale: 'bgo', basse: 'b' };
+        let _travauxPrioFilter = 'all';
+
+        async function loadTravaux() {
+          C.travaux = await dbSel('travaux', { order: [{ col: 'created_at', asc: false }] });
+        }
+
+        async function loadTravauxPage() {
+          const el = document.getElementById('travaux-content');
+          if (el) el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
+          const canManage = isAdmin || isKenny;
+          const newBtn = document.getElementById('travaux-new-btn');
+          if (newBtn) newBtn.style.display = canManage ? '' : 'none';
+          await loadTravaux();
+          renderTravaux();
+        }
+
+        function setTravauxPrioFilter(f) {
+          _travauxPrioFilter = f;
+          ['all', 'haute', 'normale', 'basse'].forEach(x => {
+            document.getElementById('tvf-' + x)?.classList.toggle('on', x === f);
+          });
+          renderTravaux();
+        }
+
+        function renderTravaux() {
+          const el = document.getElementById('travaux-content'); if (!el) return;
+          const canManage = isAdmin || isKenny;
+          const items = C.travaux.filter(t => _travauxPrioFilter === 'all' || t.priorite === _travauxPrioFilter);
+          if (!items.length) { el.innerHTML = '<div class="ls">Aucun travail pour le moment</div>'; return; }
+          // Non faits d'abord (triés par priorité), puis faits en bas (triés par priorité aussi)
+          const sorted = [...items].sort((a, b) => {
+            if (!!a.fait !== !!b.fait) return a.fait ? 1 : -1;
+            return (TRAVAUX_PRIO_ORDER[a.priorite] ?? 1) - (TRAVAUX_PRIO_ORDER[b.priorite] ?? 1);
+          });
+          el.innerHTML = sorted.map(t => `<div class="tc" style="margin-bottom:10px;${t.fait ? 'opacity:.6' : ''}">
+      <div style="padding:14px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <label class="tog" style="flex-shrink:0">
+          <input type="checkbox" ${t.fait ? 'checked' : ''}
+            onchange="toggleTravail('${t.id}',this.checked)">
+          <span class="ts"></span>
+        </label>
+        <div style="flex:1;min-width:160px">
+          <div style="font-weight:700;font-size:14px;${t.fait ? 'text-decoration:line-through;color:var(--muted)' : ''}">${t.titre}</div>
+          ${t.description ? `<div style="font-size:12px;color:var(--muted);margin-top:2px">${t.description}</div>` : ''}
+        </div>
+        <span class="b ${TRAVAUX_PRIO_BADGE[t.priorite] || 'bgo'}" style="font-size:10px">${TRAVAUX_PRIO_LABEL[t.priorite] || t.priorite}</span>
+        ${t.fait ? `<span class="b bg" style="font-size:10px">✅${t.fait_par ? ' ' + t.fait_par : ''}</span>` : ''}
+        ${canManage ? `<button class="btn btn-g sm" onclick="editTravail('${t.id}')">✏️</button>
+        <button class="btn btn-d sm" onclick="delTravail('${t.id}')">🗑</button>` : ''}
+      </div>
+    </div>`).join('');
+        }
+
+        async function toggleTravail(id, checked) {
+          const auteur = isTravaux ? 'Travaux' : isKenny ? 'Kenny' : isAdmin ? 'Admin' : '';
+          const data = { fait: checked, completed_at: checked ? new Date().toISOString() : null, fait_par: checked ? auteur : null };
+          await dbUpd('travaux', data, [{ col: 'id', op: 'eq', val: id }]);
+          const t = C.travaux.find(x => x.id === id);
+          if (t) Object.assign(t, data);
+          toast(checked ? 'Marqué comme fait ✅' : 'Travail réouvert', 'ok');
+          renderTravaux();
+        }
+
+        function newTravail() {
+          document.getElementById('mo-travail-t').textContent = 'Nouveau travail';
+          ['travail-id', 'travail-titre', 'travail-desc'].forEach(i => document.getElementById(i).value = '');
+          document.getElementById('travail-prio').value = 'normale';
+          openMo('mo-travail');
+        }
+
+        function editTravail(id) {
+          const t = C.travaux.find(x => x.id === id); if (!t) return;
+          document.getElementById('mo-travail-t').textContent = 'Modifier le travail';
+          document.getElementById('travail-id').value = id;
+          document.getElementById('travail-titre').value = t.titre;
+          document.getElementById('travail-desc').value = t.description || '';
+          document.getElementById('travail-prio').value = t.priorite || 'normale';
+          openMo('mo-travail');
+        }
+
+        async function saveTravail() {
+          const id = v('travail-id');
+          const titre = v('travail-titre').trim();
+          if (!titre) { toast('Le titre est requis', 'err'); return; }
+          const data = {
+            titre,
+            description: v('travail-desc') || null,
+            priorite: v('travail-prio') || 'normale',
+          };
+          if (id) await dbUpd('travaux', data, [{ col: 'id', op: 'eq', val: id }]);
+          else await dbIns('travaux', { ...data, fait: false });
+          toast(id ? 'Travail modifié' : 'Travail créé', 'ok');
+          closeMo('mo-travail');
+          await loadTravaux();
+          renderTravaux();
+        }
+
+        async function delTravail(id) {
+          if (!confirm('Supprimer ce travail ?')) return;
+          await dbDel('travaux', [{ col: 'id', op: 'eq', val: id }]);
+          toast('Supprimé', 'ok');
+          await loadTravaux();
+          renderTravaux();
         }
 
         // ══════════════════════════════════════════════════

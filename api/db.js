@@ -28,6 +28,7 @@ export default async function handler(req, res) {
   const MARINE_PWD = process.env.MARINE_PASSWORD || '';
   const DEV_PASSWORD = process.env.DEV_PASSWORD || '';
   const BALADE_PASSWORD = process.env.BALADE_PASSWORD || '';
+  const TRAVAUX_PASSWORD = process.env.TRAVAUX_PASSWORD || '';
 
   // [DANS LE HANDLER, APRES LES CONST SUPA_URL, etc.]
 
@@ -41,6 +42,7 @@ export default async function handler(req, res) {
     if (password === MARINE_PWD) return res.json({ ok: true, token: makeToken(MARINE_PWD), role: 'marine' });
     if (password === DEV_PASSWORD) return res.json({ ok: true, token: makeToken(DEV_PASSWORD), role: 'dev' });
     if (BALADE_PASSWORD && password === BALADE_PASSWORD) return res.json({ ok: true, token: makeToken(BALADE_PASSWORD), role: 'balade' });
+    if (TRAVAUX_PASSWORD && password === TRAVAUX_PASSWORD) return res.json({ ok: true, token: makeToken(TRAVAUX_PASSWORD), role: 'travaux' });
     return res.status(401).json({ error: 'Invalide' });
   }
 
