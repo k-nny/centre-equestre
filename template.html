@@ -3104,6 +3104,14 @@
               // Stocker le hash du mot de passe pour détecter un changement ultérieur
               const ph = fnv32Client(pw);
               localStorage.setItem('ce_pw_hash', ph);
+              // Nettoyer les anciens indicateurs de rôle avant d'activer le nouveau
+              // (sinon un rôle restreint testé précédemment sur ce navigateur
+              // peut rester actif et bloquer l'accès du rôle suivant)
+              localStorage.removeItem('ce_admin_active');
+              localStorage.removeItem('ce_Kenny_active');
+              localStorage.removeItem('ce_marine_active');
+              localStorage.removeItem('ce_balade_active');
+              localStorage.removeItem('ce_travaux_active');
               // Stocker le rôle pour la reconnexion auto
               if (j.role === 'balade') localStorage.setItem('ce_balade_active', '1');
               if (j.role === 'travaux') localStorage.setItem('ce_travaux_active', '1');
