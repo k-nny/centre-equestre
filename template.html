@@ -3447,6 +3447,7 @@
 
         function enableTravaux() {
           isTravaux = true; isAdmin = false; isKenny = false; isMarine = false; isBalade = false;
+          sessionToken = localStorage.getItem('ce_site_token') || '';
           localStorage.setItem('ce_travaux_active', '1');
           // Accès restreint : uniquement l'onglet Travaux — pas de bandeau admin, pas d'autre nav
           document.getElementById('atbtn').textContent = '🔒 Quitter mode travaux';
@@ -3462,12 +3463,13 @@
         function logoutTravaux() {
           isTravaux = false; sessionToken = '';
           localStorage.removeItem('ce_travaux_active');
-          document.getElementById('mc').classList.remove('wb');
-          document.getElementById('mc').style.paddingTop = '';
-          document.getElementById('anav').style.display = 'none';
+          localStorage.removeItem('ce_site_token');
+          localStorage.removeItem('ce_pw_hash');
           document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
-          document.getElementById('atbtn').classList.remove('on');
-          renderCavaliers(); go('vue'); toast('Déconnecté', 'ok');
+          document.getElementById('app').style.display = 'none';
+          document.getElementById('site-login').style.display = 'flex';
+          document.getElementById('site-pw-in').value = '';
+          localStorage.setItem('ce_last_page', 'vue');
         }
 
         function enableKenny(targetPage = 'dash') {
