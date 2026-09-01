@@ -4115,10 +4115,20 @@
         function getCavGroups(cavId) { return C.cavGrp.filter(x => x.cavalier_id === cavId).map(x => x.groupe_id); }
         function getGrpCavs(grpId) { return C.cavGrp.filter(x => x.groupe_id === grpId).map(x => x.cavalier_id); }
 
+        // Ordre des jours pour le tri : Lundi → Dimanche (au lieu de l'ordre brut 0=Dimanche…6=Samedi)
+        const ORDRE_JOUR = [7, 1, 2, 3, 4, 5, 6];
+        function sortGroupesJourHeure(list) {
+          return [...list].sort((a, b) => {
+            const dj = (ORDRE_JOUR[a.jour] ?? 99) - (ORDRE_JOUR[b.jour] ?? 99);
+            if (dj !== 0) return dj;
+            return (a.heure || '').localeCompare(b.heure || '');
+          });
+        }
+
         function renderGroupes() {
           const t = document.getElementById('tb-grp'); if (!t) return;
           if (!C.grp.length) { t.innerHTML = '<tr class="er"><td colspan="8">Aucun groupe</td></tr>'; return; }
-          t.innerHTML = C.grp.map(g => {
+          t.innerHTML = sortGroupesJourHeure(C.grp).map(g => {
             const mon = C.mon.find(m => m.id === g.moniteur_id);
             const elmon = C.mon.find(m => m.id === g.eleve_moniteur_id);
             const nb = getGrpCavs(g.id).length;
@@ -4137,7 +4147,7 @@
         function buildCavGrid(grpId, isNew) {
           const grid = document.getElementById('grp-cav-grid'); if (!grid) return;
           const assigned = grpId ? getGrpCavs(grpId) : [];
-          const cavs = [...C.cav].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr'));
+          const cavs = [...C.cav].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr'));
           if (!cavs.length) { grid.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:4px">Aucun cavalier disponible</div>'; return; }
           grid.innerHTML = cavs.map(c => `
   <label class="cav-check">
@@ -5615,7 +5625,7 @@
         function renderCavaliers() {
           const t = document.getElementById('tb-cav'); if (!t) return;
           if (!C.cav.length) { t.innerHTML = '<tr class="er"><td colspan="4">Aucun cavalier</td></tr>'; return; }
-          t.innerHTML = C.cav.map(c => {
+          t.innerHTML = [...C.cav].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(c => {
             const grpIds = getCavGroups(c.id);
             const grpsHtml = grpIds.length
               ? grpIds.map(gid => { const g = C.grp.find(x => x.id === gid); if (!g) return ''; const c = g.couleur || '#c9a84c'; const isLight = isLightColor(c); return `<span style="display:inline-block;margin:2px 3px 2px 0;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${isLight ? '#3a3028' : '#fff'};text-transform:uppercase;letter-spacing:.3px">${g.nom}</span>`; }).join('')
@@ -5635,10 +5645,10 @@
           const grid = document.getElementById('cav-grp-grid'); if (!grid) return;
           const assigned = cavId ? getCavGroups(cavId) : [];
           if (!C.grp.length) { grid.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:4px">Aucun groupe disponible</div>'; return; }
-          grid.innerHTML = C.grp.map(g => `
+          grid.innerHTML = sortGroupesJourHeure(C.grp).map(g => `
     <label class="cav-check">
       <input type="checkbox" value="${g.id}" ${assigned.includes(g.id) ? 'checked' : ''}>
-      <span style="display:flex;align-items:center"><span class="grp-dot" style="background:${g.couleur || '#c9a84c'}"></span>${g.nom}</span>
+      <span style="display:flex;align-items:center"><span class="grp-dot" style="background:${g.couleur || '#c9a84c'}"></span>${g.nom} <span style="color:var(--muted);font-size:11px;margin-left:4px">(${JOURS[g.jour] || '?'} ${(g.heure || '').slice(0, 5)})</span></span>
     </label>`).join('');
         }
         function newCav() {
