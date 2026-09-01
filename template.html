@@ -3103,7 +3103,6 @@
               localStorage.setItem('ce_site_token', j.token);
               // Stocker le hash du mot de passe pour détecter un changement ultérieur
               const ph = fnv32Client(pw);
-              localStorage.setItem('ce_pw_hash', ph);
               // Nettoyer les anciens indicateurs de rôle avant d'activer le nouveau
               // (sinon un rôle restreint testé précédemment sur ce navigateur
               // peut rester actif et bloquer l'accès du rôle suivant)
