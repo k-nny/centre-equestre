@@ -245,6 +245,14 @@
       text-align: center;
     }
 
+    /* Rôle Travaux : n'affiche que l'onglet Travaux dans toute la sidebar.
+       Une seule classe sur <body>, retirée explicitement par CHAQUE autre
+       fonction enableXXX() — pas d'état individuel par bouton qui pourrait
+       fuiter d'un rôle à l'autre. */
+    body.travaux-only-nav .sb-nav .ni:not([data-p="travaux"]) {
+      display: none !important;
+    }
+
     .sb-bot {
       padding: 10px 8px;
       border-top: 1px solid var(--border);
@@ -2502,11 +2510,15 @@
           <div class="fg"><label>Téléphone <span style="color:var(--muted)">(admin)</span></label><input type="tel"
               id="cav-tel" placeholder="06 95 73 83 71"></div>
           <div class="fg"><label>Fréquence de présence</label>
-            <select id="cav-semaine-type">
+            <select id="cav-semaine-type" onchange="onCavSemaineTypeChange()">
               <option value="toutes">Toutes les semaines</option>
-              <option value="paire">Semaines paires uniquement</option>
-              <option value="impaire">Semaines impaires uniquement</option>
+              <option value="une_sur_deux">1 semaine sur 2</option>
             </select>
+          </div>
+          <div class="fg" id="cav-semaine-ref-fg" style="display:none">
+            <label>Date du 1er cours <span style="color:var(--muted)">(sert de référence pour l'alternance)</span></label>
+            <input type="date" id="cav-semaine-ref">
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">Le cavalier sera présent cette semaine-là, puis une semaine sur deux à partir de cette date.</div>
           </div>
           <div class="fg"><label>Groupes assignés</label>
             <div class="cav-checkgrid" id="cav-grp-grid"></div>
@@ -2959,6 +2971,19 @@
           const p = (prenom || '').toLowerCase();
           const n = (nom || '').toLowerCase();
           return p.includes(q) || n.includes(q) || (p + ' ' + n).includes(q) || (n + ' ' + p).includes(q);
+        }
+
+        // Badge d'affichage pour la fréquence "1 semaine sur 2" — signale si la date de
+        // référence n'est pas encore configurée (notamment pour les anciennes valeurs
+        // 'paire'/'impaire' à reconfigurer suite à la migration).
+        function semaineBadgeInfo(cav) {
+          if (!cav) return null;
+          const legacy = cav.semaine_type === 'paire' || cav.semaine_type === 'impaire';
+          if (!legacy && (!cav.semaine_type || cav.semaine_type === 'toutes')) return null;
+          if (legacy || (cav.semaine_type === 'une_sur_deux' && !cav.semaine_ref_date)) {
+            return { warn: true, text: '⚠️ à configurer' };
+          }
+          return { warn: false, text: '1 sem./2 (dep. ' + fmtDate(cav.semaine_ref_date) + ')' };
         }
 
         // Charge les icônes depuis Supabase
@@ -4379,11 +4404,14 @@
           const assigned = grpId ? getGrpCavs(grpId) : [];
           const cavs = [...C.cav].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr'));
           if (!cavs.length) { grid.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:4px">Aucun cavalier disponible</div>'; return; }
-          grid.innerHTML = cavs.map(c => `
+          grid.innerHTML = cavs.map(c => {
+            const sb = semaineBadgeInfo(c);
+            return `
   <label class="cav-check">
     <input type="checkbox" value="${c.id}" ${assigned.includes(c.id) && !isNew ? 'checked' : ''} onchange="updateCavCount()">
-    <span>${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}${c.semaine_type && c.semaine_type !== 'toutes' ? ' <span style="font-size:10px;color:#2856a0;font-weight:700">(' + (c.semaine_type === 'paire' ? 'S.paires' : 'S.imp.') + ')</span>' : ''}</span>
-  </label>`).join('');
+    <span>${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}${sb ? ` <span style="font-size:10px;color:${sb.warn ? '#b46414' : '#2856a0'};font-weight:700">(${sb.text})</span>` : ''}</span>
+  </label>`;
+          }).join('');
           updateCavCount();
         }
 
@@ -4517,6 +4545,30 @@
         // ══════════════════════════════════════════════════
         //  SÉANCES
         // ══════════════════════════════════════════════════
+        // Retourne le lundi de la semaine contenant la date donnée (format 'YYYY-MM-DD')
+        function lundiDe(dateStr) {
+          const dt = new Date(dateStr + 'T00:00:00');
+          const day = dt.getDay(); // 0=Dimanche…6=Samedi
+          const diff = day === 0 ? -6 : 1 - day;
+          dt.setDate(dt.getDate() + diff);
+          return dt;
+        }
+        // Un cavalier en "1 semaine sur 2" est-il présent la semaine de `date` ?
+        // Calcul purement relatif au nombre de semaines écoulées depuis sa date de
+        // référence (son 1er cours) — insensible aux années à 53 semaines, contrairement
+        // à un calcul basé sur le numéro de semaine ISO qui peut décaler la parité en cours d'année.
+        function cavPresentCetteSemaine(cav, date) {
+          if (!cav || !cav.semaine_type || cav.semaine_type === 'toutes') return true;
+          if (cav.semaine_type === 'une_sur_deux') {
+            if (!cav.semaine_ref_date) return true; // pas encore configuré → ne masque personne
+            const refLundi = lundiDe(cav.semaine_ref_date);
+            const cibleLundi = lundiDe(date);
+            const diffSemaines = Math.round((cibleLundi - refLundi) / (7 * 86400000));
+            return diffSemaines % 2 === 0;
+          }
+          return true;
+        }
+
         async function genSeances() {
           const date = v('sea-date'); if (!date) { toast('Choisissez une date', 'err'); return; }
           const btn = document.getElementById('btn-gen');
@@ -4529,16 +4581,6 @@
             btn.disabled = false; btn.style.opacity = '1'; btn.textContent = '⚡ Générer séances';
             return;
           }
-          // Calcul numéro de semaine ISO
-          const getNumSemISO = (d) => {
-            const dt = new Date(d + 'T00:00:00');
-            dt.setHours(0, 0, 0, 0);
-            dt.setDate(dt.getDate() + 3 - (dt.getDay() + 6) % 7);
-            const w = new Date(dt.getFullYear(), 0, 4);
-            return 1 + Math.round(((dt - w) / 86400000 - 3 + (w.getDay() + 6) % 7) / 7);
-          };
-          const numSemGen = getNumSemISO(date);
-          const estPaireGen = numSemGen % 2 === 0;
 
           const existantes = await dbSel('seances', { filter: [{ col: 'date', op: 'eq', val: date }], select: 'id,groupe_id' });
           let created = 0, updated = 0;
@@ -4554,10 +4596,7 @@
               const cavIds = getGrpCavs(g.id);
               const cavIdsFiltres = cavIds.filter(cid => {
                 const cav = C.cav.find(c => c.id === cid);
-                if (!cav) return true;
-                if (cav.semaine_type === 'paire' && !estPaireGen) return false;
-                if (cav.semaine_type === 'impaire' && estPaireGen) return false;
-                return true;
+                return cavPresentCetteSemaine(cav, date);
               });
               if (cavIdsFiltres.length) {
                 await dbIns('affectations_seance', cavIdsFiltres.map(cid => ({
@@ -4577,10 +4616,7 @@
               const cavIds = getGrpCavs(g.id);
               const cavIdsFiltres = new Set(cavIds.filter(cid => {
                 const cav = C.cav.find(c => c.id === cid);
-                if (!cav) return true;
-                if (cav.semaine_type === 'paire' && !estPaireGen) return false;
-                if (cav.semaine_type === 'impaire' && estPaireGen) return false;
-                return true;
+                return cavPresentCetteSemaine(cav, date);
               }));
 
               // Cavaliers déjà dans la séance (tous types)
@@ -5860,8 +5896,9 @@
             const grpsHtml = grpIds.length
               ? grpIds.map(gid => { const g = C.grp.find(x => x.id === gid); if (!g) return ''; const c = g.couleur || '#c9a84c'; const isLight = isLightColor(c); return `<span style="display:inline-block;margin:2px 3px 2px 0;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${c};color:${isLight ? '#3a3028' : '#fff'};text-transform:uppercase;letter-spacing:.3px">${g.nom}</span>`; }).join('')
               : '<span class="b br">Sans groupe</span>';
-            const semBadge = c.semaine_type && c.semaine_type !== 'toutes'
-              ? `<span class="b bb" style="margin-left:5px;font-size:10px">${c.semaine_type === 'paire' ? '📅 S.paires' : '📅 S.impaires'}</span>`
+            const sbInfo = semaineBadgeInfo(c);
+            const semBadge = sbInfo
+              ? `<span class="b ${sbInfo.warn ? 'bo' : 'bb'}" style="margin-left:5px;font-size:10px">📅 ${sbInfo.text}</span>`
               : '';
             return `<tr>
   <td><strong>${cap(c.prenom || '')}${c.nom ? ' <span style="color:var(--muted);font-size:12px">' + c.nom.toUpperCase() + '</span>' : ''}</strong>${semBadge}</td>
@@ -5881,19 +5918,26 @@
       <span style="display:flex;align-items:center"><span class="grp-dot" style="background:${g.couleur || '#c9a84c'}"></span>${g.nom} <span style="color:var(--muted);font-size:11px;margin-left:4px">(${JOURS[g.jour] || '?'} ${(g.heure || '').slice(0, 5)})</span></span>
     </label>`).join('');
         }
+        function onCavSemaineTypeChange() {
+          const fg = document.getElementById('cav-semaine-ref-fg');
+          if (fg) fg.style.display = v('cav-semaine-type') === 'une_sur_deux' ? 'block' : 'none';
+        }
         function newCav() {
           document.getElementById('mo-cav-t').textContent = 'Nouveau cavalier';
-          ['cav-id', 'cav-prenom', 'cav-nom', 'cav-tel'].forEach(i => document.getElementById(i).value = '');
+          ['cav-id', 'cav-prenom', 'cav-nom', 'cav-tel', 'cav-semaine-ref'].forEach(i => document.getElementById(i).value = '');
           document.getElementById('cav-semaine-type').value = 'toutes';
+          onCavSemaineTypeChange();
           buildCavGrpGrid(null);
           _refreshCavCarteInfo(null);
           openMo('mo-cav');
         } async function saveCavalier() {
           const prenom = v('cav-prenom').trim(), nom = v('cav-nom').trim() || null, telephone = v('cav-tel') || null, semaine_type = v('cav-semaine-type') || 'toutes', id = v('cav-id');
+          const semaine_ref_date = semaine_type === 'une_sur_deux' ? (v('cav-semaine-ref') || null) : null;
           if (!prenom) { toast('Le prénom est requis', 'err'); return; }
+          if (semaine_type === 'une_sur_deux' && !semaine_ref_date) { toast('Indiquez la date du 1er cours pour configurer l\'alternance', 'err'); return; }
           let cavId = id;
-          if (id) await dbUpd('cavaliers', { prenom, nom, telephone, semaine_type }, [{ col: 'id', op: 'eq', val: id }]);
-          else { const r = await dbIns('cavaliers', { prenom, nom, telephone, semaine_type }); cavId = r.data?.[0]?.id; }
+          if (id) await dbUpd('cavaliers', { prenom, nom, telephone, semaine_type, semaine_ref_date }, [{ col: 'id', op: 'eq', val: id }]);
+          else { const r = await dbIns('cavaliers', { prenom, nom, telephone, semaine_type, semaine_ref_date }); cavId = r.data?.[0]?.id; }
           if (!cavId) { toast('Erreur', 'err'); return; }
           // sync groupes
           const checked = [...document.querySelectorAll('#cav-grp-grid input:checked')].map(i => i.value);
@@ -5939,7 +5983,12 @@
           document.getElementById('cav-prenom').value = c.prenom;
           document.getElementById('cav-nom').value = c.nom || '';
           document.getElementById('cav-tel').value = c.telephone || '';
-          document.getElementById('cav-semaine-type').value = c.semaine_type || 'toutes';
+          // Anciennes valeurs 'paire'/'impaire' (avant migration) → traitées comme
+          // "1 semaine sur 2" à reconfigurer avec une date de référence.
+          const st = (c.semaine_type === 'paire' || c.semaine_type === 'impaire') ? 'une_sur_deux' : (c.semaine_type || 'toutes');
+          document.getElementById('cav-semaine-type').value = st;
+          document.getElementById('cav-semaine-ref').value = c.semaine_ref_date || '';
+          onCavSemaineTypeChange();
           buildCavGrpGrid(id);
           _refreshCavCarteInfo(id);
           openMo('mo-cav');
