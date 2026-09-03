@@ -3401,6 +3401,7 @@
         }
         function enableAdmin(targetPage = 'dash') {
           isAdmin = true; document.getElementById('admin-banner').classList.add('show');
+          document.body.classList.remove('travaux-only-nav');
           document.getElementById('mc').classList.add('wb'); document.getElementById('anav').style.display = 'block';
           document.getElementById('nom-pers-co').textContent = '🔐 Claire';
           document.getElementById('atbtn').textContent = '🔒 Quitter Claire'; document.getElementById('atbtn').classList.add('on');
@@ -3423,6 +3424,7 @@
         }
         function enableMarine(targetPage = 'vue') {
           isMarine = true; isAdmin = false;
+          document.body.classList.remove('travaux-only-nav');
           sessionToken = localStorage.getItem('ce_site_token') || '';
           document.getElementById('admin-banner').classList.add('show');
           document.getElementById('mc').classList.add('wb');
@@ -3457,6 +3459,7 @@
 
         function enableBalade() {
           isBalade = true; isAdmin = false; isKenny = false; isMarine = false;
+          document.body.classList.remove('travaux-only-nav');
           localStorage.setItem('ce_balade_active', '1');
           // Vue balades uniquement — pas de nav admin, pas de bannière admin
           document.getElementById('admin-banner').classList.remove('show');
@@ -3482,18 +3485,15 @@
           isTravaux = true; isAdmin = false; isKenny = false; isMarine = false; isBalade = false;
           // Ne PAS réécraser sessionToken ici : il a déjà été fixé correctement par
           // l'appelant (chkPw avec le token frais du rôle Travaux, ou initApp avec le
-          // siteToken lors d'une restauration de session). L'écraser avec l'ancien
-          // ce_site_token cassait l'accès dès qu'on changeait de rôle sans recharger
-          // la page (le token restait signé avec l'ancien mot de passe).
+          // siteToken lors d'une restauration de session).
           localStorage.setItem('ce_travaux_active', '1');
-          // Accès restreint : uniquement l'onglet Travaux — pas de bandeau admin, pas d'autre nav
+          // Même principe que enableBalade() : une seule classe atomique sur <body>,
+          // que CHAQUE autre fonction enableXXX() retire elle-même en s'activant.
+          // Pas de manipulation individuelle de boutons qui pourrait fuiter d'un rôle à l'autre.
           document.getElementById('admin-banner').classList.remove('show');
-          document.getElementById('atbtn').textContent = '🔒 Quitter mode travaux';
-          document.getElementById('atbtn').classList.add('on');
+          document.getElementById('atbtn').textContent = '🔒 Quitter mode travaux'; document.getElementById('atbtn').classList.add('on');
           document.getElementById('anav').style.display = 'block';
-          document.querySelectorAll('.sb-nav .ni').forEach(btn => {
-            btn.style.display = btn.dataset.p === 'travaux' ? '' : 'none';
-          });
+          document.body.classList.add('travaux-only-nav');
           updateBannerPadding();
           go('travaux');
         }
@@ -3503,8 +3503,8 @@
           localStorage.removeItem('ce_travaux_active');
           localStorage.removeItem('ce_site_token');
           localStorage.removeItem('ce_pw_hash');
+          document.body.classList.remove('travaux-only-nav');
           document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
-          document.querySelectorAll('.sb-nav .ni').forEach(btn => btn.style.display = '');
           document.getElementById('app').style.display = 'none';
           document.getElementById('site-login').style.display = 'flex';
           document.getElementById('site-pw-in').value = '';
@@ -3513,6 +3513,7 @@
 
         function enableKenny(targetPage = 'dash') {
           isKenny = true; isAdmin = false; isMarine = false; isBalade = false;
+          document.body.classList.remove('travaux-only-nav');
           sessionToken = localStorage.getItem('ce_site_token') || '';
           document.getElementById('admin-banner').classList.add('show');
           document.getElementById('mc').classList.add('wb');
