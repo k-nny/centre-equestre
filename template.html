@@ -3504,6 +3504,10 @@
           localStorage.removeItem('ce_site_token');
           localStorage.removeItem('ce_pw_hash');
           document.body.classList.remove('travaux-only-nav');
+          // #anav était affiché (display:block) pour laisser passer le seul bouton
+          // Travaux — il faut le remasquer explicitement, sinon toute la nav admin
+          // redevient visible dès qu'on retire la classe restrictive ci-dessus.
+          document.getElementById('anav').style.display = 'none';
           document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
           document.getElementById('app').style.display = 'none';
           document.getElementById('site-login').style.display = 'flex';
