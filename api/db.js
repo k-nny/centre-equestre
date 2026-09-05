@@ -29,6 +29,7 @@ export default async function handler(req, res) {
   const DEV_PASSWORD = process.env.DEV_PASSWORD || '';
   const BALADE_PASSWORD = process.env.BALADE_PASSWORD || '';
   const TRAVAUX_PASSWORD = process.env.TRAVAUX_PASSWORD || '';
+  const INSCRIPTION_PASSWORD = process.env.INSCRIPTION_PASSWORD || '';
 
   // [DANS LE HANDLER, APRES LES CONST SUPA_URL, etc.]
 
@@ -43,6 +44,7 @@ export default async function handler(req, res) {
     if (password === DEV_PASSWORD) return res.json({ ok: true, token: makeToken(DEV_PASSWORD), role: 'dev' });
     if (BALADE_PASSWORD && password === BALADE_PASSWORD) return res.json({ ok: true, token: makeToken(BALADE_PASSWORD), role: 'balade' });
     if (TRAVAUX_PASSWORD && password === TRAVAUX_PASSWORD) return res.json({ ok: true, token: makeToken(TRAVAUX_PASSWORD), role: 'travaux' });
+    if (INSCRIPTION_PASSWORD && password === INSCRIPTION_PASSWORD) return res.json({ ok: true, token: makeToken(INSCRIPTION_PASSWORD), role: 'inscription' });
     return res.status(401).json({ error: 'Invalide' });
   }
 
@@ -277,7 +279,13 @@ export default async function handler(req, res) {
           ['insert', 'update'].includes(body.method) &&
           Object.keys(body.data || {}).every(k => TACHES_COMP_PUBLIC_FIELDS.includes(k));
 
-        if (!isAdmin && !isDev && !ismarine && !isTravaux && !isTachesCompletionPublic) {
+        // Exception : envoyer le contrat d'inscription est accessible SANS connexion
+        // (formulaire public rempli par les familles) — uniquement en création (insert),
+        // jamais en update/delete, pour empêcher toute modification a posteriori.
+        const isInscriptionPublic =
+          body.table === 'inscriptions' && body.method === 'insert';
+
+        if (!isAdmin && !isDev && !ismarine && !isTravaux && !isTachesCompletionPublic && !isInscriptionPublic) {
           return res.status(403).json({ error: 'Session invalide ou expirée' });
         }
         // Le rôle Travaux (seul, sans admin/dev) : lecture + "marquer fait" uniquement

@@ -253,6 +253,12 @@
       display: none !important;
     }
 
+    /* Rôle Inscription seule (accès kiosque) : n'affiche que l'onglet Inscription.
+       Même principe que travaux-only-nav. */
+    body.inscription-only-nav .sb-nav .ni:not([data-p="inscription"]) {
+      display: none !important;
+    }
+
     .sb-bot {
       padding: 10px 8px;
       border-top: 1px solid var(--border);
@@ -1382,6 +1388,317 @@
       z-index: 99;
     }
 
+    /* ── Contrat d'inscription ── */
+    .contrat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 34px;
+      box-shadow: var(--sh);
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .contrat-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid var(--gold);
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .contrat-top .titre {
+      font-family: Arial, sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--cream);
+      text-transform: uppercase;
+      line-height: 1.25;
+    }
+
+    .contrat-top .titre .logo-h {
+      font-size: 30px;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    .contrat-top .saison {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--gold);
+      text-align: right;
+      text-transform: uppercase;
+      line-height: 1.25;
+    }
+
+    .contrat-sec {
+      margin-bottom: 18px;
+    }
+
+    .contrat-sec>h4 {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .contrat-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 26px;
+      position: relative;
+    }
+
+    .contrat-2col::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 2px;
+      bottom: 2px;
+      width: 1px;
+      background: var(--border);
+    }
+
+    .contrat-2col-noline::before {
+      display: none;
+    }
+
+    .contrat-field {
+      margin-bottom: 10px;
+    }
+
+    .contrat-field label {
+      font-size: 12px;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 3px;
+      font-weight: 700;
+    }
+
+    .contrat-field input,
+    .contrat-field textarea {
+      width: 100%;
+      background: var(--bg);
+      border: none;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      padding: 5px 2px;
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .contrat-field input:focus,
+    .contrat-field textarea:focus {
+      border-bottom-color: var(--gold);
+    }
+
+    .contrat-fr2 {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 10px;
+    }
+
+    .contrat-chk {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      font-size: 13px;
+      line-height: 1.45;
+      margin-bottom: 9px;
+    }
+
+    .contrat-chk input[type="checkbox"] {
+      margin-top: 3px;
+      width: 16px;
+      height: 16px;
+      accent-color: var(--gold);
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .contrat-chk .sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .contrat-chk .sub input[type="text"] {
+      background: var(--bg);
+      border: none;
+      border-bottom: 1px solid var(--border);
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      color: var(--text);
+      padding: 2px 4px;
+      outline: none;
+      width: 160px;
+    }
+
+    .contrat-txt {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .contrat-txt em {
+      color: var(--muted);
+    }
+
+    .contrat-bottom {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 26px;
+      padding-top: 20px;
+      border-top: 2px solid var(--border);
+      align-items: start;
+    }
+
+    .contrat-signature-officiel {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .contrat-signature-officiel .lbl {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .contrat-signature-officiel .sig-box {
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      min-height: 84px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface2);
+    }
+
+    .contrat-signature-officiel .sig-box img {
+      max-height: 78px;
+      max-width: 100%;
+      object-fit: contain;
+    }
+
+    .contrat-validation {
+      background: rgba(139, 105, 20, .05);
+      border: 1px solid rgba(139, 105, 20, .2);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+
+    .contrat-validation .contrat-chk {
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .contrat-initiales {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .contrat-initiales label {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      white-space: nowrap;
+    }
+
+    .contrat-initiales input {
+      width: 110px;
+      text-align: center;
+      text-transform: uppercase;
+      font-weight: 800;
+      letter-spacing: 2px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-family: Arial, sans-serif;
+      font-size: 15px;
+      color: var(--gold);
+      outline: none;
+    }
+
+    .contrat-footer {
+      margin-top: 24px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .contrat-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    @media print {
+
+      .sb,
+      .hb,
+      .sbo,
+      #admin-banner,
+      #retours-banner,
+      #retour-notif,
+      .contrat-actions {
+        display: none !important;
+      }
+
+      .main {
+        margin-left: 0 !important;
+        padding: 0 !important;
+      }
+
+      .contrat-card {
+        box-shadow: none;
+        border: none;
+        max-width: none;
+      }
+
+      body {
+        background: #fff;
+      }
+    }
+
+    @media(max-width:768px) {
+      .contrat-2col,
+      .contrat-bottom {
+        grid-template-columns: 1fr;
+      }
+
+      .contrat-2col::before {
+        display: none;
+      }
+
+      .contrat-card {
+        padding: 18px;
+      }
+    }
+
     @media(max-width:768px) {
       .hb {
         display: flex;
@@ -1570,6 +1887,7 @@
             <span class="ic">✅</span> Tâches du jour
           </button>
           <button class="ni" data-p="balades-pub" onclick="go('balades-pub')"><span class="ic">🦄</span>Balades</button>
+          <button class="ni" data-p="inscription" onclick="go('inscription')"><span class="ic">📄</span>Inscription</button>
           <div id="anav" style="display:none">
             <div class="nav-sec" style="margin-top:8px">Administration</div>
             <button class="ni" data-p="balades" onclick="go('balades')"><span class="ic">🦄</span>Balades</button>
@@ -1589,6 +1907,7 @@
             <button class="ni" data-p="stages" onclick="go('stages')"><span class="ic">🏕</span>Stages</button>
             <button class="ni" data-p="taches" onclick="go('taches')"> <span class="ic">✅</span> Tâches</button>
             <button class="ni" data-p="travaux" onclick="go('travaux')"> <span class="ic">🔧</span> Travaux</button>
+            <button class="ni" data-p="inscriptions-admin" onclick="go('inscriptions-admin')"> <span class="ic">📄</span> Inscriptions</button>
             <button class="ni" data-p="dash" onclick="go('dash')"><span class="ic">⬛</span>Tableau de bord</button>
           </div>
         </div>
@@ -1634,6 +1953,166 @@
             <div class="ls">
               <div class="spin"></div>
             </div>
+          </div>
+        </div>
+
+        <!-- CONTRAT D'INSCRIPTION -->
+        <div class="page" id="page-inscription">
+          <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div>
+              <h2>📄 Contrat d'inscription</h2>
+              <p class="no-upper">À remplir, cocher et valider en ligne — remplace la version papier.</p>
+            </div>
+            <button class="btn btn-g" onclick="window.print()">🖨️ Imprimer / PDF</button>
+          </div>
+
+          <div class="contrat-card" id="contrat-card">
+
+            <div class="contrat-top">
+              <div class="titre"><span class="logo-h">🐴</span>Contrat<br>d'inscription</div>
+              <div class="saison" id="insc-saison">Saison —</div>
+            </div>
+
+            <!-- Cavalier / Responsable légal -->
+            <div class="contrat-sec contrat-2col">
+              <div>
+                <h4>🐴 Cavalier</h4>
+                <div class="contrat-fr2">
+                  <div class="contrat-field"><label>Prénom *</label><input type="text" id="insc-cav-prenom"></div>
+                  <div class="contrat-field"><label>Nom</label><input type="text" id="insc-cav-nom"></div>
+                </div>
+                <div class="contrat-fr2">
+                  <div class="contrat-field"><label>Date de naissance</label><input type="date" id="insc-cav-naissance"></div>
+                  <div class="contrat-field"><label>Sexe</label>
+                    <select id="insc-cav-sexe" style="width:100%;background:var(--bg);border:none;border-bottom:1px solid var(--border);padding:5px 2px;color:var(--text);font-family:Arial,sans-serif;font-size:14px;outline:none">
+                      <option value="">—</option>
+                      <option value="F">Féminin</option>
+                      <option value="M">Masculin</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="contrat-field"><label>Adresse</label><textarea id="insc-cav-adresse" rows="2"></textarea></div>
+                <div class="contrat-field"><label>Mail</label><input type="email" id="insc-cav-mail"></div>
+                <div class="contrat-field"><label>Téléphone</label><input type="tel" id="insc-cav-tel"></div>
+              </div>
+              <div>
+                <h4>👤 Responsable légal</h4>
+                <div class="contrat-field"><label>NOM Prénom</label><input type="text" id="insc-resp-nom"></div>
+                <div class="contrat-field"><label>Parenté</label><input type="text" id="insc-resp-parente" placeholder="Père, mère, tuteur…"></div>
+                <div class="contrat-field"><label>Adresse</label><textarea id="insc-resp-adresse" rows="2"></textarea></div>
+                <div class="contrat-field"><label>Mail</label><input type="email" id="insc-resp-mail"></div>
+                <div class="contrat-field"><label>Téléphone</label><input type="tel" id="insc-resp-tel"></div>
+              </div>
+            </div>
+
+            <!-- Personne à prévenir en cas d'urgence -->
+            <div class="contrat-sec">
+              <h4>🚨 Personne à prévenir en cas d'urgence</h4>
+              <div class="contrat-2col">
+                <div>
+                  <div class="contrat-field"><label>NOM Prénom</label><input type="text" id="insc-urg1-nom"></div>
+                  <div class="contrat-fr2">
+                    <div class="contrat-field"><label>Parenté</label><input type="text" id="insc-urg1-parente"></div>
+                    <div class="contrat-field"><label>Téléphone</label><input type="tel" id="insc-urg1-tel"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="contrat-field"><label>NOM Prénom</label><input type="text" id="insc-urg2-nom"></div>
+                  <div class="contrat-fr2">
+                    <div class="contrat-field"><label>Parenté</label><input type="text" id="insc-urg2-parente"></div>
+                    <div class="contrat-field"><label>Téléphone</label><input type="tel" id="insc-urg2-tel"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Certificat médical -->
+            <div class="contrat-sec">
+              <h4>🩺 Certificat médical</h4>
+              <label class="contrat-chk"><input type="checkbox" id="insc-chk-medical1">
+                Je reconnais avoir recueilli un avis médical favorable à la pratique de l'équitation dans le cas d'une pathologie connue.</label>
+              <label class="contrat-chk"><input type="checkbox" id="insc-chk-medical2">
+                Pour la compétition, j'utilise l'imprimé "certificat médical" se trouvant dans mon espace perso sur le site de la FFE et je l'envoie via le site dès le renouvellement de ma licence (septembre).</label>
+            </div>
+
+            <!-- Droit à l'image -->
+            <div class="contrat-sec">
+              <h4>📷 Droit à l'image</h4>
+              <label class="contrat-chk"><input type="checkbox" id="insc-chk-image">
+                J'accepte l'utilisation de mon image et/ou celle de mon enfant par Les Écuries de l'Octroi dans le cadre de la pratique de ses activités équestres.</label>
+            </div>
+
+            <!-- Groupe WhatsApp -->
+            <div class="contrat-sec">
+              <h4>💬 Groupe WhatsApp</h4>
+              <label class="contrat-chk"><input type="checkbox" id="insc-chk-whatsapp">
+                J'accepte de faire partie du groupe de mon cours et/ou celui de mon enfant afin d'être informé(e) des activités et modifications de planning.</label>
+            </div>
+
+            <!-- Fichier informatique -->
+            <div class="contrat-sec">
+              <h4>💾 Fichier informatique</h4>
+              <label class="contrat-chk"><input type="checkbox" id="insc-chk-fichier">
+                J'accepte d'être recensé(e) dans le fichier informatique de l'établissement et bénéficie auprès de celui-ci d'un droit d'accès et de rectification, conformément à la loi du 6 janvier 1978 modifiée.</label>
+            </div>
+
+            <!-- Règlement intérieur -->
+            <div class="contrat-sec">
+              <h4>📖 Règlement intérieur</h4>
+              <label class="contrat-chk"><input type="checkbox" id="insc-chk-reglement">
+                Je reconnais avoir pris connaissance du Règlement Intérieur dont un exemplaire accompagne ce contrat et en accepter toutes les dispositions.</label>
+            </div>
+
+            <!-- Licence FFE -->
+            <div class="contrat-sec">
+              <h4>🎫 Licence FFE</h4>
+              <p class="contrat-txt">Conformément à l'article L.321-4 du Code du sport, je reconnais avoir été informé(e) de l'intérêt que présente la souscription d'un contrat d'assurance de personnes couvrant les dommages corporels auxquels la pratique de l'équitation peut m'exposer ainsi que des conditions d'assurance offertes par la licence FFE et que celle-ci est indispensable pour le passage des examens fédéraux.</p>
+              <label class="contrat-chk"><input type="radio" name="insc-assurance" id="insc-chk-assurance-oui">
+                Je souscris les garanties d'assurance individuelle du cavalier offertes par la licence de la Fédération Française d'Équitation.</label>
+              <div class="sub" style="margin-left:25px;margin-bottom:10px">Le chèque n° <input type="text" id="insc-cheque-num"> sera encaissé le 5 septembre.</div>
+              <label class="contrat-chk"><input type="radio" name="insc-assurance" id="insc-chk-assurance-non">
+                Je refuse l'assurance individuelle de cavalier de la licence FFE et je justifie être assuré(e) pour les dommages corporels ainsi que la responsabilité civile pour la pratique de l'équitation, auprès de <em>(compagnie/N° contrat)</em> :</label>
+              <div class="sub" style="margin-left:25px"><input type="text" id="insc-assurance-compagnie" style="width:280px"></div>
+            </div>
+
+            <!-- Engagement -->
+            <div class="contrat-sec">
+              <h4>✍️ Engagement</h4>
+              <p class="contrat-txt">- En signant ce contrat, je reconnais accepter les contraintes de l'engagement sur la saison complète pour bénéficier du tarif du forfait et des avantages qui y sont liés. En cas d'arrêt temporaire ou définitif avant la fin de la saison, consulter les conditions du Règlement Intérieur ci-joint.</p>
+              <p class="contrat-txt">- Je comprends et j'accepte que l'avance que je règle pour profiter de la réduction, est une réservation non remboursable si je change d'avis.</p>
+              <div class="sub">Le chèque n° <input type="text" id="insc-cheque-avance-num"> sera encaissé le 5 août.</div>
+            </div>
+
+            <!-- Signature établissement + validation -->
+            <div class="contrat-bottom">
+              <div class="contrat-signature-officiel">
+                <div class="lbl">Signature du chef d'établissement</div>
+                <div class="sig-box">
+                  <!-- Image fixe, ne change jamais — remplacer le src par la vraie signature scannée si besoin -->
+                  <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNjAgOTAiPgogIDxwYXRoIGQ9Ik0xMCA2MCBDIDIwIDIwLCAzNSAyMCwgNDIgNTAgQyA0OCA3NSwgNTUgNDUsIDYyIDM1IEMgNjggMjUsIDcyIDU1LCA4MCA1NSBDIDg4IDU1LCA5MCAyNSwgOTggMzAgQyAxMDggMzYsIDEwMCA2NSwgMTE1IDYwIEMgMTMwIDU1LCAxMjggMjUsIDE0MCAzMCBDIDE1MiAzNSwgMTQ4IDYwLCAxNjAgNTggQyAxNzIgNTYsIDE2OCAzMCwgMTgwIDMyIEMgMTkyIDM0LCAxODggNTgsIDIwMCA1MCBDIDIwOCA0NSwgMjEwIDMwLCAyMjIgMzUgQyAyMzQgNDAsIDIyOCA1NSwgMjQ1IDQ1IgogICAgICAgIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzJjMjQxNyIgc3Ryb2tlLXdpZHRoPSIzLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgogIDxsaW5lIHgxPSIxNSIgeTE9IjcyIiB4Mj0iMjM1IiB5Mj0iNzIiIHN0cm9rZT0iIzJjMjQxNyIgc3Ryb2tlLXdpZHRoPSIxLjQiIG9wYWNpdHk9IjAuMzUiLz4KPC9zdmc+Cg==" alt="Signature du chef d'établissement">
+                </div>
+              </div>
+              <div class="contrat-validation">
+                <label class="contrat-chk">
+                  <input type="checkbox" id="insc-chk-final">
+                  J'ai bien lu et j'approuve ce formulaire ainsi que le Règlement Intérieur. Je reconnais qu'en renseignant mes initiales ci-dessous, cela représente la signature du présent contrat d'inscription.
+                </label>
+                <div class="contrat-initiales">
+                  <label>Mes initiales :</label>
+                  <input type="text" id="insc-initiales" maxlength="6" placeholder="Ex: J.D.">
+                </div>
+              </div>
+            </div>
+
+            <div class="contrat-actions">
+              <button class="btn btn-p" onclick="saveInscription()">✅ Valider mon inscription</button>
+            </div>
+
+            <div class="contrat-footer" id="insc-footer">
+              Les Écuries de l'Octroi — Adresse complète à renseigner, Code postal Ville<br>
+              Téléphone : 00 00 00 00 00 · Email : contact@example.com · SIRET : 000 000 000 00000
+            </div>
+
           </div>
         </div>
 
@@ -1700,6 +2179,43 @@
             </div>
           </div>
           <div id="travaux-content"></div>
+        </div>
+
+        <!-- INSCRIPTIONS (admin) -->
+        <div class="page" id="page-inscriptions-admin">
+          <div class="ph">
+            <h2>📄 Inscriptions</h2>
+            <p class="no-upper">Contrats d'inscription envoyés depuis le formulaire public.</p>
+          </div>
+          <div class="tc">
+            <div class="tt">
+              <h3>Liste</h3>
+              <div class="seg">
+                <button onclick="setInscFilter('all')" class="on" id="if-all">Toutes</button>
+                <button onclick="setInscFilter('nouveau')" id="if-nouveau">Nouvelles</button>
+                <button onclick="setInscFilter('approuve')" id="if-approuve">Approuvées</button>
+              </div>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Cavalier</th>
+                  <th>Téléphone</th>
+                  <th>Saison</th>
+                  <th>Statut</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tb-insc">
+                <tr class="er">
+                  <td colspan="6">
+                    <div class="spin"></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <!-- DASHBOARD -->
@@ -1854,6 +2370,20 @@
             <div class="mf">
               <button class="btn btn-g" onclick="closeMo('mo-travail')">Annuler</button>
               <button class="btn btn-p" onclick="saveTravail()">Enregistrer</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Détail inscription -->
+        <div class="mo" id="mo-insc-detail">
+          <div class="md" style="max-width:620px">
+            <h3 id="mo-insc-t">📄 Contrat d'inscription</h3>
+            <input type="hidden" id="insc-detail-id">
+            <div id="insc-detail-body" style="display:flex;flex-direction:column;gap:14px;max-height:60vh;overflow-y:auto;padding-right:4px"></div>
+            <div class="mf">
+              <button class="btn btn-g" onclick="closeMo('mo-insc-detail')">Fermer</button>
+              <button class="btn btn-d sm" onclick="delInscriptionAdmin()">🗑 Supprimer</button>
+              <button class="btn btn-p" id="insc-approve-btn" onclick="approuverInscription()">✅ Approuver & créer le cavalier</button>
             </div>
           </div>
         </div>
@@ -3004,8 +3534,8 @@
         const statutsActifsADate = (date) => C.statuts.filter(s => statutActifADate(s, date));
         const SBDG = { attache: 'bo', veto: 'br', marechal: 'bp', repos: 'b' };
 
-        let isAdmin = false, isKenny = false, isMarine = false, isBalade = false, isTravaux = false, sessionToken = '', histTab = 'couples';
-        let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [], taches: [], tachesComp: [], travaux: [] };
+        let isAdmin = false, isKenny = false, isMarine = false, isBalade = false, isTravaux = false, isInscriptionOnly = false, sessionToken = '', histTab = 'couples';
+        let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [], taches: [], tachesComp: [], travaux: [], inscriptions: [] };
         // ── Historique d'annulation (undo) ──
         let _undoStack = []; // [{ label, fn }]
         const MAX_UNDO = 15;
@@ -3137,9 +3667,11 @@
               localStorage.removeItem('ce_marine_active');
               localStorage.removeItem('ce_balade_active');
               localStorage.removeItem('ce_travaux_active');
+              localStorage.removeItem('ce_inscription_active');
               // Stocker le rôle pour la reconnexion auto
               if (j.role === 'balade') localStorage.setItem('ce_balade_active', '1');
               if (j.role === 'travaux') localStorage.setItem('ce_travaux_active', '1');
+              if (j.role === 'inscription') localStorage.setItem('ce_inscription_active', '1');
               document.getElementById('site-login').style.display = 'none';
               await initApp(j.token);
             } else {
@@ -3170,7 +3702,7 @@
             // (flag posé par enableAdmin, effacé par logoutAdmin — indépendant du token site)
             // Restaurer la dernière page visitée
             const lastPage = localStorage.getItem('ce_last_page') || 'vue';
-            const adminPages = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'travaux'];
+            const adminPages = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'travaux', 'inscriptions'];
             if (localStorage.getItem('ce_admin_active') === '1') {
               sessionToken = siteToken;
               _lastRetourCount = -1;
@@ -3195,6 +3727,11 @@
             if (localStorage.getItem('ce_travaux_active') === '1') {
               sessionToken = siteToken;
               enableTravaux();
+              return;
+            }
+            if (localStorage.getItem('ce_inscription_active') === '1') {
+              sessionToken = siteToken;
+              enableInscriptionOnly();
               return;
             }
             go(adminPages.includes(lastPage) ? 'vue' : lastPage);
@@ -3355,6 +3892,7 @@
           if (isKenny) { logoutKenny(); return; }
           if (isBalade) { logoutBalade(); return; }
           if (isTravaux) { logoutTravaux(); return; }
+          if (isInscriptionOnly) { logoutInscriptionOnly(); return; }
           document.getElementById('pw-in').value = '';
           document.getElementById('pw-err').style.display = 'none';
           openMo('mo-pw');
@@ -3373,12 +3911,13 @@
               // l'écran de connexion) relirait l'ancien token et casserait à nouveau l'accès.
               localStorage.setItem('ce_site_token', j.token);
               const role = (j.role || '').toLowerCase();
-              isKenny = false; isMarine = false; isBalade = false; isAdmin = false; isTravaux = false;
+              isKenny = false; isMarine = false; isBalade = false; isAdmin = false; isTravaux = false; isInscriptionOnly = false;
               localStorage.removeItem('ce_admin_active');
               localStorage.removeItem('ce_Kenny_active');
               localStorage.removeItem('ce_marine_active');
               localStorage.removeItem('ce_balade_active');
               localStorage.removeItem('ce_travaux_active');
+              localStorage.removeItem('ce_inscription_active');
               closeMo('mo-pw');
               if (role === 'dev' || role === 'kenny') {
                 enableKenny();
@@ -3388,6 +3927,8 @@
                 enableBalade();
               } else if (role === 'travaux') {
                 enableTravaux();
+              } else if (role === 'inscription') {
+                enableInscriptionOnly();
               } else {
                 enableAdmin();
               }
@@ -3402,6 +3943,7 @@
         function enableAdmin(targetPage = 'dash') {
           isAdmin = true; document.getElementById('admin-banner').classList.add('show');
           document.body.classList.remove('travaux-only-nav');
+          document.body.classList.remove('inscription-only-nav');
           document.getElementById('mc').classList.add('wb'); document.getElementById('anav').style.display = 'block';
           document.getElementById('nom-pers-co').textContent = '🔐 Claire';
           document.getElementById('atbtn').textContent = '🔒 Quitter Claire'; document.getElementById('atbtn').classList.add('on');
@@ -3425,6 +3967,7 @@
         function enableMarine(targetPage = 'vue') {
           isMarine = true; isAdmin = false;
           document.body.classList.remove('travaux-only-nav');
+          document.body.classList.remove('inscription-only-nav');
           sessionToken = localStorage.getItem('ce_site_token') || '';
           document.getElementById('admin-banner').classList.add('show');
           document.getElementById('mc').classList.add('wb');
@@ -3460,6 +4003,7 @@
         function enableBalade() {
           isBalade = true; isAdmin = false; isKenny = false; isMarine = false;
           document.body.classList.remove('travaux-only-nav');
+          document.body.classList.remove('inscription-only-nav');
           localStorage.setItem('ce_balade_active', '1');
           // Vue balades uniquement — pas de nav admin, pas de bannière admin
           document.getElementById('admin-banner').classList.remove('show');
@@ -3483,6 +4027,7 @@
 
         function enableTravaux() {
           isTravaux = true; isAdmin = false; isKenny = false; isMarine = false; isBalade = false;
+          document.body.classList.remove('inscription-only-nav');
           // Ne PAS réécraser sessionToken ici : il a déjà été fixé correctement par
           // l'appelant (chkPw avec le token frais du rôle Travaux, ou initApp avec le
           // siteToken lors d'une restauration de session).
@@ -3515,9 +4060,38 @@
           localStorage.setItem('ce_last_page', 'vue');
         }
 
+        // Rôle "kiosque" : ne voit QUE la page publique du formulaire d'inscription
+        // (le bouton "Inscription" vit déjà dans la section publique de la nav, pas
+        // besoin de toucher #anav — même principe que enableTravaux mais plus simple).
+        function enableInscriptionOnly() {
+          isInscriptionOnly = true; isAdmin = false; isKenny = false; isMarine = false; isBalade = false; isTravaux = false;
+          document.body.classList.remove('travaux-only-nav');
+          localStorage.setItem('ce_inscription_active', '1');
+          document.getElementById('admin-banner').classList.remove('show');
+          document.getElementById('atbtn').textContent = '🔒 Quitter mode inscription'; document.getElementById('atbtn').classList.add('on');
+          document.getElementById('anav').style.display = 'none';
+          document.body.classList.add('inscription-only-nav');
+          updateBannerPadding();
+          go('inscription');
+        }
+
+        function logoutInscriptionOnly() {
+          isInscriptionOnly = false; sessionToken = '';
+          localStorage.removeItem('ce_inscription_active');
+          localStorage.removeItem('ce_site_token');
+          localStorage.removeItem('ce_pw_hash');
+          document.body.classList.remove('inscription-only-nav');
+          document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
+          document.getElementById('app').style.display = 'none';
+          document.getElementById('site-login').style.display = 'flex';
+          document.getElementById('site-pw-in').value = '';
+          localStorage.setItem('ce_last_page', 'vue');
+        }
+
         function enableKenny(targetPage = 'dash') {
           isKenny = true; isAdmin = false; isMarine = false; isBalade = false;
           document.body.classList.remove('travaux-only-nav');
+          document.body.classList.remove('inscription-only-nav');
           sessionToken = localStorage.getItem('ce_site_token') || '';
           document.getElementById('admin-banner').classList.add('show');
           document.getElementById('mc').classList.add('wb');
@@ -3545,7 +4119,7 @@
 
         // ── Nav ──
         function go(p) {
-          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches', 'balades', 'travaux'];
+          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches', 'balades', 'travaux', 'inscriptions-admin'];
           // Bloquer les pages admin si pas de rôle élevé
           if (!isAdmin && !isKenny && !isMarine && !isTravaux && adm.includes(p)) return;
           // Marine : seulement séances (+ vue est déjà publique)
@@ -3554,6 +4128,8 @@
           if (isBalade && p !== 'balades-pub' && p != 'taches-pub') return;
           // Travaux : uniquement la page travaux, aucune autre
           if (isTravaux && !isAdmin && !isKenny && p !== 'travaux') return;
+          // Inscription (kiosque) : uniquement le formulaire public, aucune autre page
+          if (isInscriptionOnly && p !== 'inscription') return;
           document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
           document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
           document.getElementById('page-' + p)?.classList.add('active');
@@ -3581,6 +4157,8 @@
           }
           if (p === 'params') renderParamsPage();
           if (p === 'travaux') loadTravauxPage();
+          if (p === 'inscription') initInscriptionPage();
+          if (p === 'inscriptions-admin') loadInscriptionsAdmin();
           if (window.innerWidth <= 768) { document.getElementById('sb').classList.remove('open'); document.getElementById('sbo').classList.remove('open'); }
         }
         function toggleSB() { document.getElementById('sb').classList.toggle('open'); document.getElementById('sbo').classList.toggle('open'); }
@@ -7651,6 +8229,210 @@
           C_balades_parts = C_balades_parts.filter(p => p.id !== id);
           toast('Supprimé', 'ok');
           renderBaladesAdmin();
+        }
+
+        // ══════════════════════════════════════════════════
+        //  CONTRAT D'INSCRIPTION
+        // ══════════════════════════════════════════════════
+        function initInscriptionPage() {
+          const el = document.getElementById('insc-saison');
+          if (el) el.textContent = 'Saison ' + getAnneeScolaire().replace('-', '/');
+        }
+
+        function collectInscriptionData() {
+          return {
+            cav_prenom: v('insc-cav-prenom').trim(),
+            cav_nom: v('insc-cav-nom').trim() || null,
+            cav_naissance: v('insc-cav-naissance') || null,
+            cav_sexe: v('insc-cav-sexe') || null,
+            cav_adresse: v('insc-cav-adresse').trim() || null,
+            cav_mail: v('insc-cav-mail').trim() || null,
+            cav_tel: v('insc-cav-tel').trim() || null,
+            resp_nom: v('insc-resp-nom').trim() || null,
+            resp_parente: v('insc-resp-parente').trim() || null,
+            resp_adresse: v('insc-resp-adresse').trim() || null,
+            resp_mail: v('insc-resp-mail').trim() || null,
+            resp_tel: v('insc-resp-tel').trim() || null,
+            urgence1_nom: v('insc-urg1-nom').trim() || null,
+            urgence1_parente: v('insc-urg1-parente').trim() || null,
+            urgence1_tel: v('insc-urg1-tel').trim() || null,
+            urgence2_nom: v('insc-urg2-nom').trim() || null,
+            urgence2_parente: v('insc-urg2-parente').trim() || null,
+            urgence2_tel: v('insc-urg2-tel').trim() || null,
+            chk_medical1: document.getElementById('insc-chk-medical1').checked,
+            chk_medical2: document.getElementById('insc-chk-medical2').checked,
+            chk_image: document.getElementById('insc-chk-image').checked,
+            chk_whatsapp: document.getElementById('insc-chk-whatsapp').checked,
+            chk_fichier: document.getElementById('insc-chk-fichier').checked,
+            chk_reglement: document.getElementById('insc-chk-reglement').checked,
+            assurance_choix: document.getElementById('insc-chk-assurance-oui').checked ? 'souscrite' : (document.getElementById('insc-chk-assurance-non').checked ? 'refusee' : null),
+            cheque_num: v('insc-cheque-num').trim() || null,
+            assurance_compagnie: v('insc-assurance-compagnie').trim() || null,
+            cheque_avance_num: v('insc-cheque-avance-num').trim() || null,
+            initiales: v('insc-initiales').trim().toUpperCase(),
+            saison: getAnneeScolaire(),
+          };
+        }
+
+        async function saveInscription() {
+          const data = collectInscriptionData();
+          if (!data.cav_prenom) { toast('Le prénom du cavalier est requis', 'err'); return; }
+          if (!data.chk_reglement) { toast('Merci de cocher la case du Règlement Intérieur', 'err'); return; }
+          if (!document.getElementById('insc-chk-final').checked) { toast('Merci de cocher la case de validation finale', 'err'); return; }
+          if (!data.initiales) { toast('Merci de renseigner vos initiales pour signer', 'err'); return; }
+          const btn = document.querySelector('.contrat-actions .btn-p');
+          if (btn) { btn.disabled = true; btn.textContent = '⏳ Envoi…'; }
+          try {
+            await dbIns('inscriptions', data);
+            toast('Inscription envoyée ✅ Merci !', 'ok');
+          } catch (e) {
+            toast('Erreur : ' + e.message, 'err');
+          }
+          if (btn) { btn.disabled = false; btn.textContent = '✅ Valider mon inscription'; }
+        }
+
+        // ══════════════════════════════════════════════════
+        //  INSCRIPTIONS (admin) — consultation + approbation
+        // ══════════════════════════════════════════════════
+        let C_inscriptions = [];
+        let _inscFilter = 'all';
+
+        async function loadInscriptionsAdmin() {
+          const t = document.getElementById('tb-insc');
+          if (t) t.innerHTML = '<tr class="er"><td colspan="6"><div class="spin"></div></td></tr>';
+          C_inscriptions = await dbSel('inscriptions', { order: [{ col: 'created_at', asc: false }] });
+          renderInscriptionsAdmin();
+        }
+
+        function setInscFilter(f) {
+          _inscFilter = f;
+          ['all', 'nouveau', 'approuve'].forEach(x => document.getElementById('if-' + x)?.classList.toggle('on', x === f));
+          renderInscriptionsAdmin();
+        }
+
+        function renderInscriptionsAdmin() {
+          const t = document.getElementById('tb-insc'); if (!t) return;
+          const items = C_inscriptions.filter(i => {
+            if (_inscFilter === 'nouveau') return !i.approuve;
+            if (_inscFilter === 'approuve') return !!i.approuve;
+            return true;
+          });
+          if (!items.length) { t.innerHTML = '<tr class="er"><td colspan="6">Aucune inscription</td></tr>'; return; }
+          t.innerHTML = items.map(i => `<tr>
+      <td>${new Date(i.created_at).toLocaleDateString('fr-FR')}</td>
+      <td><strong>${cap(i.cav_prenom || '')}${i.cav_nom ? ' ' + i.cav_nom.toUpperCase() : ''}</strong></td>
+      <td>${i.cav_tel || '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${i.saison ? i.saison.replace('-', '/') : '—'}</td>
+      <td>${i.approuve ? '<span class="b bg">✅ Approuvée</span>' : '<span class="b bgo">Nouvelle</span>'}</td>
+      <td><button class="btn btn-g sm" onclick="openInscDetail('${i.id}')">👁 Voir</button></td>
+    </tr>`).join('');
+        }
+
+        const INSC_LABELS = {
+          chk_medical1: 'Avis médical favorable', chk_medical2: 'Certificat FFE (compétition)',
+          chk_image: "Droit à l'image", chk_whatsapp: 'Groupe WhatsApp',
+          chk_fichier: 'Fichier informatique', chk_reglement: 'Règlement intérieur',
+        };
+
+        function openInscDetail(id) {
+          const i = C_inscriptions.find(x => x.id === id); if (!i) return;
+          document.getElementById('insc-detail-id').value = id;
+          document.getElementById('mo-insc-t').textContent = `📄 ${cap(i.cav_prenom || '')}${i.cav_nom ? ' ' + i.cav_nom.toUpperCase() : ''} — Saison ${i.saison ? i.saison.replace('-', '/') : '—'}`;
+          const chkLine = (key) => `<span class="b ${i[key] ? 'bg' : 'br'}" style="font-size:10px">${i[key] ? '✅' : '❌'} ${INSC_LABELS[key]}</span>`;
+          const body = document.getElementById('insc-detail-body');
+          body.innerHTML = `
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🐴 Cavalier</div>
+        <div style="font-size:13px;line-height:1.7">
+          <strong>${cap(i.cav_prenom || '')}${i.cav_nom ? ' ' + i.cav_nom.toUpperCase() : ''}</strong>${i.cav_sexe ? ' · ' + (i.cav_sexe === 'F' ? 'Féminin' : 'Masculin') : ''}${i.cav_naissance ? ' · né(e) le ' + fmtDate(i.cav_naissance) : ''}<br>
+          ${i.cav_adresse ? i.cav_adresse.replace(/\n/g, '<br>') + '<br>' : ''}
+          ${i.cav_mail ? '✉️ ' + i.cav_mail + ' · ' : ''}${i.cav_tel ? '📞 ' + i.cav_tel : ''}
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">👤 Responsable légal</div>
+        <div style="font-size:13px;line-height:1.7">
+          ${i.resp_nom ? '<strong>' + i.resp_nom + '</strong>' + (i.resp_parente ? ' (' + i.resp_parente + ')' : '') + '<br>' : '<span style="color:var(--muted)">—</span><br>'}
+          ${i.resp_adresse ? i.resp_adresse.replace(/\n/g, '<br>') + '<br>' : ''}
+          ${i.resp_mail ? '✉️ ' + i.resp_mail + ' · ' : ''}${i.resp_tel ? '📞 ' + i.resp_tel : ''}
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🚨 Personnes à prévenir</div>
+        <div style="font-size:13px;line-height:1.7">
+          ${i.urgence1_nom ? '• <strong>' + i.urgence1_nom + '</strong>' + (i.urgence1_parente ? ' (' + i.urgence1_parente + ')' : '') + (i.urgence1_tel ? ' — 📞 ' + i.urgence1_tel : '') + '<br>' : ''}
+          ${i.urgence2_nom ? '• <strong>' + i.urgence2_nom + '</strong>' + (i.urgence2_parente ? ' (' + i.urgence2_parente + ')' : '') + (i.urgence2_tel ? ' — 📞 ' + i.urgence2_tel : '') : ''}
+          ${(!i.urgence1_nom && !i.urgence2_nom) ? '<span style="color:var(--muted)">—</span>' : ''}
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">✅ Cases cochées</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${Object.keys(INSC_LABELS).map(chkLine).join('')}
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🎫 Licence FFE</div>
+        <div style="font-size:13px">
+          ${i.assurance_choix === 'souscrite' ? '<span class="b bg">Garantie souscrite</span>' + (i.cheque_num ? ' — chèque n° ' + i.cheque_num : '') : ''}
+          ${i.assurance_choix === 'refusee' ? '<span class="b bo">Assurance refusée</span>' + (i.assurance_compagnie ? ' — ' + i.assurance_compagnie : '') : ''}
+          ${!i.assurance_choix ? '<span style="color:var(--muted)">Non renseigné</span>' : ''}
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">✍️ Signature électronique</div>
+        <div style="font-size:13px">Initiales : <strong style="color:var(--gold);letter-spacing:1px">${i.initiales || '—'}</strong> · reçu le ${new Date(i.created_at).toLocaleDateString('fr-FR')} à ${new Date(i.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
+        ${i.approuve ? `<div style="margin-top:6px"><span class="b bg">✅ Approuvée${i.approuve_par ? ' par ' + i.approuve_par : ''}${i.approuve_at ? ' le ' + fmtDate(i.approuve_at.slice(0, 10)) : ''}</span></div>` : ''}
+      </div>`;
+          const approveBtn = document.getElementById('insc-approve-btn');
+          if (approveBtn) {
+            if (i.approuve) { approveBtn.style.display = 'none'; }
+            else { approveBtn.style.display = ''; approveBtn.disabled = false; approveBtn.textContent = '✅ Approuver & créer le cavalier'; }
+          }
+          openMo('mo-insc-detail');
+        }
+
+        async function approuverInscription() {
+          const id = v('insc-detail-id');
+          const i = C_inscriptions.find(x => x.id === id); if (!i) return;
+          if (i.approuve) { toast('Déjà approuvée', 'err'); return; }
+          if (!confirm(`Créer un cavalier pour ${cap(i.cav_prenom || '')}${i.cav_nom ? ' ' + i.cav_nom.toUpperCase() : ''} ?`)) return;
+          const btn = document.getElementById('insc-approve-btn');
+          if (btn) { btn.disabled = true; btn.textContent = '⏳ Création…'; }
+          try {
+            const r = await dbIns('cavaliers', {
+              prenom: i.cav_prenom,
+              nom: i.cav_nom || null,
+              telephone: i.cav_tel || null,
+            });
+            const newCavId = r.data?.[0]?.id;
+            if (!newCavId) throw new Error('Création du cavalier impossible');
+            const auteur = isKenny ? 'Kenny' : (isAdmin ? 'Admin' : '');
+            await dbUpd('inscriptions', {
+              approuve: true,
+              approuve_par: auteur || null,
+              approuve_at: new Date().toISOString(),
+              cavalier_id: newCavId,
+            }, [{ col: 'id', op: 'eq', val: id }]);
+            Object.assign(i, { approuve: true, approuve_par: auteur, approuve_at: new Date().toISOString(), cavalier_id: newCavId });
+            toast('Inscription approuvée · cavalier créé ✅', 'ok');
+            await loadCav(); renderCavaliers(); popSelects();
+            renderInscriptionsAdmin();
+            openInscDetail(id);
+          } catch (e) {
+            toast('Erreur : ' + e.message, 'err');
+            if (btn) { btn.disabled = false; btn.textContent = '✅ Approuver & créer le cavalier'; }
+          }
+        }
+
+        async function delInscriptionAdmin() {
+          const id = v('insc-detail-id'); if (!id) return;
+          if (!confirm('Supprimer cette inscription ? (le cavalier déjà créé, le cas échéant, ne sera pas supprimé)')) return;
+          await dbDel('inscriptions', [{ col: 'id', op: 'eq', val: id }]);
+          C_inscriptions = C_inscriptions.filter(x => x.id !== id);
+          toast('Inscription supprimée', 'ok');
+          closeMo('mo-insc-detail');
+          renderInscriptionsAdmin();
         }
 
         // ── Screenshot tickets ──
