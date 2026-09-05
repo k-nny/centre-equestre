@@ -1685,6 +1685,7 @@
     }
 
     @media(max-width:768px) {
+
       .contrat-2col,
       .contrat-bottom {
         grid-template-columns: 1fr;
@@ -1887,7 +1888,8 @@
             <span class="ic">✅</span> Tâches du jour
           </button>
           <button class="ni" data-p="balades-pub" onclick="go('balades-pub')"><span class="ic">🦄</span>Balades</button>
-          <button class="ni" data-p="inscription" onclick="go('inscription')"><span class="ic">📄</span>Inscription</button>
+          <button class="ni" data-p="inscription" onclick="go('inscription')"><span
+              class="ic">📄</span>Inscription</button>
           <div id="anav" style="display:none">
             <div class="nav-sec" style="margin-top:8px">Administration</div>
             <button class="ni" data-p="balades" onclick="go('balades')"><span class="ic">🦄</span>Balades</button>
@@ -1907,7 +1909,8 @@
             <button class="ni" data-p="stages" onclick="go('stages')"><span class="ic">🏕</span>Stages</button>
             <button class="ni" data-p="taches" onclick="go('taches')"> <span class="ic">✅</span> Tâches</button>
             <button class="ni" data-p="travaux" onclick="go('travaux')"> <span class="ic">🔧</span> Travaux</button>
-            <button class="ni" data-p="inscriptions-admin" onclick="go('inscriptions-admin')"> <span class="ic">📄</span> Inscriptions</button>
+            <button class="ni" data-p="inscriptions-admin" onclick="go('inscriptions-admin')"> <span
+                class="ic">📄</span> Inscriptions</button>
             <button class="ni" data-p="dash" onclick="go('dash')"><span class="ic">⬛</span>Tableau de bord</button>
           </div>
         </div>
@@ -1982,24 +1985,29 @@
                   <div class="contrat-field"><label>Nom</label><input type="text" id="insc-cav-nom"></div>
                 </div>
                 <div class="contrat-fr2">
-                  <div class="contrat-field"><label>Date de naissance</label><input type="date" id="insc-cav-naissance"></div>
+                  <div class="contrat-field"><label>Date de naissance</label><input type="date" id="insc-cav-naissance">
+                  </div>
                   <div class="contrat-field"><label>Sexe</label>
-                    <select id="insc-cav-sexe" style="width:100%;background:var(--bg);border:none;border-bottom:1px solid var(--border);padding:5px 2px;color:var(--text);font-family:Arial,sans-serif;font-size:14px;outline:none">
+                    <select id="insc-cav-sexe"
+                      style="width:100%;background:var(--bg);border:none;border-bottom:1px solid var(--border);padding:5px 2px;color:var(--text);font-family:Arial,sans-serif;font-size:14px;outline:none">
                       <option value="">—</option>
                       <option value="F">Féminin</option>
                       <option value="M">Masculin</option>
                     </select>
                   </div>
                 </div>
-                <div class="contrat-field"><label>Adresse</label><textarea id="insc-cav-adresse" rows="2"></textarea></div>
+                <div class="contrat-field"><label>Adresse</label><textarea id="insc-cav-adresse" rows="2"></textarea>
+                </div>
                 <div class="contrat-field"><label>Mail</label><input type="email" id="insc-cav-mail"></div>
                 <div class="contrat-field"><label>Téléphone</label><input type="tel" id="insc-cav-tel"></div>
               </div>
               <div>
                 <h4>👤 Responsable légal</h4>
                 <div class="contrat-field"><label>NOM Prénom</label><input type="text" id="insc-resp-nom"></div>
-                <div class="contrat-field"><label>Parenté</label><input type="text" id="insc-resp-parente" placeholder="Père, mère, tuteur…"></div>
-                <div class="contrat-field"><label>Adresse</label><textarea id="insc-resp-adresse" rows="2"></textarea></div>
+                <div class="contrat-field"><label>Parenté</label><input type="text" id="insc-resp-parente"
+                    placeholder="Père, mère, tuteur…"></div>
+                <div class="contrat-field"><label>Adresse</label><textarea id="insc-resp-adresse" rows="2"></textarea>
+                </div>
                 <div class="contrat-field"><label>Mail</label><input type="email" id="insc-resp-mail"></div>
                 <div class="contrat-field"><label>Téléphone</label><input type="tel" id="insc-resp-tel"></div>
               </div>
@@ -2030,57 +2038,78 @@
             <div class="contrat-sec">
               <h4>🩺 Certificat médical</h4>
               <label class="contrat-chk"><input type="checkbox" id="insc-chk-medical1">
-                Je reconnais avoir recueilli un avis médical favorable à la pratique de l'équitation dans le cas d'une pathologie connue.</label>
+                Je reconnais avoir recueilli un avis médical favorable à la pratique de l'équitation dans le cas d'une
+                pathologie connue.</label>
               <label class="contrat-chk"><input type="checkbox" id="insc-chk-medical2">
-                Pour la compétition, j'utilise l'imprimé "certificat médical" se trouvant dans mon espace perso sur le site de la FFE et je l'envoie via le site dès le renouvellement de ma licence (septembre).</label>
+                Pour la compétition, j'utilise l'imprimé "certificat médical" se trouvant dans mon espace perso sur le
+                site de la FFE et je l'envoie via le site dès le renouvellement de ma licence (septembre).</label>
             </div>
 
             <!-- Droit à l'image -->
             <div class="contrat-sec">
               <h4>📷 Droit à l'image</h4>
               <label class="contrat-chk"><input type="checkbox" id="insc-chk-image">
-                J'accepte l'utilisation de mon image et/ou celle de mon enfant par Les Écuries de l'Octroi dans le cadre de la pratique de ses activités équestres.</label>
+                J'accepte l'utilisation de mon image et/ou celle de mon enfant par Les Écuries de l'Octroi dans le cadre
+                de la pratique de ses activités équestres.</label>
             </div>
 
             <!-- Groupe WhatsApp -->
             <div class="contrat-sec">
               <h4>💬 Groupe WhatsApp</h4>
               <label class="contrat-chk"><input type="checkbox" id="insc-chk-whatsapp">
-                J'accepte de faire partie du groupe de mon cours et/ou celui de mon enfant afin d'être informé(e) des activités et modifications de planning.</label>
+                J'accepte de faire partie du groupe de mon cours et/ou celui de mon enfant afin d'être informé(e) des
+                activités et modifications de planning.</label>
             </div>
 
             <!-- Fichier informatique -->
             <div class="contrat-sec">
               <h4>💾 Fichier informatique</h4>
               <label class="contrat-chk"><input type="checkbox" id="insc-chk-fichier">
-                J'accepte d'être recensé(e) dans le fichier informatique de l'établissement et bénéficie auprès de celui-ci d'un droit d'accès et de rectification, conformément à la loi du 6 janvier 1978 modifiée.</label>
+                J'accepte d'être recensé(e) dans le fichier informatique de l'établissement et bénéficie auprès de
+                celui-ci d'un droit d'accès et de rectification, conformément à la loi du 6 janvier 1978
+                modifiée.</label>
             </div>
 
             <!-- Règlement intérieur -->
             <div class="contrat-sec">
               <h4>📖 Règlement intérieur</h4>
               <label class="contrat-chk"><input type="checkbox" id="insc-chk-reglement">
-                Je reconnais avoir pris connaissance du Règlement Intérieur dont un exemplaire accompagne ce contrat et en accepter toutes les dispositions.</label>
+                Je reconnais avoir pris connaissance du <a href="#reglement-interieur">Règlement Intérieur</a> dont un exemplaire accompagne ce contrat et
+                en accepter toutes les dispositions.</label>
             </div>
 
             <!-- Licence FFE -->
             <div class="contrat-sec">
               <h4>🎫 Licence FFE</h4>
-              <p class="contrat-txt">Conformément à l'article L.321-4 du Code du sport, je reconnais avoir été informé(e) de l'intérêt que présente la souscription d'un contrat d'assurance de personnes couvrant les dommages corporels auxquels la pratique de l'équitation peut m'exposer ainsi que des conditions d'assurance offertes par la licence FFE et que celle-ci est indispensable pour le passage des examens fédéraux.</p>
+              <p class="contrat-txt">Conformément à l'article L.321-4 du Code du sport, je reconnais avoir été
+                informé(e) de l'intérêt que présente la souscription d'un contrat d'assurance de personnes couvrant les
+                dommages corporels auxquels la pratique de l'équitation peut m'exposer ainsi que des conditions
+                d'assurance offertes par la licence FFE et que celle-ci est indispensable pour le passage des examens
+                fédéraux.</p>
               <label class="contrat-chk"><input type="radio" name="insc-assurance" id="insc-chk-assurance-oui">
-                Je souscris les garanties d'assurance individuelle du cavalier offertes par la licence de la Fédération Française d'Équitation.</label>
-              <div class="sub" style="margin-left:25px;margin-bottom:10px">Le chèque n° <input type="text" id="insc-cheque-num"> sera encaissé le 5 septembre.</div>
+                Je souscris les garanties d'assurance individuelle du cavalier offertes par la licence de la Fédération
+                Française d'Équitation.</label>
+              <div class="sub" style="margin-left:25px;margin-bottom:10px">Le chèque n° <input type="text"
+                  id="insc-cheque-num"> sera encaissé le 5 septembre.</div>
               <label class="contrat-chk"><input type="radio" name="insc-assurance" id="insc-chk-assurance-non">
-                Je refuse l'assurance individuelle de cavalier de la licence FFE et je justifie être assuré(e) pour les dommages corporels ainsi que la responsabilité civile pour la pratique de l'équitation, auprès de <em>(compagnie/N° contrat)</em> :</label>
-              <div class="sub" style="margin-left:25px"><input type="text" id="insc-assurance-compagnie" style="width:280px"></div>
+                Je refuse l'assurance individuelle de cavalier de la licence FFE et je justifie être assuré(e) pour les
+                dommages corporels ainsi que la responsabilité civile pour la pratique de l'équitation, auprès de
+                <em>(compagnie/N° contrat)</em> :</label>
+              <div class="sub" style="margin-left:25px"><input type="text" id="insc-assurance-compagnie"
+                  style="width:280px"></div>
             </div>
 
             <!-- Engagement -->
             <div class="contrat-sec">
               <h4>✍️ Engagement</h4>
-              <p class="contrat-txt">- En signant ce contrat, je reconnais accepter les contraintes de l'engagement sur la saison complète pour bénéficier du tarif du forfait et des avantages qui y sont liés. En cas d'arrêt temporaire ou définitif avant la fin de la saison, consulter les conditions du Règlement Intérieur ci-joint.</p>
-              <p class="contrat-txt">- Je comprends et j'accepte que l'avance que je règle pour profiter de la réduction, est une réservation non remboursable si je change d'avis.</p>
-              <div class="sub">Le chèque n° <input type="text" id="insc-cheque-avance-num"> sera encaissé le 5 août.</div>
+              <p class="contrat-txt">- En signant ce contrat, je reconnais accepter les contraintes de l'engagement sur
+                la saison complète pour bénéficier du tarif du forfait et des avantages qui y sont liés. En cas d'arrêt
+                temporaire ou définitif avant la fin de la saison, consulter les conditions du Règlement Intérieur
+                ci-joint.</p>
+              <p class="contrat-txt">- Je comprends et j'accepte que l'avance que je règle pour profiter de la
+                réduction, est une réservation non remboursable si je change d'avis.</p>
+              <div class="sub">Le chèque n° <input type="text" id="insc-cheque-avance-num"> sera encaissé le 5 août.
+              </div>
             </div>
 
             <!-- Signature établissement + validation -->
@@ -2094,7 +2123,8 @@
               <div class="contrat-validation">
                 <label class="contrat-chk">
                   <input type="checkbox" id="insc-chk-final">
-                  J'ai bien lu et j'approuve ce formulaire ainsi que le Règlement Intérieur. Je reconnais qu'en renseignant mes initiales ci-dessous, cela représente la signature du présent contrat d'inscription.
+                  J'ai bien lu et j'approuve ce formulaire ainsi que le Règlement Intérieur. Je reconnais qu'en
+                  renseignant mes initiales ci-dessous, cela représente la signature du présent contrat d'inscription.
                 </label>
                 <div class="contrat-initiales">
                   <label>Mes initiales :</label>
@@ -2103,20 +2133,229 @@
               </div>
             </div>
 
-            <div class="contrat-bottom">
+            <div class="contrat-bottom" id="reglement-interieur">
               <h4>📖 Règlement Intérieur</h4>
             </div>
-            <div class="contrat-sec">
+
+            <div class="contrat-sec" id="article1">
               <h4>01 - Organisation</h4>
-              <p class="contrat-txt">Toutes les activités, les installations ainsi que le personnel des Écuries de l’Octroi sont placées sous l'autorité de Claire MATHEVET.</p>
+              <p class="contrat-txt">Toutes les activités, les installations ainsi que le personnel des Écuries de
+                l’Octroi sont placées sous l'autorité de Claire MATHEVET.</p>
+            </div>
+
+            <div class="contrat-sec" id="article2">
+              <h4>02 - Sécurité</h4>
+              <p class="contrat-txt">La cigarette est interdite dans la cour ainsi que les manèges.</p>
+              <p class="contrat-txt">Les chiens doivent être tenus en laisse dans l’enceinte du parc ainsi que dans la
+                cour du centre équestre.</p>
+              <p class="contrat-txt">Les deux roues des cavaliers peuvent être stationnés à l’intérieur de la cour après
+                autorisation en entrant dans la cour au pas.</p>
+              <p class="contrat-txt">Il est interdit de donner à manger à la main à tous les chevaux et poneys. Les
+                cavaliers du club ne sont pas autorisés à s’occuper des équidés des propriétaires, sauf autorisation
+                spéciale signée et en accord avec le responsable de l’établissement.</p>
+              <p class="contrat-txt">Aucun comportement risquant d’effrayer les équidés n’est autorisé dans l’enceinte
+                de l’établissement (ballon, vélo, rollers, …).</p>
+            </div>
+
+            <div class="contrat-sec" id="article3">
+              <h4>03 - Tenue</h4>
+              <p class="contrat-txt">A pied, hors cours, une tenue correcte et propre, est de rigueur.</p>
+              <p class="contrat-txt">Les cours de travail à pied Équifeel, Longe ou Longues-rênes se font avec casque et
+                gants.</p>
+              <p class="contrat-txt">À cheval, le port de bottes ou chaps ainsi que d’une protection céphalique conforme
+                à la norme en vigueur sont obligatoires.</p>
+              <p class="contrat-txt">La protection dorsale est recommandée pour les séances d’entrainement à
+                l’obstacles. Elle est obligatoire sur le cross.</p>
+            </div>
+
+            <div class="contrat-sec" id="article4">
+              <h4>04 - Tarifs</h4>
+              <p class="contrat-txt">Le tarif de chaque prestation proposée par Les Écuries de l’Octroi entre en vigueur
+                au premier septembre de la saison commençante.</p>
+              <p class="contrat-txt">Il est affiché dans le club-house (salle d’accueil). Il est disponible sur simple
+                demande.</p>
+            </div>
+
+            <div class="contrat-sec" id="article5">
+              <h4>05 - License</h4>
+              <p class="contrat-txt">La licence fédérale est obligatoire pour les propriétaires d’équidés en pension et
+                les cavaliers avec un forfait ou une pension partielle.</p>
+              <p class="contrat-txt"><i><u>Licence fédérale pratiquant</u></i> : assurance en responsabilité civile et
+                individuelle accident (cf. affichage au club-house). Elle donne accès aux passages des examens fédéraux
+                ainsi qu’à la compétition officielle. Une fois validée à la FFE, elle n’est plus remboursable. </p>
+              <p class="contrat-txt"><i><u>Licence fédérale compétition</u></i> : Elle est validée par un certificat
+                médical téléchargeable sur l’espace cavalier de la FFE (www.ffe.com). Il doit être renouvelé tous les
+                trois ans et déposé sur ce même espace. Les deux années suivantes il est remplacé par un questionnaire.
+              </p>
+            </div>
+
+            <div class="contrat-sec" id="article6">
+              <h4>06 - Inscription & réservation</h4>
+              <p class="contrat-txt">Au-delà des cours d’essai, plusieurs choix sont possibles : </p>
+              <p class="contrat-txt"><i><u>La carte de fidélité</u></i> a l’avantage de ne pas être un engagement mais
+                nécessite une prise de rendez-vous. Elle est utilisable sur les places disponibles. Elle est remise à
+                zéro le 31 août de chaque année. Pour prétendre à un remboursement, l’annulation doit se faire 24 heures
+                à l’avance. Les cours non décommandés sont perdus. Si elle est accompagnée de la licence fédérale, le
+                seizième cours est offert.</p>
+              <p class="contrat-txt"><i><u>Le forfait annuel</u></i> offre un tarif réduit qui tient lieu d’engagement
+                jusqu’à la fin de la saison en cours. Ils réservent la place dans un cours à jour et heure fixes. Ils
+                donnent accès à des tarifs préférentiels sur diverses prestations, animations et stages.</p>
+              <p class="contrat-txt">L’avance sur forfait versée avant le 15 juin donne accès à un tarif avantageux.
+                Elle n’est plus remboursable après le 31 juillet, en cas de changement d’avis, quelle qu’en soit la
+                raison.</p>
+              <p class="contrat-txt">En cas d’arrêt, temporaire ou définitif avant la fin de la saison, aucun
+                remboursement ne sera possible. Des options de remplacement seront proposées au cas par cas (cf Article
+                7). Il est obligatoirement accompagné de la licence fédérale.</p>
+              <p class="contrat-txt"><i><u>Les activités hors forfait</u></i> (animations, balades, stages, concours…)
+                sont organisées au cours de la saison. L’inscription à ces activités se fait obligatoirement par écrit :
+                mail, sms, WhatsApp avant la date prévue sur l’information la concernant.</p>
+              <p class="contrat-txt">Le règlement valide l’inscription. La licence fédérale n’est pas obligatoire.</p>
+              <p class="contrat-txt"><i><u>La pension partielle</u></i> offre la possibilité de réserver un équidé de
+                club, en prenant à charge une partie du coût d’entretien. Il s’agit d’un engagement, pour une durée
+                déterminée. Son tarif est étudié en fonction de l’équidé choisi, son niveau d’expérience, ses
+                contraintes d’entretien, ainsi que le travail pour le maintien du niveau technique. Un contrat est
+                signé. La licence fédérale est obligatoire.</p>
+              <p class="contrat-txt">En cas d’indisponibilité de moins de 30 jours de l’équidé choisi, un ou plusieurs
+                autres seront fournis pour assurer les cours. Au-delà de 30 jours d’arrêt, une rupture de contrat ou le
+                choix d’un nouvel équidé seront proposés.</p>
+              <p class="contrat-txt">En cas d’indisponibilité du cavalier la pension partielle reste due et les cours
+                resteront rattrapables (sous les conditions du forfait).</p>
+            </div>
+
+            <div class="contrat-sec" id="article7">
+              <h4>07 - Annulation & rattrapage</h4>
+              <p class="contrat-txt">Aucune annulation de cours ou autre prestation ne sera prise à oral (<a
+                  href="#article8">cf. article 8</a>).</p>
+              <p class="contrat-txt">Les annulations et rattrapages des cours se font obligatoirement par écrit : mail,
+                sms ou message WhatsApp.</p>
+              <p class="contrat-txt">Les cours décommandés 24 heures avant sont rattrapables sur les places disponibles
+                dans un délai de cinq semaines suivant l’absence.</p>
+              <p class="contrat-txt">Passée cette date ils sont perdus. Les cours non décommandés 24 heures avant sont
+                perdus.</p>
+              <p class="contrat-txt">En cas d’arrêt définitif, quelle qu’en soit la raison, le solde des cours sera
+                converti en bon cadeau (nombre au choix) après un abattement de 30%.</p>
+              <p class="contrat-txt">L’annulation des activités (animations, balades, stages, concours…) devra se faire
+                avant la date prévue sur l’information la concernant.</p>
+              <p class="contrat-txt">Les prestations annulées par le club sont dues. Une nouvelle date, des options de
+                rattrapage ou un remboursement, seront proposés.</p>
+            </div>
+
+            <div class="contrat-sec" id="article8">
+              <h4>08 - Communication & information</h4>
+              <p class="contrat-txt"><i><u>Les panneaux d’affichage</u></i>, le site web <i><u><a
+                      href="https://www.loctroi.ffe.com">www.loctroi.ffe.com</a></u></i> ainsi que <i><u>les réseaux
+                    sociaux</u></i> proposent diverses activités, animations ou compétitions. L’équipe se tient à
+                disposition pour tout complément d’information. </p>
+              <p class="contrat-txt"><i><u>Les groupes WhatsApp</u></i> invitent les clients à rejoindre celui de leur
+                cours, créé en début de saison, afin d’informer d’éventuels changements d’horaires, animations ou
+                stages. S’ils ne le souhaitent pas, il leur suffit de refuser l’invitation.</p>
+              <p class="contrat-txt">Pour annuler une prestation l’établissement met à la disposition de ses clients un
+                téléphone ainsi qu’une adresse mail (<a href="#article9">cf. article 9</a>).</p>
+            </div>
+
+            <div class="contrat-sec" id="article9">
+              <h4>09 - Observations, réclamations & suggestions</h4>
+              <p class="contrat-txt">Tout client désireux de faire des observations, réclamations ou suggestions
+                concernant le centre équestre ou son fonctionnement peut le faire par sms, message WhatsApp, courrier
+                électronique ou postal ou le déposer directement au bureau.</p>
+              <p class="contrat-txt">Portable : <i><u></u><a href="tel:+33781312927">07.81.31.29.27</a></u></i></u> (SMS
+                ou WhatsApp)</p>
+              <p class="contrat-txt">Mail : <i><u><a
+                      href="mailto:reservation@lesecuriesdeloctroi.com">reservation@lesecuriesdeloctroi.com</a></u></i>.
+              </p>
+              <p class="contrat-txt">Courrier : <i><u></u>Les Écuries de l’Octroi, Parc du Mollard, 12 allée de
+                  l’Octroi, 42800 CHATEAUNEUF</u></i></u></p>
+            </div>
+
+            <div class="contrat-sec" id="article10">
+              <h4>10 - Utilisation des installations</h4>
+              <p class="contrat-txt">Avant d’entrer dans les aires d’évolution, si celles-ci sont occupées, le cavalier
+                doit demander l’autorisation à l’enseignant ou à défaut aux personnes déjà présentes. Tout le matériel
+                utilisé sera rangé à sa place en fin de séance. Les éclairages doivent être éteints et robinets fermés
+                dès la fin de leur utilisation. Les crottins sont ramassés, dans la cour, sur les aires de préparation
+                et dans le manège après chaque utilisation.</p>
+            </div>
+
+            <div class="contrat-sec" id="article11">
+              <h4>11 - Propriétaire d'équidé</h4>
+              <p class="contrat-txt">Les équidés peuvent être pris en pension par le centre aux conditions prévues dans
+                le "Contrat de Pension" disponible sur demande.</p>
+              <p class="contrat-txt">Le tarif des prestations proposées aux propriétaires entre en vigueur chaque année
+                au premier septembre pour la saison commençante. Il est affiché dans le club-house (salle d’accueil) et
+                la sellerie leur étant réservée. Les tarifs, les conditions d’annulation de cours et les participations
+                aux activités sont les mêmes que pour les cours de l’école d’équitation.</p>
+            </div>
+
+            <div class="contrat-sec" id="article12">
+              <h4>12 - Prise en charge des enfants mineurs</h4>
+              <p class="contrat-txt">Les cavaliers mineurs sont sous la responsabilité de l’établissement équestre
+                durant leur temps de cours ainsi que le temps de préparation de l’équidé et le retour à l’écurie, soit
+                une heure et trente minutes. En dehors des heures de cours vendues les mineurs peuvent rester dans la
+                structure avec accord du personnel mais sont sous la responsabilité de leurs parents ou de leur tuteur
+                légal.</p>
+            </div>
+
+            <div class="contrat-sec" id="article13">
+              <h4>13 - Assurance</h4>
+              <p class="contrat-txt">Les clients sont obligatoirement assurés pour leur responsabilité civile dans le
+                cadre de l'assurance de l’établissement durant le temps d’activité d’équestre. Il leur appartient de
+                prendre connaissance, de l'étendue et des limites de garantie qui leur sont ainsi accordées.</p>
+              <p class="contrat-txt">Aucun client ne peut participer aux activités de l’établissement s'il n'a pas
+                acquitté son règlement.</p>
+              <p class="contrat-txt">La responsabilité de l’établissement équestre est dégagée en cas d'un accident
+                provoqué par le non-respect du Règlement Intérieur.</p>
+              <p class="contrat-txt">L’établissement équestre tient à la disposition de ses clients la Licence Fédérale
+                qui couvre en responsabilité civile et individuelle accident, durant la pratique de l’équitation. Elle
+                est obligatoire pour les propriétaires d’équidés en pension.</p>
+            </div>
+
+            <div class="contrat-sec" id="article14">
+              <h4>14 - Disciplines</h4>
+              <p class="contrat-txt">Au cours de toutes les activités les clients doivent observer une obéissance
+                complète à l'encadrement et appliquer en particulier les consignes de sécurité. En tout lieu et en toute
+                circonstance, les clients sont tenus d'observer une attitude déférente vis-à-vis du personnel
+                d'encadrement ainsi qu'une parfaite correction à l'égard des autres préposés.</p>
+              <p class="contrat-txt">Tout client ayant la possibilité de présenter en permanence une réclamation en se
+                conformant à l'article 9 ci-dessus, aucune manifestation discourtoise envers l’établissement, son
+                personnel ou ses clients n'est admise.</p>
+            </div>
+
+            <div class="contrat-sec" id="article15">
+              <h4>15 - Sanctions</h4>
+              <p class="contrat-txt">Toute attitude répréhensible d'un client et en particulier toute inobservation du
+                Règlement Intérieur expose celui qui en est responsable à des sanctions qui peuvent être de trois ordres
+                :</p>
+              <p class="contrat-txt"><i><u>La mise à pied</u></i> prononcée par le responsable de l’établissement pour
+                une durée ne pouvant excéder un mois. Le client qui est mis à pied ne peut, pendant la durée de la
+                sanction, ni monter un cheval dans l’enceinte de l’établissement équestre, ni utiliser les terrains
+                d'évolution, manège et carrière.</p>
+              <p class="contrat-txt"><i><u>L'exclusion temporaire</u></i> prononcée par le responsable de
+                l’établissement pour une durée ne pouvant excéder un an. Le client qui est exclu temporairement ne peut,
+                pendant la durée de la sanction, participer à aucune activité publique ou privée et n'a plus accès aux
+                locaux et installations de l’établissement équestre.</p>
+              <p class="contrat-txt"><i><u>L'exclusion définitive</u></i> prononcée par le responsable de
+                l’établissement. Tout client faisant l'objet d'une sanction ne peut prétendre à aucun remboursement des
+                sommes déjà payées par lui et se rapportant aux activités dont la sanction le prive.</p>
+            </div>
+
+            <div class="contrat-sec" id="article16">
+              <h4>16 - Application du règlement intérieur</h4>
+              <p class="contrat-txt">En signant un contrat d’enseignement, de pension ou de pension partielle avec Les
+                Écuries de l’Octroi, le client reconnait formellement avoir pris connaissance du règlement Intérieur et
+                en accepter toutes les dispositions.</p>
+            </div>
+
+            <div class="contrat-footer" id="insc-footer">
+              Claire MATHEVET. Les Écuries de l’Octroi. Règlement intérieur en vigueur au 1er septembre 2026
             </div>
 
             <div class="contrat-actions">
               <button class="btn btn-p" onclick="saveInscription()">✅ Valider mon inscription</button>
             </div>
-
             <div class="contrat-footer" id="insc-footer">
-              12 allée de l’Octroi, 42800 CHATEAUNEUF. <a href="tel:+33781312927">07.81.31.29.27</a> · <a href="mailto:reservation@lesecuriesdeloctroi.com">reservation@lesecuriesdeloctroi.com</a> · <a href="https://www.loctroi.ffe.com" target="_blank" rel="noopener noreferrer">www.loctroi.ffe.com</a>
+              12 allée de l’Octroi, 42800 CHATEAUNEUF. <a href="tel:+33781312927">07.81.31.29.27</a> · <a
+                href="mailto:reservation@lesecuriesdeloctroi.com">reservation@lesecuriesdeloctroi.com</a> · <a
+                href="https://www.loctroi.ffe.com" target="_blank" rel="noopener noreferrer">www.loctroi.ffe.com</a>
             </div>
 
           </div>
@@ -2385,11 +2624,14 @@
           <div class="md" style="max-width:620px">
             <h3 id="mo-insc-t">📄 Contrat d'inscription</h3>
             <input type="hidden" id="insc-detail-id">
-            <div id="insc-detail-body" style="display:flex;flex-direction:column;gap:14px;max-height:60vh;overflow-y:auto;padding-right:4px"></div>
+            <div id="insc-detail-body"
+              style="display:flex;flex-direction:column;gap:14px;max-height:60vh;overflow-y:auto;padding-right:4px">
+            </div>
             <div class="mf">
               <button class="btn btn-g" onclick="closeMo('mo-insc-detail')">Fermer</button>
               <button class="btn btn-d sm" onclick="delInscriptionAdmin()">🗑 Supprimer</button>
-              <button class="btn btn-p" id="insc-approve-btn" onclick="approuverInscription()">✅ Approuver & créer le cavalier</button>
+              <button class="btn btn-p" id="insc-approve-btn" onclick="approuverInscription()">✅ Approuver & créer le
+                cavalier</button>
             </div>
           </div>
         </div>
@@ -3052,9 +3294,11 @@
             </select>
           </div>
           <div class="fg" id="cav-semaine-ref-fg" style="display:none">
-            <label>Date du 1er cours <span style="color:var(--muted)">(sert de référence pour l'alternance)</span></label>
+            <label>Date du 1er cours <span style="color:var(--muted)">(sert de référence pour
+                l'alternance)</span></label>
             <input type="date" id="cav-semaine-ref">
-            <div style="font-size:11px;color:var(--muted);margin-top:4px">Le cavalier sera présent cette semaine-là, puis une semaine sur deux à partir de cette date.</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">Le cavalier sera présent cette semaine-là,
+              puis une semaine sur deux à partir de cette date.</div>
           </div>
           <div class="fg"><label>Groupes assignés</label>
             <div class="cav-checkgrid" id="cav-grp-grid"></div>
