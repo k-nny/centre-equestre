@@ -3787,7 +3787,7 @@
         const statutsActifsADate = (date) => C.statuts.filter(s => statutActifADate(s, date));
         const SBDG = { attache: 'bo', veto: 'br', marechal: 'bp', repos: 'b' };
 
-        let isAdmin = false, isKenny = false, isMarine = false, isBalade = false, isTravaux = false, isInscriptionOnly = false, sessionToken = '', histTab = 'couples';
+        let isAdmin = false, isKenny = false, isMarine = false, isStagiaire = false, isTravaux = false, isInscriptionOnly = false, sessionToken = '', histTab = 'couples';
         let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [], taches: [], tachesComp: [], travaux: [], inscriptions: [] };
         // ── Historique d'annulation (undo) ──
         let _undoStack = []; // [{ label, fn }]
@@ -3918,11 +3918,11 @@
               localStorage.removeItem('ce_admin_active');
               localStorage.removeItem('ce_Kenny_active');
               localStorage.removeItem('ce_marine_active');
-              localStorage.removeItem('ce_balade_active');
+              localStorage.removeItem('ce_stagiaire_active');
               localStorage.removeItem('ce_travaux_active');
               localStorage.removeItem('ce_inscription_active');
               // Stocker le rôle pour la reconnexion auto
-              if (j.role === 'balade') localStorage.setItem('ce_balade_active', '1');
+              if (j.role === 'stagiaire') localStorage.setItem('ce_stagiaire_active', '1');
               if (j.role === 'travaux') localStorage.setItem('ce_travaux_active', '1');
               if (j.role === 'inscription') localStorage.setItem('ce_inscription_active', '1');
               document.getElementById('site-login').style.display = 'none';
@@ -3973,8 +3973,8 @@
               enableMarine(lastPage);
               return;
             }
-            if (localStorage.getItem('ce_balade_active') === '1') {
-              enableBalade();
+            if (localStorage.getItem('ce_stagiaire_active') === '1') {
+              enableStagiaire();
               return;
             }
             if (localStorage.getItem('ce_travaux_active') === '1') {
@@ -4143,7 +4143,7 @@
           if (isAdmin) { logoutAdmin(); return; }
           if (isMarine) { logoutMarine(); return; }
           if (isKenny) { logoutKenny(); return; }
-          if (isBalade) { logoutBalade(); return; }
+          if (isStagiaire) { logoutStagiaire(); return; }
           if (isTravaux) { logoutTravaux(); return; }
           if (isInscriptionOnly) { logoutInscriptionOnly(); return; }
           document.getElementById('pw-in').value = '';
@@ -4164,11 +4164,11 @@
               // l'écran de connexion) relirait l'ancien token et casserait à nouveau l'accès.
               localStorage.setItem('ce_site_token', j.token);
               const role = (j.role || '').toLowerCase();
-              isKenny = false; isMarine = false; isBalade = false; isAdmin = false; isTravaux = false; isInscriptionOnly = false;
+              isKenny = false; isMarine = false; isStagiaire = false; isAdmin = false; isTravaux = false; isInscriptionOnly = false;
               localStorage.removeItem('ce_admin_active');
               localStorage.removeItem('ce_Kenny_active');
               localStorage.removeItem('ce_marine_active');
-              localStorage.removeItem('ce_balade_active');
+              localStorage.removeItem('ce_stagiaire_active');
               localStorage.removeItem('ce_travaux_active');
               localStorage.removeItem('ce_inscription_active');
               closeMo('mo-pw');
@@ -4176,8 +4176,8 @@
                 enableKenny();
               } else if (role === 'marine') {
                 enableMarine();
-              } else if (role === 'balade') {
-                enableBalade();
+              } else if (role === 'stagiaire') {
+                enableStagiaire();
               } else if (role === 'travaux') {
                 enableTravaux();
               } else if (role === 'inscription') {
@@ -4253,22 +4253,22 @@
           toast('Déconnecté', 'ok');
         }
 
-        function enableBalade() {
-          isBalade = true; isAdmin = false; isKenny = false; isMarine = false;
+        function enableStagiaire() {
+          isStagiaire = true; isAdmin = false; isKenny = false; isMarine = false;
           document.body.classList.remove('travaux-only-nav');
           document.body.classList.remove('inscription-only-nav');
-          localStorage.setItem('ce_balade_active', '1');
-          // Vue balades uniquement — pas de nav admin, pas de bannière admin
+          localStorage.setItem('ce_stagiaire_active', '1');
+          // Vue stagiaires uniquement — pas de nav admin, pas de bannière admin
           document.getElementById('admin-banner').classList.remove('show');
-          document.getElementById('atbtn').textContent = '🔒 Quitter mode balade'; document.getElementById('atbtn').classList.add('on');
+          document.getElementById('atbtn').textContent = '🔒 Quitter mode stagiaire'; document.getElementById('atbtn').classList.add('on');
           document.getElementById('anav').style.display = 'none';
           updateBannerPadding();
           go('balades-pub');
         }
 
-        function logoutBalade() {
-          isBalade = false;
-          localStorage.removeItem('ce_balade_active');
+        function logoutStagiaire() {
+          isStagiaire = false;
+          localStorage.removeItem('ce_stagiaire_active');
           localStorage.removeItem('ce_site_token');
           localStorage.removeItem('ce_pw_hash');
           document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
@@ -4279,13 +4279,13 @@
         }
 
         function enableTravaux() {
-          isTravaux = true; isAdmin = false; isKenny = false; isMarine = false; isBalade = false;
+          isTravaux = true; isAdmin = false; isKenny = false; isMarine = false; isStagiaire = false;
           document.body.classList.remove('inscription-only-nav');
           // Ne PAS réécraser sessionToken ici : il a déjà été fixé correctement par
           // l'appelant (chkPw avec le token frais du rôle Travaux, ou initApp avec le
           // siteToken lors d'une restauration de session).
           localStorage.setItem('ce_travaux_active', '1');
-          // Même principe que enableBalade() : une seule classe atomique sur <body>,
+          // Même principe que enableStagiaire() : une seule classe atomique sur <body>,
           // que CHAQUE autre fonction enableXXX() retire elle-même en s'activant.
           // Pas de manipulation individuelle de boutons qui pourrait fuiter d'un rôle à l'autre.
           document.getElementById('admin-banner').classList.remove('show');
@@ -4317,7 +4317,7 @@
         // (le bouton "Inscription" vit déjà dans la section publique de la nav, pas
         // besoin de toucher #anav — même principe que enableTravaux mais plus simple).
         function enableInscriptionOnly() {
-          isInscriptionOnly = true; isAdmin = false; isKenny = false; isMarine = false; isBalade = false; isTravaux = false;
+          isInscriptionOnly = true; isAdmin = false; isKenny = false; isMarine = false; isStagiaire = false; isTravaux = false;
           document.body.classList.remove('travaux-only-nav');
           localStorage.setItem('ce_inscription_active', '1');
           document.getElementById('admin-banner').classList.remove('show');
@@ -4342,7 +4342,7 @@
         }
 
         function enableKenny(targetPage = 'dash') {
-          isKenny = true; isAdmin = false; isMarine = false; isBalade = false;
+          isKenny = true; isAdmin = false; isMarine = false; isStagiaire = false;
           document.body.classList.remove('travaux-only-nav');
           document.body.classList.remove('inscription-only-nav');
           sessionToken = localStorage.getItem('ce_site_token') || '';
@@ -4377,8 +4377,8 @@
           if (!isAdmin && !isKenny && !isMarine && !isTravaux && adm.includes(p)) return;
           // Marine : seulement séances (+ vue est déjà publique)
           if (isMarine && !isAdmin && !isKenny && !['seances'].includes(p) && adm.includes(p)) return;
-          // Balade : seulement balades-pub
-          if (isBalade && p !== 'balades-pub' && p != 'taches-pub') return;
+          // Stagiaire : seulement balades-pub, taches-pub et vue (la page publique du site) — aucune autre page admin
+          if (isStagiaire && p !== 'balades-pub' && p != 'taches-pub' && p !== 'vue') return;
           // Travaux : uniquement la page travaux, aucune autre
           if (isTravaux && !isAdmin && !isKenny && p !== 'travaux') return;
           // Inscription (kiosque) : uniquement le formulaire public, aucune autre page
@@ -8309,7 +8309,7 @@
             return;
           }
           const canEdit = isAdmin || isKenny;
-          const canPay = isAdmin || isKenny || isBalade;
+          const canPay = isAdmin || isKenny || isStagiaire;
           el.innerHTML = sorted.map(b => {
             const parts = C_balades_parts.filter(p => p.balade_id === b.id);
             const isPast = b.date < today;
