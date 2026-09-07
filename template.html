@@ -1250,6 +1250,233 @@
       color: #fff;
     }
 
+    /* ═══════════════════════════════════════════════════════════════
+    📋 RÔLES / IDENTIFIANTS
+    ═══════════════════════════════════════════════════════════════ */
+
+    .roles-card {
+      overflow: hidden;
+    }
+
+    .roles-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .roles-header h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .roles-header p {
+      margin: 5px 0 0;
+      font-size: 13px;
+      opacity: .65;
+    }
+
+    .roles-password-notice {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 15px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      background: rgba(255, 193, 7, .08);
+      border: 1px solid rgba(255, 193, 7, .18);
+    }
+
+    .roles-notice-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .roles-password-notice strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+
+    .roles-password-notice span {
+      font-size: 12px;
+      opacity: .65;
+    }
+
+    .roles-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .role-card {
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(127, 127, 127, .16);
+      background: rgba(127, 127, 127, .035);
+      transition: transform .2s ease, border-color .2s ease,
+        box-shadow .2s ease;
+    }
+
+    .role-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(127, 127, 127, .28);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, .06);
+    }
+
+    .role-card-highlight {
+      border-color: rgba(90, 120, 255, .22);
+      background: rgba(90, 120, 255, .035);
+    }
+
+    .role-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+
+    .role-title {
+      display: block;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .role-subtitle {
+      display: block;
+      margin-top: 3px;
+      font-size: 11px;
+      opacity: .55;
+    }
+
+    .role-badge {
+      flex-shrink: 0;
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+
+    .role-kiosk {
+      background: rgba(120, 120, 120, .12);
+    }
+
+    .role-public {
+      background: rgba(50, 170, 100, .12);
+    }
+
+    .role-admin {
+      background: rgba(230, 150, 40, .13);
+    }
+
+    .role-mixte {
+      background: rgba(100, 110, 230, .13);
+    }
+
+    .role-full {
+      background: rgba(90, 120, 255, .14);
+    }
+
+    .role-info {
+      margin-bottom: 14px;
+    }
+
+    .role-info label,
+    .access-label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      opacity: .5;
+    }
+
+    .role-password {
+      display: flex;
+      align-items: stretch;
+      width: 100%;
+    }
+
+    .role-password input {
+      min-width: 0;
+      flex: 1;
+      height: 38px;
+      padding: 0 11px;
+      border: 1px solid rgba(127, 127, 127, .18);
+      border-right: 0;
+      border-radius: 9px 0 0 9px;
+      background: rgba(127, 127, 127, .06);
+      color: inherit;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .role-password input:focus {
+      border-color: rgba(90, 120, 255, .4);
+    }
+
+    .role-password button {
+      width: 42px;
+      height: 38px;
+      padding: 0;
+      border: 1px solid rgba(127, 127, 127, .18);
+      border-radius: 0 9px 9px 0;
+      background: rgba(127, 127, 127, .09);
+      color: inherit;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background .15s ease, transform .15s ease;
+    }
+
+    .role-password button:hover {
+      background: rgba(127, 127, 127, .16);
+    }
+
+    .role-password button:active {
+      transform: scale(.94);
+    }
+
+    .role-access {
+      margin-top: 12px;
+    }
+
+    .access-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .access-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 7px;
+      border-radius: 6px;
+      background: rgba(127, 127, 127, .09);
+      font-size: 10px;
+      line-height: 1.2;
+    }
+
+    .access-chip.admin {
+      background: rgba(230, 150, 40, .10);
+    }
+
+    /* Mobile */
+    @media (max-width: 700px) {
+      .roles-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .role-card {
+        padding: 14px;
+      }
+    }
+
     /* ── Password ── */
     .pwg {
       position: relative;
@@ -2996,155 +3223,219 @@
               <button class="btn btn-p" style="width:fit-content" onclick="saveRattrapParams()">Enregistrer</button>
             </div>
           </div>
-          <div class="tc" style="margin-bottom:20px">
-            <div class="tt">
-              <h3>📋 Information sur les différents rôles / mot de passe</h3>
-            </div>
-            <div style="padding:18px;display:flex;flex-direction:column;gap:16px">
-              <div style="font-size:13px;color:var(--muted)">
-                Pour le moment, les mots de passe ne sont pas encore modifiables depuis le site. Il faut donc faire appel
-                à Kenny.
-              </div>
+          <!-- ═══════════════════════════════════════════════════════════════
+     📋 INFORMATIONS SUR LES RÔLES / MOTS DE PASSE
+     ═══════════════════════════════════════════════════════════════ -->
+
+          <div class="tc roles-card">
+
+            <div class="roles-header">
               <div>
-                Les rôles sont les suivants :
-                <!-- Inscriptions -->
-                <p>Inscriptions : </p>
-                <ul>
-                  <li>Mot de passe : <strong>Inscriptions_octroi</strong></li>
-                  <li>Accès : <ul>
-                      <li>Publique : <ul>
-                          <li><strong>📄 Inscription</strong></li>
-                        </ul>
-                      </li>
-                      <li>Administration : <ul>
-                          <li><strong>Aucun</strong></li>
-                        </ul>
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-                <!-- Travaux -->
-                <p>Travaux : </p>
-                <ul>
-                  <li>Mot de passe : <strong>LEO_Travaux</strong></li>
-                  <li>Accès : <ul>
-                      <li>Publique : <ul>
-                          <li><strong>Aucun</strong></li>
-                        </ul>
-                      </li>
-                      <li>Administration : <ul>
-                          <li><strong>🔧 Travaux</strong></li>
-                        </ul>
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-                <!-- Stagiaire -->
-                <p>Stagiaire : </p>
-                <ul>
-                  <li>Mot de passe : <strong>Lola</strong></li>
-                  <li>Accès : <ul>
-                      <li>Publique : <ul>
-                          <li><strong>📅 Planning</strong></li>
-                          <li><strong>✅ Tâches du jour</strong></li>
-                          <li><strong>🦄 Balades</strong></li>
-                        </ul>
-                      </li>
-                      <li>Administration : <ul>
-                          <li><strong>Aucun</strong></li>
-                        </ul>
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-                <!-- Marine -->
-                <p>Marine : </p>
-                <ul>
-                  <li>Mot de passe : <strong>LEO_Marine</strong></li>
-                  <li>Accès : <ul>
-                      <li>Publique : <ul>
-                          <li><strong>📅 Planning</strong></li>
-                          <li><strong>✅ Tâches du jour</strong></li>
-                          <li><strong>🦄 Balades</strong></li>
-                          <li><strong>📄 Inscription</strong></li>
-                        </ul>
-                      </li>
-                      <li>Administration : <ul>
-                          <li><strong>📋 Cours</strong></li>
-                        </ul>
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-                <!-- Administrateur -->
-                <p>Administrateur (Claire) : </p>
-                <ul>
-                  <li>Mot de passe : <strong>Leo_1987</strong></li>
-                  <li>Accès : <ul>
-                      <li>Publique : <ul>
-                          <li><strong>📅 Planning</strong></li>
-                          <li><strong>✅ Tâches du jour</strong></li>
-                          <li><strong>🦄 Balades</strong></li>
-                          <li><strong>📄 Inscription</strong></li>
-                        </ul>
-                      </li>
-                      <li>Administration : <ul>
-                          <li><strong>🦄 Balades</strong></li>
-                          <li><strong>🧑 Cavaliers</strong></li>
-                          <li><strong>🎫 Cartes</strong></li>
-                          <li><strong>🐎 Chevaux</strong></li>
-                          <li><strong>📋 Cours</strong></li>
-                          <li><strong>🎨 Disciplines</strong></li>
-                          <li><strong>👥 Groupes</strong></li>
-                          <li><strong>📜 Historique</strong></li>
-                          <li><strong>👤 Moniteurs</strong></li>
-                          <li><strong>⚙️ Paramètres</strong></li>
-                          <li><strong>📝 Retours</strong></li>
-                          <li><strong>🏕 Stages</strong></li>
-                          <li><strong>✅ Tâches</strong></li>
-                          <li><strong>🔧 Travaux</strong></li>
-                          <li><strong>📄 Inscriptions</strong></li>
-                          <li><strong>⬛ Tableau de bord</strong></li>
-                        </ul>
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-                <!-- Développeur -->
-                <p>Développeur (Kenny) : </p>
-                <ul>
-                  <li>Mot de passe : <strong>Leo_1987</strong></li>
-                  <li>Accès : <ul>
-                      <li>Publique : <ul>
-                          <li><strong>📅 Planning</strong></li>
-                          <li><strong>✅ Tâches du jour</strong></li>
-                          <li><strong>🦄 Balades</strong></li>
-                          <li><strong>📄 Inscription</strong></li>
-                        </ul>
-                      </li>
-                      <li>Administration : <ul>
-                          <li><strong>🦄 Balades</strong></li>
-                          <li><strong>🧑 Cavaliers</strong></li>
-                          <li><strong>🎫 Cartes</strong></li>
-                          <li><strong>🐎 Chevaux</strong></li>
-                          <li><strong>📋 Cours</strong></li>
-                          <li><strong>🎨 Disciplines</strong></li>
-                          <li><strong>👥 Groupes</strong></li>
-                          <li><strong>📜 Historique</strong></li>
-                          <li><strong>👤 Moniteurs</strong></li>
-                          <li><strong>⚙️ Paramètres</strong></li>
-                          <li><strong>📝 Retours</strong></li>
-                          <li><strong>🏕 Stages</strong></li>
-                          <li><strong>✅ Tâches</strong></li>
-                          <li><strong>🔧 Travaux</strong></li>
-                          <li><strong>📄 Inscriptions</strong></li>
-                          <li><strong>⬛ Tableau de bord</strong></li>
-                        </ul>
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
+                <h3>📋 Informations sur les rôles</h3>
+                <p>Accès, droits et identifiants des différents profils</p>
               </div>
+            </div>
+
+            <div class="roles-password-notice">
+              <span class="roles-notice-icon">🔐</span>
+              <div>
+                <strong>Gestion des mots de passe</strong>
+                <span>Les mots de passe sont masqués par défaut. Cliquez sur l'œil pour les afficher.</span>
+              </div>
+            </div>
+
+            <div class="roles-grid">
+
+              <!-- INSCRIPTIONS -->
+              <div class="role-card">
+                <div class="role-card-head">
+                  <div>
+                    <span class="role-title">Inscriptions</span>
+                    <span class="role-subtitle">Gestion des inscriptions</span>
+                  </div>
+                  <span class="role-badge role-kiosk">Kiosque</span>
+                </div>
+
+                <div class="role-info">
+                  <label>Mot de passe</label>
+                  <div class="role-password">
+                    <input id="role-pw-inscriptions" type="password" value="Inscriptions_octroi" readonly
+                      autocomplete="off">
+                    <button type="button" onclick="toggleRolePw('role-pw-inscriptions', this)"
+                      aria-label="Afficher le mot de passe" title="Afficher le mot de passe">👁</button>
+                  </div>
+                </div>
+
+                <div class="role-access">
+                  <span class="access-label">Accès public</span>
+                  <div class="access-list">
+                    <span class="access-chip">Inscription</span>
+                  </div>
+                </div>
+              </div>
+
+
+              <!-- TRAVAUX -->
+              <div class="role-card">
+                <div class="role-card-head">
+                  <div>
+                    <span class="role-title">Travaux</span>
+                    <span class="role-subtitle">Gestion des travaux</span>
+                  </div>
+                  <span class="role-badge role-admin">Admin</span>
+                </div>
+
+                <div class="role-info">
+                  <label>Mot de passe</label>
+                  <div class="role-password">
+                    <input id="role-pw-travaux" type="password" value="LEO_Travaux" readonly autocomplete="off">
+                    <button type="button" onclick="toggleRolePw('role-pw-travaux', this)"
+                      aria-label="Afficher le mot de passe" title="Afficher le mot de passe">👁</button>
+                  </div>
+                </div>
+
+                <div class="role-access">
+                  <span class="access-label">Administration</span>
+                  <div class="access-list">
+                    <span class="access-chip admin">Travaux</span>
+                  </div>
+                </div>
+              </div>
+
+
+              <!-- STAGIAIRE -->
+              <div class="role-card">
+                <div class="role-card-head">
+                  <div>
+                    <span class="role-title">Stagiaire</span>
+                    <span class="role-subtitle">Accès stagiaire</span>
+                  </div>
+                  <span class="role-badge role-public">Public</span>
+                </div>
+
+                <div class="role-info">
+                  <label>Mot de passe</label>
+                  <div class="role-password">
+                    <input id="role-pw-stagiaire" type="password" value="Lola" readonly autocomplete="off">
+                    <button type="button" onclick="toggleRolePw('role-pw-stagiaire', this)"
+                      aria-label="Afficher le mot de passe" title="Afficher le mot de passe">👁</button>
+                  </div>
+                </div>
+
+                <div class="role-access">
+                  <span class="access-label">Accès public</span>
+                  <div class="access-list">
+                    <span class="access-chip">Planning</span>
+                    <span class="access-chip">Tâches du jour</span>
+                    <span class="access-chip">Balades</span>
+                  </div>
+                </div>
+              </div>
+
+
+              <!-- MARINE -->
+              <div class="role-card">
+                <div class="role-card-head">
+                  <div>
+                    <span class="role-title">Marine</span>
+                    <span class="role-subtitle">Accès utilisateur</span>
+                  </div>
+                  <span class="role-badge role-mixte">Mixte</span>
+                </div>
+
+                <div class="role-info">
+                  <label>Mot de passe</label>
+                  <div class="role-password">
+                    <input id="role-pw-marine" type="password" value="LEO_Marine" readonly autocomplete="off">
+                    <button type="button" onclick="toggleRolePw('role-pw-marine', this)"
+                      aria-label="Afficher le mot de passe" title="Afficher le mot de passe">👁</button>
+                  </div>
+                </div>
+
+                <div class="role-access">
+                  <span class="access-label">Accès public</span>
+                  <div class="access-list">
+                    <span class="access-chip">Planning</span>
+                    <span class="access-chip">Tâches du jour</span>
+                    <span class="access-chip">Balades</span>
+                    <span class="access-chip">Inscription</span>
+                  </div>
+                </div>
+
+                <div class="role-access">
+                  <span class="access-label">Administration</span>
+                  <div class="access-list">
+                    <span class="access-chip admin">Cours</span>
+                  </div>
+                </div>
+              </div>
+
+
+              <!-- ADMINISTRATEUR -->
+              <div class="role-card role-card-highlight">
+                <div class="role-card-head">
+                  <div>
+                    <span class="role-title">Administrateur</span>
+                    <span class="role-subtitle">Claire</span>
+                  </div>
+                  <span class="role-badge role-full">Complet</span>
+                </div>
+
+                <div class="role-info">
+                  <label>Mot de passe</label>
+                  <div class="role-password">
+                    <input id="role-pw-admin" type="password" value="Leo_1987" readonly autocomplete="off">
+                    <button type="button" onclick="toggleRolePw('role-pw-admin', this)"
+                      aria-label="Afficher le mot de passe" title="Afficher le mot de passe">👁</button>
+                  </div>
+                </div>
+
+                <div class="role-access">
+                  <span class="access-label">Tous les accès</span>
+                  <div class="access-list">
+                    <span class="access-chip">Planning</span>
+                    <span class="access-chip">Tâches du jour</span>
+                    <span class="access-chip">Balades</span>
+                    <span class="access-chip">Inscription</span>
+                    <span class="access-chip admin">Cours</span>
+                    <span class="access-chip admin">Travaux</span>
+                  </div>
+                </div>
+              </div>
+
+
+              <!-- DÉVELOPPEUR -->
+              <div class="role-card role-card-highlight">
+                <div class="role-card-head">
+                  <div>
+                    <span class="role-title">Développeur</span>
+                    <span class="role-subtitle">Kenny</span>
+                  </div>
+                  <span class="role-badge role-full">Complet</span>
+                </div>
+
+                <div class="role-info">
+                  <label>Mot de passe</label>
+                  <div class="role-password">
+                    <input id="role-pw-dev" type="password" value="LEO_Dev" readonly autocomplete="off">
+                    <button type="button" onclick="toggleRolePw('role-pw-dev', this)"
+                      aria-label="Afficher le mot de passe" title="Afficher le mot de passe">👁</button>
+                  </div>
+                </div>
+
+                <div class="role-access">
+                  <span class="access-label">Tous les accès</span>
+                  <div class="access-list">
+                    <span class="access-chip">Planning</span>
+                    <span class="access-chip">Tâches du jour</span>
+                    <span class="access-chip">Balades</span>
+                    <span class="access-chip">Inscription</span>
+                    <span class="access-chip admin">Cours</span>
+                    <span class="access-chip admin">Travaux</span>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
       </main>
@@ -3826,6 +4117,23 @@
       </div>
 
       <script>
+        function toggleRolePw(inputId, button) {
+          const input = document.getElementById(inputId);
+
+          if (!input) return;
+
+          if (input.type === 'password') {
+            input.type = 'text';
+            button.textContent = '🙈';
+            button.setAttribute('aria-label', 'Masquer le mot de passe');
+            button.setAttribute('title', 'Masquer le mot de passe');
+          } else {
+            input.type = 'password';
+            button.textContent = '👁';
+            button.setAttribute('aria-label', 'Afficher le mot de passe');
+            button.setAttribute('title', 'Afficher le mot de passe');
+          }
+        }
         const dateDebut = document.getElementById("stage-deb");
         const dateFin = document.getElementById("stage-fin");
 
