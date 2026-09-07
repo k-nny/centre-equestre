@@ -6397,7 +6397,7 @@
           document.getElementById('ratt-title').textContent = '➕ Rattrapage';
           document.getElementById('ratt-save-btn').textContent = 'Ajouter';
           const ex = C.aff.filter(a => a.seance_id === seaId).map(a => a.cavalier_id);
-          document.getElementById('ratt-cav').innerHTML = '<option value="">— Sélectionner —</option>' + [...C.cav].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(c => {
+          document.getElementById('ratt-cav').innerHTML = '<option value="">— Sélectionner —</option>' + [...C.cav].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(c => {
             const grps = getCavGroups(c.id).map(gid => C.grp.find(x => x.id === gid)?.nom).filter(Boolean);
             return `<option value="${c.id}"${ex.includes(c.id) ? ' disabled' : ''}>${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}${grps.length ? ' (' + grps.join(', ') + ')' : ''}`;
           }).join('');
