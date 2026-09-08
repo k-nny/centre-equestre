@@ -6608,7 +6608,7 @@
           const today = new Date().toISOString().slice(0, 10);
           t.innerHTML = C.cartes.map(c => {
             const cav = C.cav.find(x => x.id === c.cavalier_id);
-            const nom = cav ? cap(cav.prenom || '') + (cav.nom ? ' ' + cav.nom.toUpperCase() : '') : '?';
+            const nom = cav ? cap(cav.prenom || '') + (cav.nom ? ' ' + cav.nom.toUpperCase() : '') : '?'.sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr'));
             const rest = carteRestantes(c);
             const expired = c.date_expiration && c.date_expiration < today;
             const pct = c.nb_heures > 0 ? Math.min(100, (1 - rest / c.nb_heures) * 100) : 0;
