@@ -6606,14 +6606,21 @@
           const t = document.getElementById('tb-cartes'); if (!t) return;
           if (!C.cartes.length) { t.innerHTML = '<tr class="er"><td colspan="8">Aucune carte</td></tr>'; return; }
           const today = new Date().toISOString().slice(0, 10);
-          t.innerHTML = [...C.cartes].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(c => {
-            const cav = C.cav.find(x => x.id === c.cavalier_id);
-            const nom = cav ? cap(cav.prenom || '') + (cav.nom ? ' ' + cav.nom.toUpperCase() : '') : '?';
-            const rest = carteRestantes(c);
-            const expired = c.date_expiration && c.date_expiration < today;
-            const pct = c.nb_heures > 0 ? Math.min(100, (1 - rest / c.nb_heures) * 100) : 0;
-            const restCol = expired || rest === 0 ? '#b43728' : rest <= 2 ? '#b46414' : '#1e7a40';
-            return `<tr style="${expired ? 'opacity:.55' : ''}">
+          t.innerHTML = [...C.cartes]
+            .sort((a, b) => {
+              const cavA = C.cav.find(x => x.id === a.cavalier_id);
+              const cavB = C.cav.find(x => x.id === b.cavalier_id);
+
+              return (cavA?.nom || '').localeCompare(cavB?.nom || '', 'fr') ||
+                (cavA?.prenom || '').localeCompare(cavB?.prenom || '', 'fr');
+            }).map(c => {
+              const cav = C.cav.find(x => x.id === c.cavalier_id);
+              const nom = cav ? cap(cav.prenom || '') + (cav.nom ? ' ' + cav.nom.toUpperCase() : '') : '?';
+              const rest = carteRestantes(c);
+              const expired = c.date_expiration && c.date_expiration < today;
+              const pct = c.nb_heures > 0 ? Math.min(100, (1 - rest / c.nb_heures) * 100) : 0;
+              const restCol = expired || rest === 0 ? '#b43728' : rest <= 2 ? '#b46414' : '#1e7a40';
+              return `<tr style="${expired ? 'opacity:.55' : ''}">
       <td><strong>${nom}</strong>${expired ? '<span class="b br" style="margin-left:4px;font-size:10px">Expirée</span>' : ''}</td>
       <td>${c.nb_heures}h</td>
       <td><strong style="color:${restCol}">${rest}h</strong>
@@ -6628,7 +6635,7 @@
         <button class="btn btn-d sm" onclick="delCarte('${c.id}')">🗑</button>
       </td>
     </tr>`;
-          }).join('');
+            }).join('');
         }
 
         function newCarte() {
