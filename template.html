@@ -6606,7 +6606,7 @@
           const t = document.getElementById('tb-cartes'); if (!t) return;
           if (!C.cartes.length) { t.innerHTML = '<tr class="er"><td colspan="8">Aucune carte</td></tr>'; return; }
           const today = new Date().toISOString().slice(0, 10);
-          t.innerHTML = C.cartes.map(c => {
+          t.innerHTML = C.cartes.sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(c => {
             const cav = C.cav.find(x => x.id === c.cavalier_id);
             const nom = cav ? cap(cav.prenom || '') + (cav.nom ? ' ' + cav.nom.toUpperCase() : '') : '?';
             const rest = carteRestantes(c);
