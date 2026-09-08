@@ -5516,7 +5516,7 @@
           }
           for (const st of stgAll) {
             const pts = stParts.filter(p => p.stage_id === st.id), chvs = stChvs.filter(c => c.stage_id === st.id);
-            const rows = pts.sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map((p, i) => {
+            const rows = pts.sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map((p, i) => {
               const bg = i % 2 === 0 ? '#fff' : 'rgba(100,60,140,.08)';
               return `<div class="pcr" style="background:${bg}">
         <div class="pcn">${p.prenom}${p.demi_journee && p.demi_journee !== 'journee' ? ` <span class="b bo" style="font-size:10px">${p.demi_journee}</span>` : ''}</div>
@@ -6467,7 +6467,7 @@
           const cavAvecCarte = C.cartes.filter(c => (!c.date_expiration || c.date_expiration >= today) && carteRestantes(c) > 0).map(c => c.cavalier_id);
           const ex = C.aff.filter(a => a.seance_id === seaId).map(a => a.cavalier_id);
           const cavOpts = C.cav.filter(c => cavAvecCarte.includes(c.id) && !ex.includes(c.id))
-            .sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr'))
+            .sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr'))
             .map(c => {
               const carte = getCarteCav(c.id);
               const rest = carte ? carteRestantes(carte) : 0;
@@ -6642,7 +6642,7 @@
           document.getElementById('carte-edit-methode').value = '';
           document.getElementById('carte-edit-date-reg').value = '';
           document.getElementById('carte-edit-cav').innerHTML = '<option value="">— Sélectionner —</option>' +
-            [...C.cav].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(c =>
+            [...C.cav].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(c =>
               `<option value="${c.id}">${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}</option>`
             ).join('');
           openMo('mo-carte-edit');
@@ -6660,7 +6660,7 @@
           document.getElementById('carte-edit-methode').value = c.methode_paiement || '';
           document.getElementById('carte-edit-date-reg').value = c.date_reglement || '';
           document.getElementById('carte-edit-cav').innerHTML = '<option value="">— Sélectionner —</option>' +
-            [...C.cav].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(cv =>
+            [...C.cav].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(cv =>
               `<option value="${cv.id}"${cv.id === c.cavalier_id ? ' selected' : ''}>${cap(cv.prenom || '')}${cv.nom ? ' ' + cv.nom.toUpperCase() : ''}</option>`
             ).join('');
           openMo('mo-carte-edit');
@@ -6923,7 +6923,7 @@
           document.getElementById('ratt-save-btn').textContent = 'Enregistrer';
           // Cavaliers : tous sélectionnables sauf ceux déjà dans la séance (sauf le cavalier actuel)
           const ex = C.aff.filter(a => a.seance_id === seaId && a.id !== affId).map(a => a.cavalier_id);
-          document.getElementById('ratt-cav').innerHTML = '<option value="">— Sélectionner —</option>' + [...C.cav].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(c => {
+          document.getElementById('ratt-cav').innerHTML = '<option value="">— Sélectionner —</option>' + [...C.cav].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(c => {
             const grps = getCavGroups(c.id).map(gid => C.grp.find(x => x.id === gid)?.nom).filter(Boolean);
             return `<option value="${c.id}"${ex.includes(c.id) ? ' disabled' : ''}${aff.cavalier_id === c.id ? ' selected' : ''}>${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}${grps.length ? ' (' + grps.join(', ') + ')' : ''}`;
           }).join('');
@@ -7431,7 +7431,7 @@
       <span style="font-size:10px;color:var(--muted);font-style:italic;margin-left:4px">← Glisser un cheval ici pour le désassigner</span>
     </div>`;
             // Ligne participant : draggable si elle a un cheval + drop zone pour recevoir un libre
-            const ptRows = [...pts].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(p => {
+            const ptRows = [...pts].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(p => {
               const regle = p.regle, methode = p.methode_paiement, montant = p.montant, dateR = p.date_reglement;
               const hasChv = !!p.equide_id;
               return `<div class="pcr stg-drop-zone${hasChv ? ' stg-part-draggable' : ''}"
@@ -7603,7 +7603,7 @@
           ['part-prenom', 'part-tel', 'part-note', 'part-montant', 'part-date-reg'].forEach(i => document.getElementById(i).value = '');
           document.getElementById('part-methode').value = '';
           document.getElementById('part-dj').value = 'journee';
-          document.getElementById('part-cav-ex').innerHTML = '<option value="">— Saisie libre —</option>' + [...C.cav].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(c => `<option value="${c.id}">${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}</option>`).join('');
+          document.getElementById('part-cav-ex').innerHTML = '<option value="">— Saisie libre —</option>' + [...C.cav].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(c => `<option value="${c.id}">${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}</option>`).join('');
           const stage = C.stages.find(s => s.id === sid);
           const usageStage = getChvUsageStage(sid);
           document.getElementById('part-chv').innerHTML = '<option value="">— Non attribué —</option>' + getSortedChvDispo().map(c => {
@@ -7626,7 +7626,7 @@
           document.getElementById('part-date-reg').value = p.date_reglement || '';
           document.getElementById('part-methode').value = p.methode_paiement || '';
           document.getElementById('part-dj').value = p.demi_journee || 'journee';
-          document.getElementById('part-cav-ex').innerHTML = '<option value="">— Saisie libre —</option>' + [...C.cav].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(c => `<option value="${c.id}">${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}</option>`).join('');
+          document.getElementById('part-cav-ex').innerHTML = '<option value="">— Saisie libre —</option>' + [...C.cav].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(c => `<option value="${c.id}">${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}</option>`).join('');
           const stage = C.stages.find(s => s.id === sid);
           const usageStage = getChvUsageStage(sid, { excludePartId: partId });
           document.getElementById('part-chv').innerHTML = '<option value="">— Non attribué —</option>' + getSortedChvDispo().map(c => {
@@ -8124,7 +8124,7 @@
         </div>
       </div>
       <table><thead><tr><th>Participant</th><th>Montant</th><th>Statut</th><th>Méthode</th><th>Date règlement</th><th style="width:40px"></th></tr></thead>
-      <tbody>${partsFiltered.length ? [...partsFiltered].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(p => `<tr>
+      <tbody>${partsFiltered.length ? [...partsFiltered].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(p => `<tr>
         <td><strong>${p.prenom}</strong></td>
         <td>${p.montant != null ? `<strong>${parseFloat(p.montant).toFixed(0)}€</strong>` : '<span style="color:var(--muted)">—</span>'}</td>
         <td>${p.regle ? '<span class="b bg">✅ Réglé</span>' : '<span class="b br">⏳ En attente</span>'}</td>
