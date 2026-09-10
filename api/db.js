@@ -1,11 +1,44 @@
 // api/db.js — Proxy Supabase sécurisé (Vercel Serverless Function)
 //
-// ✅  SUPABASE_URL, SUPABASE_ANON, APP_KEY, ADMIN_PASSWORD
+// ✅  SUPABASE_URL, SUPABASE_ANON, APP_KEY, SESSION_SECRET
 //     restent dans les variables d'environnement Vercel.
 //     Elles ne transitent JAMAIS vers le navigateur.
 //
+// 🔐 Les MOTS DE PASSE DES RÔLES sont stockés hashés (scrypt) dans la
+//     table Supabase "app_credentials" — modifiables depuis le site
+//     (Paramètres > Mots de passe, réservé admin/dev) sans redéploiement.
+//     Les anciennes variables d'environnement (ADMIN_PASSWORD, etc.)
+//     restent utilisables comme solution de repli tant qu'un mot de passe
+//     n'a pas encore été défini en base pour un rôle donné.
+//
 // Le front envoie des requêtes JSON à /api/db
 // Ce fichier les exécute côté serveur et retourne uniquement les données.
+
+import crypto from 'crypto';
+
+// ══════════════════════════════════════════════════
+//  RÔLES CONNUS DE L'APPLICATION
+// ══════════════════════════════════════════════════
+const ROLES = ['admin', 'marine', 'dev', 'stagiaire', 'travaux', 'inscription'];
+
+// ══════════════════════════════════════════════════
+//  HASHAGE DES MOTS DE PASSE (scrypt, natif Node — pas de dépendance npm)
+// ══════════════════════════════════════════════════
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+  return `${salt}:${hash}`;
+}
+function verifyPassword(password, stored) {
+  if (!password || !stored || !stored.includes(':')) return false;
+  const [salt, hashHex] = stored.split(':');
+  try {
+    const hash = crypto.scryptSync(password, salt, 64);
+    const storedBuf = Buffer.from(hashHex, 'hex');
+    if (hash.length !== storedBuf.length) return false;
+    return crypto.timingSafeEqual(hash, storedBuf);
+  } catch { return false; }
+}
 
 export default async function handler(req, res) {
   // ── CORS strict : même domaine uniquement ──────────────────────────
@@ -24,27 +57,80 @@ export default async function handler(req, res) {
   const SUPA_URL = process.env.SUPABASE_URL || '';
   const SUPA_ANON = process.env.SUPABASE_ANON || '';
   const APP_KEY = process.env.APP_KEY || '';
-  const ADMIN_PWD = process.env.ADMIN_PASSWORD || '';
-  const MARINE_PWD = process.env.MARINE_PASSWORD || '';
-  const DEV_PASSWORD = process.env.DEV_PASSWORD || '';
-  const STAGIAIRE_PASSWORD = process.env.STAGIAIRE_PASSWORD || '';
-  const TRAVAUX_PASSWORD = process.env.TRAVAUX_PASSWORD || '';
-  const INSCRIPTION_PASSWORD = process.env.INSCRIPTION_PASSWORD || '';
+  const SESSION_SECRET = process.env.SESSION_SECRET || '';
 
-  // [DANS LE HANDLER, APRES LES CONST SUPA_URL, etc.]
+  // Anciennes variables d'environnement — solution de repli tant qu'un mot
+  // de passe n'a pas été migré en base pour ce rôle (voir getStoredHashes).
+  const ENV_FALLBACK = {
+    admin: process.env.ADMIN_PASSWORD || '',
+    marine: process.env.MARINE_PASSWORD || '',
+    dev: process.env.DEV_PASSWORD || '',
+    // 'stagiaire' s'appelait 'balade' avant — on accepte les deux noms de variable
+    stagiaire: process.env.STAGIAIRE_PASSWORD || process.env.BALADE_PASSWORD || '',
+    travaux: process.env.TRAVAUX_PASSWORD || '',
+    inscription: process.env.INSCRIPTION_PASSWORD || '',
+  };
 
-  // 1. Ajouter 'tickets' à la liste des tables autorisées sans filtrage app_key si nécessaire
-  // Mais ici, tu as ajouté une colonne app_key à 'tickets', donc db.js le gérera tout seul.
+  // ══════════════════════════════════════════════════
+  //  TOKEN DE SESSION — signé avec SESSION_SECRET (jamais avec le mot de
+  //  passe lui-même), donc indépendant du fait que le mot de passe soit
+  //  en clair (env var) ou hashé (base). Valide indéfiniment, comme avant.
+  // ══════════════════════════════════════════════════
+  function makeToken(role) {
+    const expires = Number.MAX_SAFE_INTEGER;
+    const payload = `${role}.${expires.toString(36)}`;
+    const sig = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
+    return `${Buffer.from(payload).toString('base64url')}.${sig}`;
+  }
+  function verifyToken(token, role) {
+    if (!token || !SESSION_SECRET) return false;
+    try {
+      const [payloadB64, sig] = token.split('.');
+      if (!payloadB64 || !sig) return false;
+      const payload = Buffer.from(payloadB64, 'base64url').toString();
+      const [tokRole, expStr] = payload.split('.');
+      if (tokRole !== role) return false;
+      if (parseInt(expStr, 36) < Date.now()) return false;
+      const expectedSig = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
+      const a = Buffer.from(sig, 'hex'), b = Buffer.from(expectedSig, 'hex');
+      if (a.length !== b.length) return false;
+      return crypto.timingSafeEqual(a, b);
+    } catch { return false; }
+  }
 
-  // 2. Modifier la route 'auth' et ajouter 'auth-dev'
+  // ── Lit les hash de mots de passe stockés en base (table app_credentials) ──
+  // Table volontairement JAMAIS exposée via l'action générique 'query'
+  // (voir plus bas) : seules ces routes dédiées peuvent la lire/écrire.
+  async function getStoredHashes() {
+    try {
+      const url = `${SUPA_URL}/rest/v1/app_credentials?select=role,password_hash&app_key=eq.${encodeURIComponent(APP_KEY)}`;
+      const r = await fetch(url, { headers: { apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}` } });
+      if (!r.ok) return {};
+      const rows = await r.json();
+      const map = {};
+      rows.forEach(row => { map[row.role] = row.password_hash; });
+      return map;
+    } catch { return {}; }
+  }
+
+  // 2. Route 'auth' — vérifie le mot de passe contre la base (priorité)
+  //    puis, à défaut, contre l'ancienne variable d'environnement.
   if (req.method === 'POST' && req.body.action === 'auth') {
     const { password } = req.body;
-    if (password === ADMIN_PWD) return res.json({ ok: true, token: makeToken(ADMIN_PWD), role: 'admin' });
-    if (password === MARINE_PWD) return res.json({ ok: true, token: makeToken(MARINE_PWD), role: 'marine' });
-    if (password === DEV_PASSWORD) return res.json({ ok: true, token: makeToken(DEV_PASSWORD), role: 'dev' });
-    if (STAGIAIRE_PASSWORD && password === STAGIAIRE_PASSWORD) return res.json({ ok: true, token: makeToken(STAGIAIRE_PASSWORD), role: 'stagiaire' });
-    if (TRAVAUX_PASSWORD && password === TRAVAUX_PASSWORD) return res.json({ ok: true, token: makeToken(TRAVAUX_PASSWORD), role: 'travaux' });
-    if (INSCRIPTION_PASSWORD && password === INSCRIPTION_PASSWORD) return res.json({ ok: true, token: makeToken(INSCRIPTION_PASSWORD), role: 'inscription' });
+    if (!password) return res.status(401).json({ error: 'Invalide' });
+    if (!SESSION_SECRET) {
+      // Config incomplète : on refuse plutôt que de signer les tokens avec une clé vide
+      return res.status(500).json({ error: 'Configuration serveur incomplète (SESSION_SECRET manquant)' });
+    }
+    const stored = await getStoredHashes();
+    for (const role of ROLES) {
+      const hash = stored[role];
+      if (hash) {
+        if (verifyPassword(password, hash)) return res.json({ ok: true, token: makeToken(role), role });
+      } else if (ENV_FALLBACK[role] && password === ENV_FALLBACK[role]) {
+        return res.json({ ok: true, token: makeToken(role), role });
+      }
+    }
     return res.status(401).json({ error: 'Invalide' });
   }
 
@@ -52,7 +138,7 @@ export default async function handler(req, res) {
   if (req.method === 'POST' && req.body.action === 'send-ticket-email') {
     const { ticket, token } = req.body;
 
-    if (!verifyToken(token, ADMIN_PWD) && !verifyToken(token, DEV_PASSWORD)) {
+    if (!verifyToken(token, 'admin') && !verifyToken(token, 'dev')) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -107,7 +193,7 @@ export default async function handler(req, res) {
   if (req.method === 'POST' && req.body.action === 'send-ticket-retour-email') {
     const { message, ticketTitre, auteur, token } = req.body;
 
-    if (!verifyToken(token, ADMIN_PWD) && !verifyToken(token, DEV_PASSWORD)) {
+    if (!verifyToken(token, 'admin') && !verifyToken(token, 'dev')) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -139,6 +225,34 @@ export default async function handler(req, res) {
     return res.json({ ok: emailRes.ok });
   }
 
+  // ── Route : changer le mot de passe d'un rôle (admin/dev uniquement) ──
+  // POST /api/db { action: 'change-password', token, role, newPassword }
+  if (req.method === 'POST' && req.body.action === 'change-password') {
+    const { token, role, newPassword } = req.body;
+    if (!verifyToken(token, 'admin') && !verifyToken(token, 'dev')) {
+      return res.status(403).json({ error: 'Non autorisé' });
+    }
+    if (!ROLES.includes(role)) return res.status(400).json({ error: 'Rôle inconnu' });
+    if (!newPassword || newPassword.length < 4) return res.status(400).json({ error: 'Mot de passe trop court (4 caractères minimum)' });
+    const password_hash = hashPassword(newPassword);
+    const upsertUrl = `${SUPA_URL}/rest/v1/app_credentials?on_conflict=role`;
+    const r = await fetch(upsertUrl, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_ANON,
+        'Authorization': `Bearer ${SUPA_ANON}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates,return=representation',
+      },
+      body: JSON.stringify([{ role, password_hash, updated_at: new Date().toISOString(), app_key: APP_KEY }]),
+    });
+    if (!r.ok) {
+      const err = await r.text();
+      return res.status(500).json({ error: 'Échec de la mise à jour : ' + err });
+    }
+    return res.status(200).json({ ok: true });
+  }
+
   // ── Route : vérification du mot de passe admin ─────────────────────
   // POST /api/db  { action: 'auth', password: '...' }
   if (req.method === 'POST') {
@@ -146,30 +260,27 @@ export default async function handler(req, res) {
     try { body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body; }
     catch { return res.status(400).json({ error: 'Invalid JSON' }); }
 
-    if (body.action === 'auth') {
-      const ok = body.password === ADMIN_PWD;
-      // Token valide 30 jours — stocké dans localStorage côté client
-      const token = ok ? makeToken(ADMIN_PWD) : null;
-      return res.status(ok ? 200 : 401).json({ ok, token });
-    }
-
     // Vérification silencieuse d'un token existant (reconnexion auto)
+    // Le rôle n'étant pas transmis, on teste chaque rôle connu.
     if (body.action === 'verify') {
-      const ok = verifyToken(body.token, ADMIN_PWD);
+      const ok = ROLES.some(r => verifyToken(body.token, r));
       return res.status(200).json({ ok });
     }
 
-    // Ping : retourne un hash public du mot de passe pour détecter un changement
-    // Sans révéler le mot de passe — le client compare juste le hash stocké
+    // Ping : retourne une empreinte du mot de passe admin actuel (base ou
+    // env var) pour détecter un changement, sans jamais révéler le mot de
+    // passe lui-même — le client compare juste l'empreinte stockée.
     if (body.action === 'ping') {
-      const hash = fnv32(ADMIN_PWD).toString(16);
+      const stored = await getStoredHashes();
+      const source = stored['admin'] || ENV_FALLBACK.admin;
+      const hash = fnv32(source).toString(16);
       return res.status(200).json({ hash });
     }
 
     // ── Upload icône discipline vers Supabase Storage ─────────────────
     // { action: 'upload-icon', token, discipline, fileBase64, mimeType }
     if (body.action === 'upload-icon') {
-      if (!verifyToken(body.token, ADMIN_PWD) && !verifyToken(body.token, DEV_PASSWORD))
+      if (!verifyToken(body.token, 'admin') && !verifyToken(body.token, 'dev'))
         return res.status(403).json({ error: 'Non autorisé' });
 
       const { discipline, fileBase64, mimeType } = body;
@@ -234,7 +345,7 @@ export default async function handler(req, res) {
     // ── Suppression icône discipline ──────────────────────────────────
     // { action: 'delete-icon', token, discipline, fileName }
     if (body.action === 'delete-icon') {
-      if (!verifyToken(body.token, ADMIN_PWD) && !verifyToken(body.token, DEV_PASSWORD))
+      if (!verifyToken(body.token, 'admin') && !verifyToken(body.token, 'dev'))
         return res.status(403).json({ error: 'Non autorisé' });
 
       const { discipline, fileName } = body;
@@ -262,13 +373,20 @@ export default async function handler(req, res) {
     // ── Route : proxy Supabase (toutes les autres requêtes) ───────────
     // { action: 'query', table, method, filter, data, token }
     if (body.action === 'query') {
+      // Table protégée : ne transite JAMAIS par le proxy générique, même en
+      // lecture — seules les routes dédiées ci-dessus (auth, change-password)
+      // peuvent la lire/écrire. Empêche toute fuite de hash vers le client.
+      if (body.table === 'app_credentials') {
+        return res.status(403).json({ error: 'Table protégée' });
+      }
+
       // Vérifier le token pour les mutations (insert/update/delete)
       const isMutation = ['insert', 'update', 'delete'].includes(body.method);
       if (isMutation) {
-        const isAdmin = verifyToken(body.token, ADMIN_PWD);
-        const ismarine = verifyToken(body.token, MARINE_PWD);
-        const isDev = verifyToken(body.token, DEV_PASSWORD);
-        const isTravaux = verifyToken(body.token, TRAVAUX_PASSWORD);
+        const isAdmin = verifyToken(body.token, 'admin');
+        const ismarine = verifyToken(body.token, 'marine');
+        const isDev = verifyToken(body.token, 'dev');
+        const isTravaux = verifyToken(body.token, 'travaux');
 
         // Exception : cocher/décocher une tâche du jour est accessible SANS connexion
         // (checklist affichée publiquement), mais limité à l'insert/update des seuls
@@ -381,22 +499,8 @@ async function supabaseQuery({ url, anon, appKey, table, method, select, filter 
   return { data: json, error: null };
 }
 
-// ── Token de session (signé avec le mot de passe, valide 8h) ─────────
-function makeToken(secret) {
-  const expires = Number.MAX_SAFE_INTEGER; // jamais expiré
-  const payload = expires.toString(36);
-  const sig = fnv32(secret + payload).toString(16);
-  return `${payload}.${sig}`;
-}
-function verifyToken(token, secret) {
-  if (!token) return false;
-  try {
-    const [payload, sig] = token.split('.');
-    if (!payload || !sig) return false;
-    if (parseInt(payload, 36) < Date.now()) return false; // expiré
-    return fnv32(secret + payload).toString(16) === sig;
-  } catch { return false; }
-}
+// ── FNV32 (utilisé uniquement pour l'empreinte du 'ping', pas pour la
+//     sécurité des mots de passe — voir hashPassword/verifyPassword) ──
 function fnv32(str) {
   let h = 0x811c9dc5;
   for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = (h * 0x01000193) >>> 0; }
