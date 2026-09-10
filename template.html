@@ -4413,7 +4413,9 @@
               document.getElementById('site-login').style.display = 'none';
               await initApp(j.token);
             } else {
-              document.getElementById('site-pw-err').style.display = 'block';
+              const errEl = document.getElementById('site-pw-err');
+              errEl.textContent = (j && j.error && r.status >= 500) ? '⚠️ ' + j.error : 'Mot de passe incorrect.';
+              errEl.style.display = 'block';
               document.getElementById('site-pw-in').value = '';
               document.getElementById('site-pw-in').focus();
             }
