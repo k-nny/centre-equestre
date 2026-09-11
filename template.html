@@ -4944,7 +4944,7 @@
           // charge les liaisons cavalier-groupes
           if (C.cav.length) {
             C.cavGrp = await dbSel('cavalier_groupes', { select: 'cavalier_id,groupe_id' });
-          } else C.cavGrp = [];a
+          } else C.cavGrp = [];
         }
         async function loadChv() { C.chv = await dbSel('equides', { order: [{ col: 'nom' }] }); }
         async function loadMon() { C.mon = await dbSel('moniteurs', { order: [{ col: 'prenom' }] }); }
