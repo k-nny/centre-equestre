@@ -1909,21 +1909,6 @@
       body {
         background: #fff;
       }
-
-      /* Impression d'un contrat rempli depuis l'admin (page-insc-print-root) :
-         on masque tout le reste de l'appli et on n'affiche que la copie
-         remplie, réutilisant exactement le même style que le formulaire public. */
-      body.printing-insc .main>*:not(#insc-print-root) {
-        display: none !important;
-      }
-
-      body.printing-insc #insc-print-root {
-        display: block !important;
-      }
-    }
-
-    #insc-print-root {
-      display: none;
     }
 
     @media(max-width:768px) {
@@ -2566,7 +2551,7 @@
                 circonstance, les clients sont tenus d'observer une attitude déférente vis-à-vis du personnel
                 d'encadrement ainsi qu'une parfaite correction à l'égard des autres préposés.</p>
               <p class="contrat-txt">Tout client ayant la possibilité de présenter en permanence une réclamation en se
-                conformant à l'article 9 ci-dessus, aucune manifestation discourtoise envers l’établissement, son
+                conformant à <a href="#article9" style="color: #1e7a40;">l'article 9 ci-dessus</a>, aucune manifestation discourtoise envers l’établissement, son
                 personnel ou ses clients n'est admise.</p>
             </div>
 
@@ -2877,17 +2862,12 @@
             </div>
             <div class="mf">
               <button class="btn btn-g" onclick="closeMo('mo-insc-detail')">Fermer</button>
-              <button class="btn btn-g sm" onclick="printInscription(v('insc-detail-id'))">🖨️ Imprimer / PDF</button>
               <button class="btn btn-d sm" onclick="delInscriptionAdmin()">🗑 Supprimer</button>
               <button class="btn btn-p" id="insc-approve-btn" onclick="approuverInscription()">✅ Approuver & créer le
                 cavalier</button>
             </div>
           </div>
         </div>
-
-        <!-- Conteneur d'impression du contrat rempli — invisible à l'écran,
-             affiché uniquement via body.printing-insc (voir CSS @media print) -->
-        <div id="insc-print-root" style="display:none"></div>
 
         <!-- Cours ponctuel -->
         <div class="mo" id="mo-ponctuel">
@@ -3252,13 +3232,16 @@
               <h3>📋 Informations sur les rôles</h3>
             </div>
             <p style="font-size:13px;color:var(--muted);margin:20px;">Accès, droits et identifiants des différents
-              profils. Les mots de passe sont modifiables directement ci-dessous (admin ou dev).</p>
+              profils. Pour le
+              moment, les mots de passe ne sont pas
+              modifiable ici. Pour modifier un mot de passe, il faut demander à Kenny ou laisser un ticket dans la
+              section "Retours"</p>
 
             <div class="roles-password-notice">
               <span class="roles-notice-icon">🔐</span>
               <div>
                 <strong>Gestion des mots de passe</strong>
-                <span>Les mots de passe sont stockés hashés en base — ils ne peuvent plus être affichés, seulement remplacés par un nouveau.</span>
+                <span>Les mots de passe sont masqués par défaut. Cliquez sur l'œil pour les afficher.</span>
               </div>
             </div>
 
@@ -3274,10 +3257,12 @@
                 </div>
 
                 <div class="role-info">
-                  <label>Nouveau mot de passe</label>
+                  <label>Mot de passe</label>
                   <div class="role-password">
-                    <input id="newpw-inscription" type="password" placeholder="••••••••" autocomplete="new-password">
-                    <button type="button" onclick="changeRolePassword('inscription')" title="Enregistrer">💾</button>
+                    <input id="role-pw-inscriptions" type="password" value="Inscriptions_octroi" readonly
+                      autocomplete="off">
+                    <button type="button" onclick="toggleRolePw('role-pw-inscriptions', this)"
+                      aria-label="Afficher le mot de passe" title="Afficher le mot de passe">👁</button>
                   </div>
                 </div>
 
@@ -3300,10 +3285,11 @@
                 </div>
 
                 <div class="role-info">
-                  <label>Nouveau mot de passe</label>
+                  <label>Mot de passe</label>
                   <div class="role-password">
-                    <input id="newpw-travaux" type="password" placeholder="••••••••" autocomplete="new-password">
-                    <button type="button" onclick="changeRolePassword('travaux')" title="Enregistrer">💾</button>
+                    <input id="role-pw-travaux" type="password" value="LEO_Travaux" readonly autocomplete="off">
+                    <button type="button" onclick="toggleRolePw('role-pw-travaux', this)"
+                      aria-label="Afficher le mot de passe" title="Afficher le mot de passe">👁</button>
                   </div>
                 </div>
 
@@ -3326,10 +3312,11 @@
                 </div>
 
                 <div class="role-info">
-                  <label>Nouveau mot de passe</label>
+                  <label>Mot de passe</label>
                   <div class="role-password">
-                    <input id="newpw-stagiaire" type="password" placeholder="••••••••" autocomplete="new-password">
-                    <button type="button" onclick="changeRolePassword('stagiaire')" title="Enregistrer">💾</button>
+                    <input id="role-pw-stagiaire" type="password" value="Lola" readonly autocomplete="off">
+                    <button type="button" onclick="toggleRolePw('role-pw-stagiaire', this)"
+                      aria-label="Afficher le mot de passe" title="Afficher le mot de passe">👁</button>
                   </div>
                 </div>
 
@@ -3354,10 +3341,11 @@
                 </div>
 
                 <div class="role-info">
-                  <label>Nouveau mot de passe</label>
+                  <label>Mot de passe</label>
                   <div class="role-password">
-                    <input id="newpw-marine" type="password" placeholder="••••••••" autocomplete="new-password">
-                    <button type="button" onclick="changeRolePassword('marine')" title="Enregistrer">💾</button>
+                    <input id="role-pw-marine" type="password" value="LEO_Marine" readonly autocomplete="off">
+                    <button type="button" onclick="toggleRolePw('role-pw-marine', this)"
+                      aria-label="Afficher le mot de passe" title="Afficher le mot de passe">👁</button>
                   </div>
                 </div>
 
@@ -3391,10 +3379,11 @@
                 </div>
 
                 <div class="role-info">
-                  <label>Nouveau mot de passe</label>
+                  <label>Mot de passe</label>
                   <div class="role-password">
-                    <input id="newpw-admin" type="password" placeholder="••••••••" autocomplete="new-password">
-                    <button type="button" onclick="changeRolePassword('admin')" title="Enregistrer">💾</button>
+                    <input id="role-pw-admin" type="password" value="Leo_1987" readonly autocomplete="off">
+                    <button type="button" onclick="toggleRolePw('role-pw-admin', this)"
+                      aria-label="Afficher le mot de passe" title="Afficher le mot de passe">👁</button>
                   </div>
                 </div>
 
@@ -3437,10 +3426,11 @@
                 </div>
 
                 <div class="role-info">
-                  <label>Nouveau mot de passe</label>
+                  <label>Mot de passe</label>
                   <div class="role-password">
-                    <input id="newpw-dev" type="password" placeholder="••••••••" autocomplete="new-password">
-                    <button type="button" onclick="changeRolePassword('dev')" title="Enregistrer">💾</button>
+                    <input id="role-pw-dev" type="password" value="LEO_Dev" readonly autocomplete="off">
+                    <button type="button" onclick="toggleRolePw('role-pw-dev', this)"
+                      aria-label="Afficher le mot de passe" title="Afficher le mot de passe">👁</button>
                   </div>
                 </div>
 
@@ -4152,19 +4142,21 @@
       </div>
 
       <script>
-        // ── Changement de mot de passe d'un rôle (admin/dev uniquement) ──
-        // Appelle l'action dédiée change-password ; ne fonctionne jamais via
-        // le proxy générique 'query' (la table app_credentials y est bloquée).
-        async function changeRolePassword(role) {
-          const input = document.getElementById('newpw-' + role);
+        function toggleRolePw(inputId, button) {
+          const input = document.getElementById(inputId);
+
           if (!input) return;
-          const newPassword = input.value;
-          if (!newPassword || newPassword.length < 4) { toast('Mot de passe trop court (4 caractères minimum)', 'err'); return; }
-          try {
-            const j = await dbReq({ action: 'change-password', token: sessionToken, role, newPassword });
-            if (j.ok) { toast('Mot de passe mis à jour ✅', 'ok'); input.value = ''; }
-          } catch (e) {
-            toast('Erreur : ' + e.message, 'err');
+
+          if (input.type === 'password') {
+            input.type = 'text';
+            button.textContent = '🙈';
+            button.setAttribute('aria-label', 'Masquer le mot de passe');
+            button.setAttribute('title', 'Masquer le mot de passe');
+          } else {
+            input.type = 'password';
+            button.textContent = '👁';
+            button.setAttribute('aria-label', 'Afficher le mot de passe');
+            button.setAttribute('title', 'Afficher le mot de passe');
           }
         }
         const dateDebut = document.getElementById("stage-deb");
@@ -4202,7 +4194,6 @@
         }
         const estVac = d => VACANCES.some(([a, b]) => d >= a && d <= b);
 
-        // ── Jours de la semaine + disciplines (constantes, emojis, icônes) ──
         const JOURS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
         const JS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
         let DISC = []; // chargé depuis la table disciplines
@@ -4243,7 +4234,6 @@
           return `<img src="${url}" alt="${d}" style="width:${size}px;height:${size}px;object-fit:contain;vertical-align:middle;border-radius:3px" class="${cls}">`;
         }
 
-        // ── Helpers divers cavaliers (recherche, badge d'alternance semaine) ──
         // Teste si une query (ex: "jean d") matche un cavalier par prénom+nom combinés
         function matchNom(query, prenom, nom) {
           if (!query) return true;
@@ -4279,13 +4269,11 @@
           } catch (e) { console.warn('Disciplines non chargées', e); }
         }
         const SLBL = { attache: '🔗 Attache/Box', veto: '🩺 Vétérinaire', marechal: '🔨 Maréchal', repos: '😴 Repos' };
-        // ── Statuts spéciaux chevaux : libellés et helpers de date ──
         // Vérifie si un statut est actif à une date donnée (couvre date_fin)
         const statutActifADate = (s, date) => s.date <= date && (!s.date_fin || s.date_fin >= date);
         const statutsActifsADate = (date) => C.statuts.filter(s => statutActifADate(s, date));
         const SBDG = { attache: 'bo', veto: 'br', marechal: 'bp', repos: 'b' };
 
-        // ── État global de l'application (rôle actif, session, cache de données) ──
         let isAdmin = false, isKenny = false, isMarine = false, isStagiaire = false, isTravaux = false, isInscriptionOnly = false, sessionToken = '', histTab = 'couples';
         let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [], taches: [], tachesComp: [], travaux: [], inscriptions: [] };
         // ── Historique d'annulation (undo) ──
@@ -4332,9 +4320,6 @@
             doUndo();
           }
         });
-        // ══════════════════════════════════════════════════
-        //  PROXY BASE DE DONNÉES (Supabase via /api/db)
-        // ══════════════════════════════════════════════════
         // ── Proxy ──
         async function dbReq(body) {
           let r, j;
@@ -4367,59 +4352,32 @@
         async function dbUpd(table, data, filter) { return dbReq({ action: 'query', method: 'update', table, data, filter, token: sessionToken }); }
         async function dbDel(table, filter) { return dbReq({ action: 'query', method: 'delete', table, filter, token: sessionToken }); }
 
-        // ══════════════════════════════════════════════════
-        //  INITIALISATION & AUTHENTIFICATION (connexion au site)
-        // ══════════════════════════════════════════════════
         // ── Init ──
         // FNV32 côté client — même algo que db.js, pour hasher le mot de passe localement
         function fnv32Client(str) { let h = 0x811c9dc5; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = (h * 0x01000193) >>> 0; } return h.toString(16); }
 
-        // Déduit le rôle actif à partir des indicateurs localStorage, AVANT
-        // que initApp() ne les traduise en variables isAdmin/isKenny/etc en
-        // mémoire (utile au tout premier chargement de la page).
-        function getStoredActiveRole() {
-          if (localStorage.getItem('ce_admin_active') === '1') return 'admin';
-          if (localStorage.getItem('ce_Kenny_active') === '1') return 'dev';
-          if (localStorage.getItem('ce_marine_active') === '1') return 'marine';
-          if (localStorage.getItem('ce_stagiaire_active') === '1') return 'stagiaire';
-          if (localStorage.getItem('ce_travaux_active') === '1') return 'travaux';
-          if (localStorage.getItem('ce_inscription_active') === '1') return 'inscription';
-          return null;
-        }
-
         window.onload = async () => {
           const savedSite = localStorage.getItem('ce_site_token');
           if (savedSite) {
-            // Ping : vérifier que le mot de passe DU RÔLE ACTIF n'a pas changé
-            // côté serveur. ⚠️ Doit impérativement cibler le bon rôle : vérifier
-            // systématiquement le mot de passe admin forçait une reconnexion à
-            // chaque refresh pour tous les autres rôles (dev, marine, etc.).
+            // Ping : vérifier que le mot de passe n'a pas changé côté serveur
             // Si le ping échoue (réseau, cold start) → on fait confiance au token local
             try {
-              const activeRole = getStoredActiveRole();
-              if (activeRole) {
-                const r = await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'ping', role: activeRole }) });
-                if (r.ok) {
-                  const j = await r.json();
-                  const pwHashKey = 'ce_pw_hash_' + activeRole;
-                  const storedHash = localStorage.getItem(pwHashKey);
-                  if (!storedHash) {
-                    // Première fois avec ce système → stocker le hash et continuer
-                    if (j.hash) localStorage.setItem(pwHashKey, j.hash);
-                  } else if (j.hash && j.hash !== storedHash) {
-                    // Mot de passe changé → forcer reconnexion sur tous les appareils
-                    localStorage.removeItem('ce_site_token');
-                    localStorage.removeItem(pwHashKey);
-                    localStorage.removeItem('ce_admin_active');
-                    localStorage.removeItem('ce_Kenny_active');
-                    localStorage.removeItem('ce_marine_active');
-                    localStorage.removeItem('ce_stagiaire_active');
-                    localStorage.removeItem('ce_travaux_active');
-                    localStorage.removeItem('ce_inscription_active');
-                    return; // affiche l'écran de connexion
-                  }
+              const r = await fetch('/api/db', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'ping' }) });
+              if (r.ok) {
+                const j = await r.json();
+                const storedHash = localStorage.getItem('ce_pw_hash');
+                if (!storedHash) {
+                  // Première fois avec ce système → stocker le hash et continuer
+                  localStorage.setItem('ce_pw_hash', j.hash);
+                } else if (j.hash !== storedHash) {
+                  // Mot de passe changé → forcer reconnexion sur tous les appareils
+                  localStorage.removeItem('ce_site_token');
+                  localStorage.removeItem('ce_pw_hash');
+                  localStorage.removeItem('ce_admin_active');
+                  return; // affiche l'écran de connexion
                 }
-                // Sinon (erreur serveur) → accès direct sans bloquer
+              } else {
+                // Serveur répond mais erreur (ex: 500) → accès direct sans bloquer
               }
             } catch {
               // Erreur réseau / cold start → accès direct sans vérification
@@ -4457,9 +4415,7 @@
               document.getElementById('site-login').style.display = 'none';
               await initApp(j.token);
             } else {
-              const errEl = document.getElementById('site-pw-err');
-              errEl.textContent = (j && j.error && r.status >= 500) ? '⚠️ ' + j.error : 'Mot de passe incorrect.';
-              errEl.style.display = 'block';
+              document.getElementById('site-pw-err').style.display = 'block';
               document.getElementById('site-pw-in').value = '';
               document.getElementById('site-pw-in').focus();
             }
@@ -4669,9 +4625,6 @@
           // Premier poll retours immédiat après init si admin
           if (isAdmin) setTimeout(() => pollRetoursNonLus(), 2000);
         }
-        // ══════════════════════════════════════════════════
-        //  GESTION DES RÔLES (connexion / déconnexion par rôle)
-        // ══════════════════════════════════════════════════
         // ── Admin ──
         function handleAdminToggle() {
           if (isAdmin) { logoutAdmin(); return; }
@@ -4906,7 +4859,7 @@
 
         // ── Nav ──
         function go(p) {
-          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches', 'balades', 'travaux', 'inscriptions-admin', 'params'];
+          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches', 'balades', 'travaux', 'inscriptions-admin'];
           // Bloquer les pages admin si pas de rôle élevé
           if (!isAdmin && !isKenny && !isMarine && !isTravaux && adm.includes(p)) return;
           // Marine : seulement séances (+ vue est déjà publique)
@@ -4991,7 +4944,7 @@
           // charge les liaisons cavalier-groupes
           if (C.cav.length) {
             C.cavGrp = await dbSel('cavalier_groupes', { select: 'cavalier_id,groupe_id' });
-          } else C.cavGrp = [];
+          } else C.cavGrp = [];a
         }
         async function loadChv() { C.chv = await dbSel('equides', { order: [{ col: 'nom' }] }); }
         async function loadMon() { C.mon = await dbSel('moniteurs', { order: [{ col: 'prenom' }] }); }
@@ -5035,9 +4988,6 @@
           if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = '⚡ Générer séances'; }
           loadSeances(date);
         }
-        // ══════════════════════════════════════════════════
-        //  TÂCHES (checklist quotidienne, publique + admin)
-        // ══════════════════════════════════════════════════
         async function loadTaches() {
           C.taches = await dbSel('taches', { order: [{ col: 'ordre' }, { col: 'titre' }] });
         }
@@ -5566,7 +5516,7 @@
           }
           for (const st of stgAll) {
             const pts = stParts.filter(p => p.stage_id === st.id), chvs = stChvs.filter(c => c.stage_id === st.id);
-            const rows = pts.sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map((p, i) => {
+            const rows = pts.sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map((p, i) => {
               const bg = i % 2 === 0 ? '#fff' : 'rgba(100,60,140,.08)';
               return `<div class="pcr" style="background:${bg}">
         <div class="pcn">${p.prenom}${p.demi_journee && p.demi_journee !== 'journee' ? ` <span class="b bo" style="font-size:10px">${p.demi_journee}</span>` : ''}</div>
@@ -6517,7 +6467,7 @@
           const cavAvecCarte = C.cartes.filter(c => (!c.date_expiration || c.date_expiration >= today) && carteRestantes(c) > 0).map(c => c.cavalier_id);
           const ex = C.aff.filter(a => a.seance_id === seaId).map(a => a.cavalier_id);
           const cavOpts = C.cav.filter(c => cavAvecCarte.includes(c.id) && !ex.includes(c.id))
-            .sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr'))
+            .sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr'))
             .map(c => {
               const carte = getCarteCav(c.id);
               const rest = carte ? carteRestantes(carte) : 0;
@@ -6656,14 +6606,21 @@
           const t = document.getElementById('tb-cartes'); if (!t) return;
           if (!C.cartes.length) { t.innerHTML = '<tr class="er"><td colspan="8">Aucune carte</td></tr>'; return; }
           const today = new Date().toISOString().slice(0, 10);
-          t.innerHTML = C.cartes.map(c => {
-            const cav = C.cav.find(x => x.id === c.cavalier_id);
-            const nom = cav ? cap(cav.prenom || '') + (cav.nom ? ' ' + cav.nom.toUpperCase() : '') : '?';
-            const rest = carteRestantes(c);
-            const expired = c.date_expiration && c.date_expiration < today;
-            const pct = c.nb_heures > 0 ? Math.min(100, (1 - rest / c.nb_heures) * 100) : 0;
-            const restCol = expired || rest === 0 ? '#b43728' : rest <= 2 ? '#b46414' : '#1e7a40';
-            return `<tr style="${expired ? 'opacity:.55' : ''}">
+          t.innerHTML = [...C.cartes]
+            .sort((a, b) => {
+              const cavA = C.cav.find(x => x.id === a.cavalier_id);
+              const cavB = C.cav.find(x => x.id === b.cavalier_id);
+
+              return (cavA?.nom || '').localeCompare(cavB?.nom || '', 'fr') ||
+                (cavA?.prenom || '').localeCompare(cavB?.prenom || '', 'fr');
+            }).map(c => {
+              const cav = C.cav.find(x => x.id === c.cavalier_id);
+              const nom = cav ? cap(cav.prenom || '') + (cav.nom ? ' ' + cav.nom.toUpperCase() : '') : '?';
+              const rest = carteRestantes(c);
+              const expired = c.date_expiration && c.date_expiration < today;
+              const pct = c.nb_heures > 0 ? Math.min(100, (1 - rest / c.nb_heures) * 100) : 0;
+              const restCol = expired || rest === 0 ? '#b43728' : rest <= 2 ? '#b46414' : '#1e7a40';
+              return `<tr style="${expired ? 'opacity:.55' : ''}">
       <td><strong>${nom}</strong>${expired ? '<span class="b br" style="margin-left:4px;font-size:10px">Expirée</span>' : ''}</td>
       <td>${c.nb_heures}h</td>
       <td><strong style="color:${restCol}">${rest}h</strong>
@@ -6678,7 +6635,7 @@
         <button class="btn btn-d sm" onclick="delCarte('${c.id}')">🗑</button>
       </td>
     </tr>`;
-          }).join('');
+            }).join('');
         }
 
         function newCarte() {
@@ -6692,7 +6649,7 @@
           document.getElementById('carte-edit-methode').value = '';
           document.getElementById('carte-edit-date-reg').value = '';
           document.getElementById('carte-edit-cav').innerHTML = '<option value="">— Sélectionner —</option>' +
-            [...C.cav].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(c =>
+            [...C.cav].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(c =>
               `<option value="${c.id}">${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}</option>`
             ).join('');
           openMo('mo-carte-edit');
@@ -6710,7 +6667,7 @@
           document.getElementById('carte-edit-methode').value = c.methode_paiement || '';
           document.getElementById('carte-edit-date-reg').value = c.date_reglement || '';
           document.getElementById('carte-edit-cav').innerHTML = '<option value="">— Sélectionner —</option>' +
-            [...C.cav].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(cv =>
+            [...C.cav].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(cv =>
               `<option value="${cv.id}"${cv.id === c.cavalier_id ? ' selected' : ''}>${cap(cv.prenom || '')}${cv.nom ? ' ' + cv.nom.toUpperCase() : ''}</option>`
             ).join('');
           openMo('mo-carte-edit');
@@ -6973,7 +6930,7 @@
           document.getElementById('ratt-save-btn').textContent = 'Enregistrer';
           // Cavaliers : tous sélectionnables sauf ceux déjà dans la séance (sauf le cavalier actuel)
           const ex = C.aff.filter(a => a.seance_id === seaId && a.id !== affId).map(a => a.cavalier_id);
-          document.getElementById('ratt-cav').innerHTML = '<option value="">— Sélectionner —</option>' + [...C.cav].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(c => {
+          document.getElementById('ratt-cav').innerHTML = '<option value="">— Sélectionner —</option>' + [...C.cav].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(c => {
             const grps = getCavGroups(c.id).map(gid => C.grp.find(x => x.id === gid)?.nom).filter(Boolean);
             return `<option value="${c.id}"${ex.includes(c.id) ? ' disabled' : ''}${aff.cavalier_id === c.id ? ' selected' : ''}>${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}${grps.length ? ' (' + grps.join(', ') + ')' : ''}`;
           }).join('');
@@ -7481,7 +7438,7 @@
       <span style="font-size:10px;color:var(--muted);font-style:italic;margin-left:4px">← Glisser un cheval ici pour le désassigner</span>
     </div>`;
             // Ligne participant : draggable si elle a un cheval + drop zone pour recevoir un libre
-            const ptRows = [...pts].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(p => {
+            const ptRows = [...pts].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(p => {
               const regle = p.regle, methode = p.methode_paiement, montant = p.montant, dateR = p.date_reglement;
               const hasChv = !!p.equide_id;
               return `<div class="pcr stg-drop-zone${hasChv ? ' stg-part-draggable' : ''}"
@@ -7653,7 +7610,7 @@
           ['part-prenom', 'part-tel', 'part-note', 'part-montant', 'part-date-reg'].forEach(i => document.getElementById(i).value = '');
           document.getElementById('part-methode').value = '';
           document.getElementById('part-dj').value = 'journee';
-          document.getElementById('part-cav-ex').innerHTML = '<option value="">— Saisie libre —</option>' + [...C.cav].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(c => `<option value="${c.id}">${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}</option>`).join('');
+          document.getElementById('part-cav-ex').innerHTML = '<option value="">— Saisie libre —</option>' + [...C.cav].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(c => `<option value="${c.id}">${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}</option>`).join('');
           const stage = C.stages.find(s => s.id === sid);
           const usageStage = getChvUsageStage(sid);
           document.getElementById('part-chv').innerHTML = '<option value="">— Non attribué —</option>' + getSortedChvDispo().map(c => {
@@ -7676,7 +7633,7 @@
           document.getElementById('part-date-reg').value = p.date_reglement || '';
           document.getElementById('part-methode').value = p.methode_paiement || '';
           document.getElementById('part-dj').value = p.demi_journee || 'journee';
-          document.getElementById('part-cav-ex').innerHTML = '<option value="">— Saisie libre —</option>' + [...C.cav].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(c => `<option value="${c.id}">${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}</option>`).join('');
+          document.getElementById('part-cav-ex').innerHTML = '<option value="">— Saisie libre —</option>' + [...C.cav].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(c => `<option value="${c.id}">${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}</option>`).join('');
           const stage = C.stages.find(s => s.id === sid);
           const usageStage = getChvUsageStage(sid, { excludePartId: partId });
           document.getElementById('part-chv').innerHTML = '<option value="">— Non attribué —</option>' + getSortedChvDispo().map(c => {
@@ -8174,7 +8131,7 @@
         </div>
       </div>
       <table><thead><tr><th>Participant</th><th>Montant</th><th>Statut</th><th>Méthode</th><th>Date règlement</th><th style="width:40px"></th></tr></thead>
-      <tbody>${partsFiltered.length ? [...partsFiltered].sort((a, b) => a.prenom.localeCompare(b.prenom, 'fr')).map(p => `<tr>
+      <tbody>${partsFiltered.length ? [...partsFiltered].sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || a.prenom.localeCompare(b.prenom, 'fr')).map(p => `<tr>
         <td><strong>${p.prenom}</strong></td>
         <td>${p.montant != null ? `<strong>${parseFloat(p.montant).toFixed(0)}€</strong>` : '<span style="color:var(--muted)">—</span>'}</td>
         <td>${p.regle ? '<span class="b bg">✅ Réglé</span>' : '<span class="b br">⏳ En attente</span>'}</td>
@@ -8289,7 +8246,6 @@
         }
 
         function isLightColor(hex) { if (!hex || hex.length < 6) return false; const h = hex.replace('#', ''); const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16); return (0.299 * r + 0.587 * g + 0.114 * b) > 165; }
-        // ── Helpers UI génériques (valeur de champ, ouverture/fermeture modale, toast) ──
         const v = id => document.getElementById(id)?.value || '';
         const openMo = id => document.getElementById(id).classList.add('open');
         const closeMo = id => { document.getElementById(id).classList.remove('open'), saveTicketEdit(), saveRetourTicket() };
@@ -8463,9 +8419,6 @@
           } catch (e) { toast('Erreur : ' + e.message, 'err'); }
         }
 
-        // ══════════════════════════════════════════════════
-        //  TICKETS (retours utilisateurs, bandeaux de notification)
-        // ══════════════════════════════════════════════════
         // ── Bannière retours (alias pour compatibilité) ──
         function checkRetoursBanner() { pollRetoursNonLus(); }
 
@@ -8765,45 +8718,6 @@
             renderTicketsPage(); clearTicketScreenshot();
           } catch (e) { toast(e.message, 'err'); }
         }
-
-        // ── Screenshot tickets (capture d'écran collée/choisie dans mo-ticket) ──
-        let _ticketScreenshotB64 = null;
-
-        function loadTicketScreenshot(file) {
-          if (!file || !file.type.startsWith('image/')) return;
-          const reader = new FileReader();
-          reader.onload = e => {
-            _ticketScreenshotB64 = e.target.result; // data:image/...;base64,...
-            document.getElementById('ticket-screenshot-img').src = _ticketScreenshotB64;
-            document.getElementById('ticket-screenshot-preview').style.display = 'block';
-            document.getElementById('ticket-screenshot-zone').style.borderColor = 'var(--gold)';
-            document.getElementById('ticket-screenshot-zone').querySelector('span:last-of-type').textContent = '✅ Image chargée — cliquer pour remplacer';
-          };
-          reader.readAsDataURL(file);
-        }
-
-        function clearTicketScreenshot() {
-          _ticketScreenshotB64 = null;
-          document.getElementById('ticket-screenshot-file').value = '';
-          document.getElementById('ticket-screenshot-preview').style.display = 'none';
-          document.getElementById('ticket-screenshot-zone').style.borderColor = '';
-          document.getElementById('ticket-screenshot-zone').querySelector('span:last-of-type').textContent = 'Coller une capture (Ctrl+V) ou cliquer pour choisir un fichier';
-        }
-
-        // Écoute le presse-papier quand la modale ticket est ouverte
-        document.addEventListener('paste', e => {
-          const moOpen = document.getElementById('mo-ticket')?.classList.contains('open');
-          if (!moOpen) return;
-          const items = e.clipboardData?.items;
-          if (!items) return;
-          for (const item of items) {
-            if (item.type.startsWith('image/')) {
-              const file = item.getAsFile();
-              loadTicketScreenshot(file);
-              break;
-            }
-          }
-        });
 
 
         // ══════════════════════════════════════════════════
@@ -9157,8 +9071,7 @@
       <td>${i.cav_tel || '<span style="color:var(--muted)">—</span>'}</td>
       <td>${i.saison ? i.saison.replace('-', '/') : '—'}</td>
       <td>${i.approuve ? '<span class="b bg">✅ Approuvée</span>' : '<span class="b bgo">Nouvelle</span>'}</td>
-      <td><button class="btn btn-g sm" onclick="openInscDetail('${i.id}')">👁 Voir</button>
-      <button class="btn btn-g sm" onclick="printInscription('${i.id}')" title="Imprimer / PDF">🖨️</button></td>
+      <td><button class="btn btn-g sm" onclick="openInscDetail('${i.id}')">👁 Voir</button></td>
     </tr>`).join('');
         }
 
@@ -9226,80 +9139,6 @@
           openMo('mo-insc-detail');
         }
 
-        // ── Impression / PDF d'un contrat rempli (admin/dev) ──
-        // Clone le formulaire public (déjà stylé pour l'impression) et le
-        // remplit avec les données de l'inscription sélectionnée, sans jamais
-        // toucher au vrai formulaire public (aucun risque de fuite entre les deux).
-        function printInscription(id) {
-          const insc = C_inscriptions.find(x => x.id === id); if (!insc) return;
-          const original = document.getElementById('contrat-card');
-          const printRoot = document.getElementById('insc-print-root');
-          if (!original || !printRoot) return;
-
-          const clone = original.cloneNode(true);
-          clone.removeAttribute('id');
-
-          const setVal = (sel, val) => { const el = clone.querySelector(sel); if (el) el.value = val || ''; };
-          const setChecked = (sel, val) => { const el = clone.querySelector(sel); if (el) el.checked = !!val; };
-
-          // Cavalier
-          setVal('#insc-cav-prenom', insc.cav_prenom);
-          setVal('#insc-cav-nom', insc.cav_nom);
-          setVal('#insc-cav-naissance', insc.cav_naissance);
-          setVal('#insc-cav-sexe', insc.cav_sexe);
-          setVal('#insc-cav-adresse', insc.cav_adresse);
-          setVal('#insc-cav-mail', insc.cav_mail);
-          setVal('#insc-cav-tel', insc.cav_tel);
-          // Responsable légal
-          setVal('#insc-resp-nom', insc.resp_nom);
-          setVal('#insc-resp-parente', insc.resp_parente);
-          setVal('#insc-resp-adresse', insc.resp_adresse);
-          setVal('#insc-resp-mail', insc.resp_mail);
-          setVal('#insc-resp-tel', insc.resp_tel);
-          // Urgence
-          setVal('#insc-urg1-nom', insc.urgence1_nom);
-          setVal('#insc-urg1-parente', insc.urgence1_parente);
-          setVal('#insc-urg1-tel', insc.urgence1_tel);
-          setVal('#insc-urg2-nom', insc.urgence2_nom);
-          setVal('#insc-urg2-parente', insc.urgence2_parente);
-          setVal('#insc-urg2-tel', insc.urgence2_tel);
-          // Cases à cocher
-          setChecked('#insc-chk-medical1', insc.chk_medical1);
-          setChecked('#insc-chk-medical2', insc.chk_medical2);
-          setChecked('#insc-chk-image', insc.chk_image);
-          setChecked('#insc-chk-whatsapp', insc.chk_whatsapp);
-          setChecked('#insc-chk-fichier', insc.chk_fichier);
-          setChecked('#insc-chk-reglement', insc.chk_reglement);
-          // Assurance FFE
-          setChecked('#insc-chk-assurance-oui', insc.assurance_choix === 'souscrite');
-          setChecked('#insc-chk-assurance-non', insc.assurance_choix === 'refusee');
-          setVal('#insc-cheque-num', insc.cheque_num);
-          setVal('#insc-assurance-compagnie', insc.assurance_compagnie);
-          setVal('#insc-cheque-avance-num', insc.cheque_avance_num);
-          // Validation / signature électronique
-          setChecked('#insc-chk-final', true);
-          setVal('#insc-initiales', insc.initiales);
-          const saisonEl = clone.querySelector('#insc-saison');
-          if (saisonEl) saisonEl.textContent = 'Saison ' + (insc.saison ? insc.saison.replace('-', '/') : '—');
-
-          // Lecture seule + retrait des boutons d'action (Imprimer/Valider)
-          clone.querySelectorAll('input, textarea, select').forEach(el => el.disabled = true);
-          const actions = clone.querySelector('.contrat-actions'); if (actions) actions.remove();
-
-          printRoot.innerHTML = '';
-          printRoot.appendChild(clone);
-          document.body.classList.add('printing-insc');
-          window.print();
-        }
-
-        // Nettoyage après impression (fermeture de la boîte de dialogue) —
-        // évite de laisser les données d'un cavalier affichées inutilement.
-        window.addEventListener('afterprint', () => {
-          document.body.classList.remove('printing-insc');
-          const printRoot = document.getElementById('insc-print-root');
-          if (printRoot) printRoot.innerHTML = '';
-        });
-
         async function approuverInscription() {
           const id = v('insc-detail-id');
           const i = C_inscriptions.find(x => x.id === id); if (!i) return;
@@ -9343,9 +9182,22 @@
           renderInscriptionsAdmin();
         }
 
-        // ══════════════════════════════════════════════════
-        //  PARAMÈTRES (règles de rattrapage)
-        // ══════════════════════════════════════════════════
+        // ── Screenshot tickets ──
+        let _ticketScreenshotB64 = null;
+
+        function loadTicketScreenshot(file) {
+          if (!file || !file.type.startsWith('image/')) return;
+          const reader = new FileReader();
+          reader.onload = e => {
+            _ticketScreenshotB64 = e.target.result; // data:image/...;base64,...
+            document.getElementById('ticket-screenshot-img').src = _ticketScreenshotB64;
+            document.getElementById('ticket-screenshot-preview').style.display = 'block';
+            document.getElementById('ticket-screenshot-zone').style.borderColor = 'var(--gold)';
+            document.getElementById('ticket-screenshot-zone').querySelector('span:last-of-type').textContent = '✅ Image chargée — cliquer pour remplacer';
+          };
+          reader.readAsDataURL(file);
+        }
+
         function renderParamsPage() {
           // Rattrapages
           const mode = APP_SETTINGS.rattrap_mode || 'semaines';
@@ -9395,6 +9247,29 @@
             return today < prochainesVac[0];
           }
         }
+
+        function clearTicketScreenshot() {
+          _ticketScreenshotB64 = null;
+          document.getElementById('ticket-screenshot-file').value = '';
+          document.getElementById('ticket-screenshot-preview').style.display = 'none';
+          document.getElementById('ticket-screenshot-zone').style.borderColor = '';
+          document.getElementById('ticket-screenshot-zone').querySelector('span:last-of-type').textContent = 'Coller une capture (Ctrl+V) ou cliquer pour choisir un fichier';
+        }
+
+        // Écoute le presse-papier quand la modale ticket est ouverte
+        document.addEventListener('paste', e => {
+          const moOpen = document.getElementById('mo-ticket')?.classList.contains('open');
+          if (!moOpen) return;
+          const items = e.clipboardData?.items;
+          if (!items) return;
+          for (const item of items) {
+            if (item.type.startsWith('image/')) {
+              const file = item.getAsFile();
+              loadTicketScreenshot(file);
+              break;
+            }
+          }
+        });
       </script>
 </body>
 
