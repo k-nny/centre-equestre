@@ -2024,6 +2024,44 @@
       font-family: Arial, sans-serif;
     }
 
+    /* ── Annonces (dev) : overlay plein écran à la 1ère apparition ── */
+    .announcement-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10500;
+      background: rgba(20, 10, 8, .72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: si .25s ease;
+    }
+
+    .announcement-box {
+      background: var(--surface);
+      border: 2px solid #b43728;
+      border-radius: 18px;
+      padding: 34px 30px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 12px 50px rgba(0, 0, 0, .4);
+    }
+
+    .announcement-icon {
+      font-size: 44px;
+      margin-bottom: 12px;
+    }
+
+    .announcement-msg {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--cream);
+      line-height: 1.5;
+      margin-bottom: 22px;
+      white-space: pre-wrap;
+    }
+
     .retour-notif button:hover {
       background: rgba(255, 255, 255, .35);
     }
@@ -2096,6 +2134,21 @@
     <button class="bbtn" onclick="go('tickets');dismissRetoursBanner()">Voir →</button>
   </div>
 
+  <!-- Bandeau annonce (dev) — persistant, non bloquant, sous les autres bandeaux -->
+  <div id="annonce-banner"
+    style="display:none;position:fixed;top:0;left:0;right:0;z-index:9996;background:linear-gradient(90deg,#7a1f1f,#b43728,#7a1f1f);color:#fff;padding:8px 14px;align-items:center;justify-content:center;text-align:center;font-size:12px;font-weight:700;gap:8px;box-shadow:0 2px 12px rgba(180,55,40,.4);flex-wrap:wrap">
+    <span>📢 <span id="annonce-banner-txt"></span></span>
+  </div>
+
+  <!-- Overlay plein écran (1ère apparition d'une annonce active, par appareil) -->
+  <div id="annonce-overlay" class="announcement-overlay" style="display:none">
+    <div class="announcement-box">
+      <div class="announcement-icon">📢</div>
+      <div class="announcement-msg" id="annonce-overlay-msg"></div>
+      <button class="btn btn-p" onclick="closeAnnonceOverlay()">J'ai compris, fermer</button>
+    </div>
+  </div>
+
   <div class="hb" id="hb" onclick="toggleSB()"><span></span><span></span><span></span></div>
   <div class="sbo" id="sbo" onclick="toggleSB()"></div>
   <div id="site-login"
@@ -2157,6 +2210,8 @@
             <button class="ni" data-p="travaux" onclick="go('travaux')"> <span class="ic">🔧</span> Travaux</button>
             <button class="ni" data-p="inscriptions-admin" onclick="go('inscriptions-admin')"> <span
                 class="ic">📄</span> Inscriptions</button>
+            <button class="ni" id="ni-annonces" data-p="annonces" onclick="go('annonces')" style="display:none"> <span
+                class="ic">📢</span> Annonces</button>
             <button class="ni" data-p="dash" onclick="go('dash')"><span class="ic">⬛</span>Tableau de bord</button>
           </div>
         </div>
@@ -2703,6 +2758,46 @@
               <tbody id="tb-insc">
                 <tr class="er">
                   <td colspan="6">
+                    <div class="spin"></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ANNONCES (dev uniquement) -->
+        <div class="page" id="page-annonces">
+          <div class="ph">
+            <h2>📢 Annonces</h2>
+            <p class="no-upper">Message affiché en grand à tous les visiteurs (1ère visite), puis en bandeau rouge persistant jusqu'à désactivation.</p>
+          </div>
+          <div class="tc" style="margin-bottom:20px">
+            <div class="tt">
+              <h3>Nouvelle annonce</h3>
+            </div>
+            <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+              <textarea id="annonce-msg" rows="3" placeholder="Ex : Maintenance du site ce soir à partir de 20h, l'application sera indisponible quelques minutes."
+                style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:Arial,sans-serif;font-size:14px;outline:none;resize:vertical"></textarea>
+              <button class="btn btn-p" style="width:fit-content" onclick="publierAnnonce()">📢 Publier l'annonce</button>
+            </div>
+          </div>
+          <div class="tc">
+            <div class="tt">
+              <h3>Historique</h3>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Message</th>
+                  <th>Statut</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tb-annonces">
+                <tr class="er">
+                  <td colspan="4">
                     <div class="spin"></div>
                   </td>
                 </tr>
@@ -3274,9 +3369,24 @@
                 </div>
 
                 <div class="role-info">
+                  <label>Mot de passe actuel</label>
+                  <div class="role-password">
+                    <input id="reveal-inscription" type="text" placeholder="••••••••" readonly>
+                    <button type="button" onclick="revealRolePassword('inscription')" title="Afficher">👁</button>
+                  </div>
+                </div>
+
+                <div class="role-info">
                   <label>Nouveau mot de passe</label>
                   <div class="role-password">
                     <input id="newpw-inscription" type="password" placeholder="••••••••" autocomplete="new-password">
+                  </div>
+                </div>
+
+                <div class="role-info">
+                  <label>Confirmer le mot de passe</label>
+                  <div class="role-password">
+                    <input id="newpw2-inscription" type="password" placeholder="••••••••" autocomplete="new-password">
                     <button type="button" onclick="changeRolePassword('inscription')" title="Enregistrer">💾</button>
                   </div>
                 </div>
@@ -3300,9 +3410,24 @@
                 </div>
 
                 <div class="role-info">
+                  <label>Mot de passe actuel</label>
+                  <div class="role-password">
+                    <input id="reveal-travaux" type="text" placeholder="••••••••" readonly>
+                    <button type="button" onclick="revealRolePassword('travaux')" title="Afficher">👁</button>
+                  </div>
+                </div>
+
+                <div class="role-info">
                   <label>Nouveau mot de passe</label>
                   <div class="role-password">
                     <input id="newpw-travaux" type="password" placeholder="••••••••" autocomplete="new-password">
+                  </div>
+                </div>
+
+                <div class="role-info">
+                  <label>Confirmer le mot de passe</label>
+                  <div class="role-password">
+                    <input id="newpw2-travaux" type="password" placeholder="••••••••" autocomplete="new-password">
                     <button type="button" onclick="changeRolePassword('travaux')" title="Enregistrer">💾</button>
                   </div>
                 </div>
@@ -3326,9 +3451,24 @@
                 </div>
 
                 <div class="role-info">
+                  <label>Mot de passe actuel</label>
+                  <div class="role-password">
+                    <input id="reveal-stagiaire" type="text" placeholder="••••••••" readonly>
+                    <button type="button" onclick="revealRolePassword('stagiaire')" title="Afficher">👁</button>
+                  </div>
+                </div>
+
+                <div class="role-info">
                   <label>Nouveau mot de passe</label>
                   <div class="role-password">
                     <input id="newpw-stagiaire" type="password" placeholder="••••••••" autocomplete="new-password">
+                  </div>
+                </div>
+
+                <div class="role-info">
+                  <label>Confirmer le mot de passe</label>
+                  <div class="role-password">
+                    <input id="newpw2-stagiaire" type="password" placeholder="••••••••" autocomplete="new-password">
                     <button type="button" onclick="changeRolePassword('stagiaire')" title="Enregistrer">💾</button>
                   </div>
                 </div>
@@ -3354,9 +3494,24 @@
                 </div>
 
                 <div class="role-info">
+                  <label>Mot de passe actuel</label>
+                  <div class="role-password">
+                    <input id="reveal-marine" type="text" placeholder="••••••••" readonly>
+                    <button type="button" onclick="revealRolePassword('marine')" title="Afficher">👁</button>
+                  </div>
+                </div>
+
+                <div class="role-info">
                   <label>Nouveau mot de passe</label>
                   <div class="role-password">
                     <input id="newpw-marine" type="password" placeholder="••••••••" autocomplete="new-password">
+                  </div>
+                </div>
+
+                <div class="role-info">
+                  <label>Confirmer le mot de passe</label>
+                  <div class="role-password">
+                    <input id="newpw2-marine" type="password" placeholder="••••••••" autocomplete="new-password">
                     <button type="button" onclick="changeRolePassword('marine')" title="Enregistrer">💾</button>
                   </div>
                 </div>
@@ -3391,9 +3546,24 @@
                 </div>
 
                 <div class="role-info">
+                  <label>Mot de passe actuel</label>
+                  <div class="role-password">
+                    <input id="reveal-admin" type="text" placeholder="••••••••" readonly>
+                    <button type="button" onclick="revealRolePassword('admin')" title="Afficher">👁</button>
+                  </div>
+                </div>
+
+                <div class="role-info">
                   <label>Nouveau mot de passe</label>
                   <div class="role-password">
                     <input id="newpw-admin" type="password" placeholder="••••••••" autocomplete="new-password">
+                  </div>
+                </div>
+
+                <div class="role-info">
+                  <label>Confirmer le mot de passe</label>
+                  <div class="role-password">
+                    <input id="newpw2-admin" type="password" placeholder="••••••••" autocomplete="new-password">
                     <button type="button" onclick="changeRolePassword('admin')" title="Enregistrer">💾</button>
                   </div>
                 </div>
@@ -3437,9 +3607,24 @@
                 </div>
 
                 <div class="role-info">
+                  <label>Mot de passe actuel</label>
+                  <div class="role-password">
+                    <input id="reveal-dev" type="text" placeholder="••••••••" readonly>
+                    <button type="button" onclick="revealRolePassword('dev')" title="Afficher">👁</button>
+                  </div>
+                </div>
+
+                <div class="role-info">
                   <label>Nouveau mot de passe</label>
                   <div class="role-password">
                     <input id="newpw-dev" type="password" placeholder="••••••••" autocomplete="new-password">
+                  </div>
+                </div>
+
+                <div class="role-info">
+                  <label>Confirmer le mot de passe</label>
+                  <div class="role-password">
+                    <input id="newpw2-dev" type="password" placeholder="••••••••" autocomplete="new-password">
                     <button type="button" onclick="changeRolePassword('dev')" title="Enregistrer">💾</button>
                   </div>
                 </div>
@@ -4157,12 +4342,34 @@
         // le proxy générique 'query' (la table app_credentials y est bloquée).
         async function changeRolePassword(role) {
           const input = document.getElementById('newpw-' + role);
-          if (!input) return;
+          const input2 = document.getElementById('newpw2-' + role);
+          if (!input || !input2) return;
           const newPassword = input.value;
+          const confirmPassword = input2.value;
           if (!newPassword || newPassword.length < 4) { toast('Mot de passe trop court (4 caractères minimum)', 'err'); return; }
+          if (newPassword !== confirmPassword) { toast('Les deux mots de passe ne correspondent pas', 'err'); return; }
           try {
             const j = await dbReq({ action: 'change-password', token: sessionToken, role, newPassword });
-            if (j.ok) { toast('Mot de passe mis à jour ✅', 'ok'); input.value = ''; }
+            if (j.ok) {
+              toast('Mot de passe mis à jour ✅', 'ok');
+              input.value = ''; input2.value = '';
+              // Si le mot de passe actuel était affiché, on le masque : il est périmé
+              const revealInput = document.getElementById('reveal-' + role);
+              if (revealInput) revealInput.value = '';
+            }
+          } catch (e) {
+            toast('Erreur : ' + e.message, 'err');
+          }
+        }
+
+        // ── Voir le mot de passe actuel d'un rôle (admin/dev uniquement) ──
+        async function revealRolePassword(role) {
+          const input = document.getElementById('reveal-' + role);
+          if (!input) return;
+          if (input.value) { input.value = ''; return; } // re-clic = masquer
+          try {
+            const j = await dbReq({ action: 'reveal-password', token: sessionToken, role });
+            if (j.ok) input.value = j.password;
           } catch (e) {
             toast('Erreur : ' + e.message, 'err');
           }
@@ -4481,12 +4688,13 @@
             document.getElementById('ld').style.display = 'none';
             document.getElementById('app').style.display = 'block';
             initRealtime();
+            checkAnnonceDisplay();
             // Vérifier les retours non lus après chargement (admin et marine)
             // Restaurer le mode admin seulement si l'utilisateur l'avait explicitement activé
             // (flag posé par enableAdmin, effacé par logoutAdmin — indépendant du token site)
             // Restaurer la dernière page visitée
             const lastPage = localStorage.getItem('ce_last_page') || 'vue';
-            const adminPages = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'travaux', 'inscriptions'];
+            const adminPages = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'travaux', 'inscriptions', 'inscriptions-admin', 'params', 'annonces'];
             if (localStorage.getItem('ce_admin_active') === '1') {
               sessionToken = siteToken;
               _lastRetourCount = -1;
@@ -4732,6 +4940,7 @@
           document.body.classList.remove('travaux-only-nav');
           document.body.classList.remove('inscription-only-nav');
           document.getElementById('mc').classList.add('wb'); document.getElementById('anav').style.display = 'block';
+          const niAnnonces = document.getElementById('ni-annonces'); if (niAnnonces) niAnnonces.style.display = 'none';
           document.getElementById('nom-pers-co').textContent = '🔐 Claire';
           document.getElementById('atbtn').textContent = '🔒 Quitter Claire'; document.getElementById('atbtn').classList.add('on');
           localStorage.setItem('ce_admin_active', '1');
@@ -4887,6 +5096,7 @@
           document.getElementById('atbtn').textContent = '🔒 Quitter Kenny';
           document.getElementById('atbtn').classList.add('on');
           localStorage.setItem('ce_Kenny_active', '1');
+          const niAnnonces = document.getElementById('ni-annonces'); if (niAnnonces) niAnnonces.style.display = '';
           updateBannerPadding();
           renderCavaliers(); go(targetPage); toast('Mode Kenny activé', 'ok');
         }
@@ -4900,13 +5110,14 @@
           document.getElementById('anav').style.display = 'none';
           document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
           document.getElementById('atbtn').classList.remove('on');
+          const niAnnonces = document.getElementById('ni-annonces'); if (niAnnonces) niAnnonces.style.display = 'none';
           renderCavaliers(); go('vue'); toast('Déconnecté', 'ok');
         }
         function togPw() { const i = document.getElementById('pw-in'); i.type = i.type === 'password' ? 'text' : 'password'; }
 
         // ── Nav ──
         function go(p) {
-          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches', 'balades', 'travaux', 'inscriptions-admin', 'params'];
+          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches', 'balades', 'travaux', 'inscriptions-admin', 'params', 'annonces'];
           // Bloquer les pages admin si pas de rôle élevé
           if (!isAdmin && !isKenny && !isMarine && !isTravaux && adm.includes(p)) return;
           // Marine : seulement séances (+ vue est déjà publique)
@@ -4917,6 +5128,8 @@
           if (isTravaux && !isAdmin && !isKenny && p !== 'travaux') return;
           // Inscription (kiosque) : uniquement le formulaire public, aucune autre page
           if (isInscriptionOnly && p !== 'inscription') return;
+          // Annonces : réservé au dev, même l'admin n'y a pas accès
+          if (p === 'annonces' && !isKenny) return;
           document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
           document.querySelectorAll('.ni').forEach(x => x.classList.remove('active'));
           document.getElementById('page-' + p)?.classList.add('active');
@@ -4946,6 +5159,7 @@
           if (p === 'travaux') loadTravauxPage();
           if (p === 'inscription') initInscriptionPage();
           if (p === 'inscriptions-admin') loadInscriptionsAdmin();
+          if (p === 'annonces') loadAnnoncesAdmin();
           if (window.innerWidth <= 768) { document.getElementById('sb').classList.remove('open'); document.getElementById('sbo').classList.remove('open'); }
         }
         function toggleSB() { document.getElementById('sb').classList.toggle('open'); document.getElementById('sbo').classList.toggle('open'); }
@@ -8481,13 +8695,23 @@
           if (!mc) return;
           const adminVisible = document.getElementById('admin-banner')?.classList.contains('show');
           const retoursVisible = document.getElementById('retours-banner')?.style.display === 'flex';
+          const annonceVisible = document.getElementById('annonce-banner')?.style.display === 'flex';
           let top = 0;
           if (adminVisible) top += 36;
           if (retoursVisible) top += 34;
+          if (annonceVisible) top += 34;
           mc.style.paddingTop = top > 0 ? (26 + top) + 'px' : '';
           // Positionner le bandeau retours sous le bandeau admin
           const retoursBanner = document.getElementById('retours-banner');
           if (retoursBanner) retoursBanner.style.top = adminVisible ? '36px' : '0';
+          // Positionner le bandeau annonce sous admin + retours
+          const annonceBanner = document.getElementById('annonce-banner');
+          if (annonceBanner) {
+            let annTop = 0;
+            if (adminVisible) annTop += 36;
+            if (retoursVisible) annTop += 34;
+            annonceBanner.style.top = annTop + 'px';
+          }
         }
 
         // ── Page tickets ──
@@ -9341,6 +9565,98 @@
           toast('Inscription supprimée', 'ok');
           closeMo('mo-insc-detail');
           renderInscriptionsAdmin();
+        }
+
+        // ══════════════════════════════════════════════════
+        //  ANNONCES (gestion, réservée au dev)
+        // ══════════════════════════════════════════════════
+        let C_annonces = [];
+
+        async function loadAnnoncesAdmin() {
+          const t = document.getElementById('tb-annonces');
+          if (t) t.innerHTML = '<tr class="er"><td colspan="4"><div class="spin"></div></td></tr>';
+          C_annonces = await dbSel('annonces', { order: [{ col: 'created_at', asc: false }] });
+          renderAnnoncesAdmin();
+        }
+
+        function renderAnnoncesAdmin() {
+          const t = document.getElementById('tb-annonces'); if (!t) return;
+          if (!C_annonces.length) { t.innerHTML = '<tr class="er"><td colspan="4">Aucune annonce</td></tr>'; return; }
+          t.innerHTML = C_annonces.map(a => `<tr style="${!a.actif ? 'opacity:.5' : ''}">
+      <td>${new Date(a.created_at).toLocaleDateString('fr-FR')}</td>
+      <td style="max-width:420px">${a.message}</td>
+      <td><span class="b ${a.actif ? 'br' : 'bg'}">${a.actif ? '🔴 Active' : 'Désactivée'}</span></td>
+      <td style="display:flex;gap:5px">
+        <button class="btn btn-g sm" onclick="toggleAnnonceActif('${a.id}',${!a.actif})">${a.actif ? 'Désactiver' : 'Réactiver'}</button>
+        <button class="btn btn-d sm" onclick="delAnnonce('${a.id}')">🗑</button>
+      </td>
+    </tr>`).join('');
+        }
+
+        async function publierAnnonce() {
+          const message = v('annonce-msg').trim();
+          if (!message) { toast('Le message est requis', 'err'); return; }
+          await dbIns('annonces', { message, actif: true });
+          toast('Annonce publiée 📢', 'ok');
+          document.getElementById('annonce-msg').value = '';
+          await loadAnnoncesAdmin();
+        }
+
+        async function toggleAnnonceActif(id, actif) {
+          await dbUpd('annonces', { actif }, [{ col: 'id', op: 'eq', val: id }]);
+          toast(actif ? 'Annonce réactivée' : 'Annonce désactivée', 'ok');
+          await loadAnnoncesAdmin();
+        }
+
+        async function delAnnonce(id) {
+          if (!confirm('Supprimer cette annonce ?')) return;
+          await dbDel('annonces', [{ col: 'id', op: 'eq', val: id }]);
+          toast('Supprimée', 'ok');
+          await loadAnnoncesAdmin();
+        }
+
+        // ── Affichage pour TOUS les visiteurs (public + tous rôles) ──
+        // 1ère apparition d'une annonce active : overlay plein écran, bloquant.
+        // Une fois fermée (par appareil, via localStorage) : bandeau rouge
+        // persistant et non bloquant, tant que l'annonce reste active.
+        let _currentAnnonceId = null;
+
+        async function checkAnnonceDisplay() {
+          try {
+            const actives = await dbSel('annonces', {
+              filter: [{ col: 'actif', op: 'eq', val: 'true' }],
+              order: [{ col: 'created_at', asc: false }]
+            });
+            const annonce = actives[0] || null;
+            const overlay = document.getElementById('annonce-overlay');
+            const banner = document.getElementById('annonce-banner');
+            if (!annonce) {
+              if (overlay) overlay.style.display = 'none';
+              if (banner) banner.style.display = 'none';
+              _currentAnnonceId = null;
+              updateBannerPadding();
+              return;
+            }
+            _currentAnnonceId = annonce.id;
+            const seenKey = 'ce_annonce_seen_' + annonce.id;
+            const dejaVue = localStorage.getItem(seenKey) === '1';
+            if (!dejaVue) {
+              document.getElementById('annonce-overlay-msg').textContent = annonce.message;
+              overlay.style.display = 'flex';
+              if (banner) banner.style.display = 'none';
+            } else {
+              if (overlay) overlay.style.display = 'none';
+              document.getElementById('annonce-banner-txt').textContent = annonce.message;
+              banner.style.display = 'flex';
+            }
+            updateBannerPadding();
+          } catch { /* silencieux */ }
+        }
+
+        function closeAnnonceOverlay() {
+          if (_currentAnnonceId) localStorage.setItem('ce_annonce_seen_' + _currentAnnonceId, '1');
+          document.getElementById('annonce-overlay').style.display = 'none';
+          checkAnnonceDisplay(); // fait apparaître le bandeau persistant à la place
         }
 
         // ══════════════════════════════════════════════════

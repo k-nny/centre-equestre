@@ -4,9 +4,11 @@
 //     restent dans les variables d'environnement Vercel.
 //     Elles ne transitent JAMAIS vers le navigateur.
 //
-// 🔐 Les MOTS DE PASSE DES RÔLES sont stockés hashés (scrypt) dans la
-//     table Supabase "app_credentials" — modifiables depuis le site
-//     (Paramètres > Mots de passe, réservé admin/dev) sans redéploiement.
+// 🔐 Les MOTS DE PASSE DES RÔLES sont stockés CHIFFRÉS (AES-256-GCM,
+//     réversible) dans la table Supabase "app_credentials" — modifiables
+//     ET consultables depuis le site (Paramètres > Mots de passe, réservé
+//     admin/dev) sans redéploiement. La clé de chiffrement est dérivée de
+//     SESSION_SECRET (aucune variable d'environnement supplémentaire).
 //     Les anciennes variables d'environnement (ADMIN_PASSWORD, etc.)
 //     restent utilisables comme solution de repli tant qu'un mot de passe
 //     n'a pas encore été défini en base pour un rôle donné.
@@ -20,25 +22,6 @@ import crypto from 'crypto';
 //  RÔLES CONNUS DE L'APPLICATION
 // ══════════════════════════════════════════════════
 const ROLES = ['admin', 'marine', 'dev', 'stagiaire', 'travaux', 'inscription'];
-
-// ══════════════════════════════════════════════════
-//  HASHAGE DES MOTS DE PASSE (scrypt, natif Node — pas de dépendance npm)
-// ══════════════════════════════════════════════════
-function hashPassword(password) {
-  const salt = crypto.randomBytes(16).toString('hex');
-  const hash = crypto.scryptSync(password, salt, 64).toString('hex');
-  return `${salt}:${hash}`;
-}
-function verifyPassword(password, stored) {
-  if (!password || !stored || !stored.includes(':')) return false;
-  const [salt, hashHex] = stored.split(':');
-  try {
-    const hash = crypto.scryptSync(password, salt, 64);
-    const storedBuf = Buffer.from(hashHex, 'hex');
-    if (hash.length !== storedBuf.length) return false;
-    return crypto.timingSafeEqual(hash, storedBuf);
-  } catch { return false; }
-}
 
 export default async function handler(req, res) {
   // ── CORS strict : même domaine uniquement ──────────────────────────
@@ -60,7 +43,7 @@ export default async function handler(req, res) {
   const SESSION_SECRET = process.env.SESSION_SECRET || '';
 
   // Anciennes variables d'environnement — solution de repli tant qu'un mot
-  // de passe n'a pas été migré en base pour ce rôle (voir getStoredHashes).
+  // de passe n'a pas été migré en base pour ce rôle (voir getStoredCreds).
   const ENV_FALLBACK = {
     admin: process.env.ADMIN_PASSWORD || '',
     marine: process.env.MARINE_PASSWORD || '',
@@ -72,9 +55,32 @@ export default async function handler(req, res) {
   };
 
   // ══════════════════════════════════════════════════
+  //  CHIFFREMENT RÉVERSIBLE DES MOTS DE PASSE (AES-256-GCM)
+  //  Clé dérivée de SESSION_SECRET — pas de variable d'env supplémentaire.
+  // ══════════════════════════════════════════════════
+  function credentialsKey() {
+    return crypto.scryptSync(SESSION_SECRET, 'app-credentials-salt-v1', 32);
+  }
+  function encryptPassword(password) {
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv('aes-256-gcm', credentialsKey(), iv);
+    const encrypted = Buffer.concat([cipher.update(password, 'utf8'), cipher.final()]);
+    const tag = cipher.getAuthTag();
+    return [iv.toString('hex'), tag.toString('hex'), encrypted.toString('hex')].join(':');
+  }
+  function decryptPassword(stored) {
+    try {
+      const [ivHex, tagHex, dataHex] = stored.split(':');
+      const decipher = crypto.createDecipheriv('aes-256-gcm', credentialsKey(), Buffer.from(ivHex, 'hex'));
+      decipher.setAuthTag(Buffer.from(tagHex, 'hex'));
+      const decrypted = Buffer.concat([decipher.update(Buffer.from(dataHex, 'hex')), decipher.final()]);
+      return decrypted.toString('utf8');
+    } catch { return null; }
+  }
+
+  // ══════════════════════════════════════════════════
   //  TOKEN DE SESSION — signé avec SESSION_SECRET (jamais avec le mot de
-  //  passe lui-même), donc indépendant du fait que le mot de passe soit
-  //  en clair (env var) ou hashé (base). Valide indéfiniment, comme avant.
+  //  passe lui-même). Valide indéfiniment, comme avant.
   // ══════════════════════════════════════════════════
   function makeToken(role) {
     const expires = Number.MAX_SAFE_INTEGER;
@@ -98,17 +104,17 @@ export default async function handler(req, res) {
     } catch { return false; }
   }
 
-  // ── Lit les hash de mots de passe stockés en base (table app_credentials) ──
+  // ── Lit les identifiants stockés en base (table app_credentials) ──
   // Table volontairement JAMAIS exposée via l'action générique 'query'
   // (voir plus bas) : seules ces routes dédiées peuvent la lire/écrire.
-  async function getStoredHashes() {
+  async function getStoredCreds() {
     try {
-      const url = `${SUPA_URL}/rest/v1/app_credentials?select=role,password_hash&app_key=eq.${encodeURIComponent(APP_KEY)}`;
+      const url = `${SUPA_URL}/rest/v1/app_credentials?select=role,password_encrypted&app_key=eq.${encodeURIComponent(APP_KEY)}`;
       const r = await fetch(url, { headers: { apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}` } });
       if (!r.ok) return {};
       const rows = await r.json();
       const map = {};
-      rows.forEach(row => { map[row.role] = row.password_hash; });
+      rows.forEach(row => { map[row.role] = row.password_encrypted; });
       return map;
     } catch { return {}; }
   }
@@ -122,11 +128,12 @@ export default async function handler(req, res) {
       // Config incomplète : on refuse plutôt que de signer les tokens avec une clé vide
       return res.status(500).json({ error: 'Configuration serveur incomplète (SESSION_SECRET manquant)' });
     }
-    const stored = await getStoredHashes();
+    const stored = await getStoredCreds();
     for (const role of ROLES) {
-      const hash = stored[role];
-      if (hash) {
-        if (verifyPassword(password, hash)) return res.json({ ok: true, token: makeToken(role), role });
+      const enc = stored[role];
+      if (enc) {
+        const real = decryptPassword(enc);
+        if (real !== null && real === password) return res.json({ ok: true, token: makeToken(role), role });
       } else if (ENV_FALLBACK[role] && password === ENV_FALLBACK[role]) {
         return res.json({ ok: true, token: makeToken(role), role });
       }
@@ -234,7 +241,7 @@ export default async function handler(req, res) {
     }
     if (!ROLES.includes(role)) return res.status(400).json({ error: 'Rôle inconnu' });
     if (!newPassword || newPassword.length < 4) return res.status(400).json({ error: 'Mot de passe trop court (4 caractères minimum)' });
-    const password_hash = hashPassword(newPassword);
+    const password_encrypted = encryptPassword(newPassword);
     const upsertUrl = `${SUPA_URL}/rest/v1/app_credentials?on_conflict=role`;
     const r = await fetch(upsertUrl, {
       method: 'POST',
@@ -244,13 +251,34 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         'Prefer': 'resolution=merge-duplicates,return=representation',
       },
-      body: JSON.stringify([{ role, password_hash, updated_at: new Date().toISOString(), app_key: APP_KEY }]),
+      body: JSON.stringify([{ role, password_encrypted, updated_at: new Date().toISOString(), app_key: APP_KEY }]),
     });
     if (!r.ok) {
       const err = await r.text();
       return res.status(500).json({ error: 'Échec de la mise à jour : ' + err });
     }
     return res.status(200).json({ ok: true });
+  }
+
+  // ── Route : consulter le mot de passe en clair d'un rôle (admin/dev) ──
+  // POST /api/db { action: 'reveal-password', token, role }
+  if (req.method === 'POST' && req.body.action === 'reveal-password') {
+    const { token, role } = req.body;
+    if (!verifyToken(token, 'admin') && !verifyToken(token, 'dev')) {
+      return res.status(403).json({ error: 'Non autorisé' });
+    }
+    if (!ROLES.includes(role)) return res.status(400).json({ error: 'Rôle inconnu' });
+    const stored = await getStoredCreds();
+    const enc = stored[role];
+    if (enc) {
+      const real = decryptPassword(enc);
+      if (real === null) return res.status(500).json({ error: 'Déchiffrement impossible' });
+      return res.status(200).json({ ok: true, password: real, source: 'base' });
+    }
+    if (ENV_FALLBACK[role]) {
+      return res.status(200).json({ ok: true, password: ENV_FALLBACK[role], source: 'env' });
+    }
+    return res.status(404).json({ error: 'Aucun mot de passe défini pour ce rôle' });
   }
 
   // ── Route : vérification du mot de passe admin ─────────────────────
@@ -267,13 +295,18 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok });
     }
 
-    // Ping : retourne une empreinte du mot de passe admin actuel (base ou
-    // env var) pour détecter un changement, sans jamais révéler le mot de
-    // passe lui-même — le client compare juste l'empreinte stockée.
+    // Ping : retourne une empreinte du mot de passe ACTUEL DU RÔLE DEMANDÉ
+    // (base ou env var), pour détecter un changement, sans jamais révéler
+    // le mot de passe lui-même — le client compare juste l'empreinte stockée.
+    // ⚠️ Le rôle doit être transmis : sans lui, on ne peut pas savoir quel
+    // mot de passe comparer, et vérifier systématiquement celui de l'admin
+    // forçait une reconnexion à chaque refresh pour tous les autres rôles.
     if (body.action === 'ping') {
-      const stored = await getStoredHashes();
-      const source = stored['admin'] || ENV_FALLBACK.admin;
-      const hash = fnv32(source).toString(16);
+      const role = ROLES.includes(body.role) ? body.role : null;
+      if (!role) return res.status(200).json({ hash: null });
+      const stored = await getStoredCreds();
+      const source = stored[role] ? (decryptPassword(stored[role]) ?? '') : ENV_FALLBACK[role];
+      const hash = fnv32(source || '').toString(16);
       return res.status(200).json({ hash });
     }
 
@@ -374,8 +407,8 @@ export default async function handler(req, res) {
     // { action: 'query', table, method, filter, data, token }
     if (body.action === 'query') {
       // Table protégée : ne transite JAMAIS par le proxy générique, même en
-      // lecture — seules les routes dédiées ci-dessus (auth, change-password)
-      // peuvent la lire/écrire. Empêche toute fuite de hash vers le client.
+      // lecture — seules les routes dédiées ci-dessus (auth, change-password,
+      // reveal-password) peuvent la lire/écrire. Empêche toute fuite vers le client.
       if (body.table === 'app_credentials') {
         return res.status(403).json({ error: 'Table protégée' });
       }
@@ -387,6 +420,11 @@ export default async function handler(req, res) {
         const ismarine = verifyToken(body.token, 'marine');
         const isDev = verifyToken(body.token, 'dev');
         const isTravaux = verifyToken(body.token, 'travaux');
+
+        // Table "annonces" (bandeaux dev) : uniquement dev (et admin en secours)
+        if (body.table === 'annonces' && !isAdmin && !isDev) {
+          return res.status(403).json({ error: 'Réservé au développeur' });
+        }
 
         // Exception : cocher/décocher une tâche du jour est accessible SANS connexion
         // (checklist affichée publiquement), mais limité à l'insert/update des seuls
@@ -500,7 +538,7 @@ async function supabaseQuery({ url, anon, appKey, table, method, select, filter 
 }
 
 // ── FNV32 (utilisé uniquement pour l'empreinte du 'ping', pas pour la
-//     sécurité des mots de passe — voir hashPassword/verifyPassword) ──
+//     sécurité des mots de passe — voir encryptPassword/decryptPassword) ──
 function fnv32(str) {
   let h = 0x811c9dc5;
   for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = (h * 0x01000193) >>> 0; }
