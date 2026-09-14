@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <title>Gestion — Les Écuries de l'Octroi</title>
   <style>
     /* ── Light theme ── */
@@ -2772,28 +2773,40 @@
         <div class="page" id="page-annonces">
           <div class="ph">
             <h2>📢 Annonces</h2>
-            <p class="no-upper">Message affiché en grand à tous les visiteurs (1ère visite), puis en bandeau rouge persistant jusqu'à désactivation.</p>
+            <p class="no-upper">Message affiché en grand à tous les visiteurs (1ère visite), puis en bandeau rouge
+              persistant jusqu'à désactivation.</p>
           </div>
           <div class="tc" style="margin-bottom:20px">
             <div class="tt">
               <h3>Nouvelle annonce</h3>
             </div>
             <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px">
-              <textarea id="annonce-msg" rows="3" placeholder="Ex : Maintenance du site ce soir à partir de 20h, l'application sera indisponible quelques minutes."
+              <textarea id="annonce-msg" rows="3"
+                placeholder="Ex : Maintenance du site ce soir à partir de 20h, l'application sera indisponible quelques minutes."
                 style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:Arial,sans-serif;font-size:14px;outline:none;resize:vertical"></textarea>
               <div>
-                <label style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:6px">À qui afficher cette annonce ?</label>
+                <label
+                  style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:6px">À
+                  qui afficher cette annonce ?</label>
                 <div style="display:flex;gap:14px;flex-wrap:wrap">
-                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-public" checked> Page cliente (sans rôle)</label>
-                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-admin"> Admin</label>
-                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-marine"> Marine</label>
-                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-dev"> Dev</label>
-                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-stagiaire"> Stagiaire</label>
-                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-travaux"> Travaux</label>
-                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-inscription"> Inscription</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-public"
+                      checked> Page cliente (sans rôle)</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-admin">
+                    Admin</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-marine">
+                    Marine</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-dev">
+                    Dev</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-stagiaire">
+                    Stagiaire</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-travaux">
+                    Travaux</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox"
+                      id="annonce-cible-inscription"> Inscription</label>
                 </div>
               </div>
-              <button class="btn btn-p" style="width:fit-content" onclick="publierAnnonce()">📢 Publier l'annonce</button>
+              <button class="btn btn-p" style="width:fit-content" onclick="publierAnnonce()">📢 Publier
+                l'annonce</button>
             </div>
           </div>
           <div class="tc">
@@ -3000,8 +3013,8 @@
         <div id="insc-print-root" style="display:none"></div>
 
         <!-- Input caché partagé pour l'ajout de photos aux tâches validées -->
-        <input type="file" id="tache-photo-input" accept="image/*" multiple capture="environment"
-          style="display:none" onchange="onTachePhotoSelected(this)">
+        <input type="file" id="tache-photo-input" accept="image/*" multiple capture="environment" style="display:none"
+          onchange="onTachePhotoSelected(this)">
 
         <!-- Cours ponctuel -->
         <div class="mo" id="mo-ponctuel">
@@ -3372,7 +3385,8 @@
               <span class="roles-notice-icon">🔐</span>
               <div>
                 <strong>Gestion des mots de passe</strong>
-                <span>Les mots de passe sont stockés hashés en base — ils ne peuvent plus être affichés, seulement remplacés par un nouveau.</span>
+                <span>Les mots de passe sont stockés hashés en base — ils ne peuvent plus être affichés, seulement
+                  remplacés par un nouveau.</span>
               </div>
             </div>
 
@@ -9564,6 +9578,155 @@
           }
           openMo('mo-insc-detail');
         }
+        async function generateInscriptionPdf(insc) {
+          const original = document.getElementById('contrat-card');
+          if (!original) {
+            throw new Error("Formulaire d'inscription introuvable");
+          }
+
+          // Création d'un clone temporaire
+          const clone = original.cloneNode(true);
+          clone.removeAttribute('id');
+
+          const setVal = (sel, val) => {
+            const el = clone.querySelector(sel);
+            if (el) el.value = val || '';
+          };
+
+          const setChecked = (sel, val) => {
+            const el = clone.querySelector(sel);
+            if (el) el.checked = !!val;
+          };
+
+          // ── Cavalier ──────────────────────────────────────
+          setVal('#insc-cav-prenom', insc.cav_prenom);
+          setVal('#insc-cav-nom', insc.cav_nom);
+          setVal('#insc-cav-naissance', insc.cav_naissance);
+          setVal('#insc-cav-sexe', insc.cav_sexe);
+          setVal('#insc-cav-adresse', insc.cav_adresse);
+          setVal('#insc-cav-mail', insc.cav_mail);
+          setVal('#insc-cav-tel', insc.cav_tel);
+
+          // ── Responsable légal ─────────────────────────────
+          setVal('#insc-resp-nom', insc.resp_nom);
+          setVal('#insc-resp-parente', insc.resp_parente);
+          setVal('#insc-resp-adresse', insc.resp_adresse);
+          setVal('#insc-resp-mail', insc.resp_mail);
+          setVal('#insc-resp-tel', insc.resp_tel);
+
+          // ── Urgence ───────────────────────────────────────
+          setVal('#insc-urg1-nom', insc.urgence1_nom);
+          setVal('#insc-urg1-parente', insc.urgence1_parente);
+          setVal('#insc-urg1-tel', insc.urgence1_tel);
+
+          setVal('#insc-urg2-nom', insc.urgence2_nom);
+          setVal('#insc-urg2-parente', insc.urgence2_parente);
+          setVal('#insc-urg2-tel', insc.urgence2_tel);
+
+          // ── Cases à cocher ─────────────────────────────────
+          setChecked('#insc-chk-medical1', insc.chk_medical1);
+          setChecked('#insc-chk-medical2', insc.chk_medical2);
+          setChecked('#insc-chk-image', insc.chk_image);
+          setChecked('#insc-chk-whatsapp', insc.chk_whatsapp);
+          setChecked('#insc-chk-fichier', insc.chk_fichier);
+          setChecked('#insc-chk-reglement', insc.chk_reglement);
+
+          // ── Assurance FFE ─────────────────────────────────
+          setChecked(
+            '#insc-chk-assurance-oui',
+            insc.assurance_choix === 'souscrite'
+          );
+
+          setChecked(
+            '#insc-chk-assurance-non',
+            insc.assurance_choix === 'refusee'
+          );
+
+          setVal('#insc-cheque-num', insc.cheque_num);
+          setVal('#insc-assurance-compagnie', insc.assurance_compagnie);
+          setVal('#insc-cheque-avance-num', insc.cheque_avance_num);
+
+          // ── Validation / signature ────────────────────────
+          setChecked('#insc-chk-final', true);
+          setVal('#insc-initiales', insc.initiales);
+
+          const saisonEl = clone.querySelector('#insc-saison');
+
+          if (saisonEl) {
+            saisonEl.textContent =
+              'Saison ' + (insc.saison
+                ? insc.saison.replace('-', '/')
+                : '—');
+          }
+
+          // ── Lecture seule ──────────────────────────────────
+          clone.querySelectorAll('input, textarea, select').forEach(el => {
+            el.disabled = true;
+          });
+
+          // Pas de boutons dans le PDF
+          const actions = clone.querySelector('.contrat-actions');
+          if (actions) actions.remove();
+
+          // Conteneur temporaire hors écran
+          const container = document.createElement('div');
+
+          container.style.position = 'fixed';
+          container.style.left = '-10000px';
+          container.style.top = '0';
+          container.style.width = '210mm';
+          container.style.background = '#fff';
+          container.style.zIndex = '-1';
+
+          container.appendChild(clone);
+          document.body.appendChild(container);
+
+          try {
+            // Laisse le navigateur appliquer les styles
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            const opt = {
+              margin: [8, 8, 8, 8],
+
+              filename:
+                `Formulaire - inscription - ${insc.cav_prenom || 'cavalier'} -${insc.cav_nom || ''}.pdf`,
+
+              image: {
+                type: 'jpeg',
+                quality: 0.95
+              },
+
+              html2canvas: {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff'
+              },
+
+              jsPDF: {
+                unit: 'mm',
+                format: 'a4',
+                orientation: 'portrait'
+              },
+
+              pagebreak: {
+                mode: ['css', 'legacy']
+              }
+            };
+
+            // Génère le PDF en Data URI
+            const dataUri = await html2pdf()
+              .set(opt)
+              .from(clone)
+              .outputPdf('datauristring');
+
+            return dataUri;
+
+          } finally {
+            // Toujours supprimer le clone temporaire
+            container.remove();
+          }
+        }
+
 
         // ── Impression / PDF d'un contrat rempli (admin/dev) ──
         // Clone le formulaire public (déjà stylé pour l'impression) et le
@@ -9641,34 +9804,135 @@
 
         async function approuverInscription() {
           const id = v('insc-detail-id');
-          const i = C_inscriptions.find(x => x.id === id); if (!i) return;
-          if (i.approuve) { toast('Déjà approuvée', 'err'); return; }
-          if (!confirm(`Créer un cavalier pour ${cap(i.cav_prenom || '')}${i.cav_nom ? ' ' + i.cav_nom.toUpperCase() : ''} ?`)) return;
+          const i = C_inscriptions.find(x => x.id === id);
+
+          if (!i) return;
+
+          if (i.approuve) {
+            toast('Déjà approuvée', 'err');
+            return;
+          }
+
+          if (!confirm(
+            `Créer un cavalier pour ${cap(i.cav_prenom || '')}${i.cav_nom ? ' ' + i.cav_nom.toUpperCase() : ''} ?`
+          )) return;
+
           const btn = document.getElementById('insc-approve-btn');
-          if (btn) { btn.disabled = true; btn.textContent = '⏳ Création…'; }
+
+          if (btn) {
+            btn.disabled = true;
+            btn.textContent = '⏳ Création…';
+          }
+
           try {
+
+            // ═══════════════════════════════════════════════
+            // 1. Création du cavalier
+            // ═══════════════════════════════════════════════
             const r = await dbIns('cavaliers', {
               prenom: i.cav_prenom,
               nom: i.cav_nom || null,
               telephone: i.cav_tel || null,
             });
+
             const newCavId = r.data?.[0]?.id;
-            if (!newCavId) throw new Error('Création du cavalier impossible');
-            const auteur = isKenny ? 'Kenny' : (isAdmin ? 'Admin' : '');
+
+            if (!newCavId) {
+              throw new Error('Création du cavalier impossible');
+            }
+
+            // ═══════════════════════════════════════════════
+            // 2. Validation de l'inscription
+            // ═══════════════════════════════════════════════
+            const auteur = isKenny
+              ? 'Kenny'
+              : (isAdmin ? 'Admin' : '');
+
+            const approuveAt = new Date().toISOString();
+
             await dbUpd('inscriptions', {
               approuve: true,
               approuve_par: auteur || null,
-              approuve_at: new Date().toISOString(),
+              approuve_at: approuveAt,
               cavalier_id: newCavId,
-            }, [{ col: 'id', op: 'eq', val: id }]);
-            Object.assign(i, { approuve: true, approuve_par: auteur, approuve_at: new Date().toISOString(), cavalier_id: newCavId });
-            toast('Inscription approuvée · cavalier créé ✅', 'ok');
-            await loadCav(); renderCavaliers(); popSelects();
+            }, [
+              { col: 'id', op: 'eq', val: id }
+            ]);
+
+            Object.assign(i, {
+              approuve: true,
+              approuve_par: auteur,
+              approuve_at: approuveAt,
+              cavalier_id: newCavId
+            });
+
+            // ═══════════════════════════════════════════════
+            // 3. Envoi du formulaire PDF au cavalier
+            // ═══════════════════════════════════════════════
+
+            if (i.cav_mail) {
+
+              if (btn) {
+                btn.textContent = '📄 Génération du PDF…';
+              }
+
+              const pdfDataUri = await generateInscriptionPdf(i);
+
+              if (btn) {
+                btn.textContent = '📧 Envoi du mail…';
+              }
+
+              const emailResponse = await dbReq({
+                action: 'send-inscription-email',
+                inscription: {
+                  cav_prenom: i.cav_prenom,
+                  cav_nom: i.cav_nom,
+                  cav_mail: i.cav_mail,
+                },
+                pdfBase64: pdfDataUri,
+                token: sessionToken,
+              });
+
+              if (!emailResponse?.ok) {
+                throw new Error(
+                  emailResponse?.error ||
+                  'Le formulaire a été accepté mais le mail n’a pas pu être envoyé.'
+                );
+              }
+
+              toast(
+                'Inscription approuvée · cavalier créé · PDF envoyé par email ✅',
+                'ok'
+              );
+
+            } else {
+
+              // Pas de mail renseigné
+              toast(
+                'Inscription approuvée · cavalier créé ✅ (aucun email renseigné)',
+                'ok'
+              );
+            }
+
+            // ═══════════════════════════════════════════════
+            // 4. Rafraîchissement de l'interface
+            // ═══════════════════════════════════════════════
+            await loadCav();
+            renderCavaliers();
+            popSelects();
             renderInscriptionsAdmin();
             openInscDetail(id);
+
           } catch (e) {
+
+            console.error('Erreur approbation inscription:', e);
+
             toast('Erreur : ' + e.message, 'err');
-            if (btn) { btn.disabled = false; btn.textContent = '✅ Approuver & créer le cavalier'; }
+
+            if (btn) {
+              btn.disabled = false;
+              btn.textContent = '✅ Approuver & créer le cavalier';
+            }
           }
         }
 
