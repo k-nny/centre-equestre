@@ -1891,6 +1891,8 @@
       #admin-banner,
       #retours-banner,
       #retour-notif,
+      #annonce-banner,
+      #annonce-overlay,
       .contrat-actions {
         display: none !important;
       }
@@ -2776,9 +2778,21 @@
             <div class="tt">
               <h3>Nouvelle annonce</h3>
             </div>
-            <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+            <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px">
               <textarea id="annonce-msg" rows="3" placeholder="Ex : Maintenance du site ce soir à partir de 20h, l'application sera indisponible quelques minutes."
                 style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:Arial,sans-serif;font-size:14px;outline:none;resize:vertical"></textarea>
+              <div>
+                <label style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:6px">À qui afficher cette annonce ?</label>
+                <div style="display:flex;gap:14px;flex-wrap:wrap">
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-public" checked> Page cliente (sans rôle)</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-admin"> Admin</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-marine"> Marine</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-dev"> Dev</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-stagiaire"> Stagiaire</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-travaux"> Travaux</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-inscription"> Inscription</label>
+                </div>
+              </div>
               <button class="btn btn-p" style="width:fit-content" onclick="publierAnnonce()">📢 Publier l'annonce</button>
             </div>
           </div>
@@ -2791,13 +2805,14 @@
                 <tr>
                   <th>Date</th>
                   <th>Message</th>
+                  <th>Cible</th>
                   <th>Statut</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody id="tb-annonces">
                 <tr class="er">
-                  <td colspan="4">
+                  <td colspan="5">
                     <div class="spin"></div>
                   </td>
                 </tr>
@@ -2983,6 +2998,10 @@
         <!-- Conteneur d'impression du contrat rempli — invisible à l'écran,
              affiché uniquement via body.printing-insc (voir CSS @media print) -->
         <div id="insc-print-root" style="display:none"></div>
+
+        <!-- Input caché partagé pour l'ajout de photos aux tâches validées -->
+        <input type="file" id="tache-photo-input" accept="image/*" multiple capture="environment"
+          style="display:none" onchange="onTachePhotoSelected(this)">
 
         <!-- Cours ponctuel -->
         <div class="mo" id="mo-ponctuel">
@@ -4688,7 +4707,6 @@
             document.getElementById('ld').style.display = 'none';
             document.getElementById('app').style.display = 'block';
             initRealtime();
-            checkAnnonceDisplay();
             // Vérifier les retours non lus après chargement (admin et marine)
             // Restaurer le mode admin seulement si l'utilisateur l'avait explicitement activé
             // (flag posé par enableAdmin, effacé par logoutAdmin — indépendant du token site)
@@ -4727,6 +4745,7 @@
               return;
             }
             go(adminPages.includes(lastPage) ? 'vue' : lastPage);
+            checkAnnonceDisplay(); // "page cliente" : aucun rôle actif
           } catch (e) {
             const s = document.getElementById('ld-sub'); s.textContent = 'Erreur : ' + (e.message || e); s.style.color = '#b43728';
             document.querySelector('#ld .spin').style.display = 'none'; console.error(e);
@@ -4947,7 +4966,7 @@
           _lastRetourCount = -1;
           setTimeout(() => pollRetoursNonLus(), 400);
           updateBannerPadding();
-          renderCavaliers(); go(targetPage); toast('Mode admin activé', 'ok');
+          renderCavaliers(); go(targetPage); toast('Mode admin activé', 'ok'); checkAnnonceDisplay();
         }
         function logoutAdmin() {
           isAdmin = false; sessionToken = '';
@@ -4959,6 +4978,7 @@
           const rb = document.getElementById('retours-banner'); if (rb) rb.style.display = 'none';
           dismissRetourNotif(); _lastRetourCount = -1;
           renderCavaliers(); go('vue'); toast('Déconnecté', 'ok');
+          checkAnnonceDisplay();
         }
         function enableMarine(targetPage = 'vue') {
           isMarine = true; isAdmin = false;
@@ -4979,6 +4999,7 @@
           updateBannerPadding();
           go(targetPage);
           toast('Mode Marine activé', 'ok');
+          checkAnnonceDisplay();
         }
 
         function logoutMarine() {
@@ -4994,6 +5015,7 @@
           updateBannerPadding();
           go('vue');
           toast('Déconnecté', 'ok');
+          checkAnnonceDisplay();
         }
 
         function enableStagiaire() {
@@ -5007,6 +5029,7 @@
           document.getElementById('anav').style.display = 'none';
           updateBannerPadding();
           go('balades-pub');
+          checkAnnonceDisplay();
         }
 
         function logoutStagiaire() {
@@ -5037,6 +5060,7 @@
           document.body.classList.add('travaux-only-nav');
           updateBannerPadding();
           go('travaux');
+          checkAnnonceDisplay();
         }
 
         function logoutTravaux() {
@@ -5069,6 +5093,7 @@
           document.body.classList.add('inscription-only-nav');
           updateBannerPadding();
           go('inscription');
+          checkAnnonceDisplay();
         }
 
         function logoutInscriptionOnly() {
@@ -5098,7 +5123,7 @@
           localStorage.setItem('ce_Kenny_active', '1');
           const niAnnonces = document.getElementById('ni-annonces'); if (niAnnonces) niAnnonces.style.display = '';
           updateBannerPadding();
-          renderCavaliers(); go(targetPage); toast('Mode Kenny activé', 'ok');
+          renderCavaliers(); go(targetPage); toast('Mode Kenny activé', 'ok'); checkAnnonceDisplay();
         }
 
         function logoutKenny() {
@@ -5111,7 +5136,7 @@
           document.getElementById('atbtn').textContent = '🔑 Mode administrateur';
           document.getElementById('atbtn').classList.remove('on');
           const niAnnonces = document.getElementById('ni-annonces'); if (niAnnonces) niAnnonces.style.display = 'none';
-          renderCavaliers(); go('vue'); toast('Déconnecté', 'ok');
+          renderCavaliers(); go('vue'); toast('Déconnecté', 'ok'); checkAnnonceDisplay();
         }
         function togPw() { const i = document.getElementById('pw-in'); i.type = i.type === 'password' ? 'text' : 'password'; }
 
@@ -5300,15 +5325,16 @@
             const comp = C.tachesComp.find(c => c.tache_id === t.id);
             const done = !!comp?.completee;
             return `<div class="tc" style="margin-bottom:10px;${done ? 'opacity:.6' : ''}">
-      <div style="padding:14px 18px;display:flex;align-items:center;gap:14px">
+      <div style="padding:14px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
         <label class="tog" style="flex-shrink:0">
           <input type="checkbox" ${done ? 'checked' : ''}
             onchange="toggleTache('${t.id}','${today}',this.checked)">
           <span class="ts"></span>
         </label>
-        <div style="flex:1">
+        <div style="flex:1;min-width:160px">
           <div style="font-weight:700;font-size:14px;${done ? 'text-decoration:line-through;color:var(--muted)' : ''}">${t.titre}</div>
           ${t.description ? `<div style="font-size:12px;color:var(--muted);margin-top:2px">${t.description}</div>` : ''}
+          ${done ? renderTachePhotos(t.id, today, comp) : ''}
         </div>
       </div>
     </div>`;
@@ -5340,6 +5366,97 @@
           if (document.getElementById('page-taches')?.classList.contains('active')) await renderTachesAdmin();
         }
         let _tachesFreqFilter = 'all';
+
+        // ── Photos attachées à une validation de tâche ──
+        // Stockées en base64 (comme les captures d'écran de tickets), après
+        // compression côté client pour rester sous les limites de payload.
+        function tachePhotosArr(comp) {
+          if (!comp || !comp.photos) return [];
+          try { const p = typeof comp.photos === 'string' ? JSON.parse(comp.photos) : comp.photos; return Array.isArray(p) ? p : []; }
+          catch { return []; }
+        }
+
+        function renderTachePhotos(tacheId, date, comp) {
+          const photos = tachePhotosArr(comp);
+          const thumbs = photos.map((src, i) => `
+    <span style="position:relative;display:inline-block">
+      <img src="${src}" onclick="window.open('${src.replace(/'/g, "\\'")}','_blank')" style="width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer">
+      <button type="button" onclick="event.stopPropagation();removeTachePhoto('${tacheId}','${date}',${i})" style="position:absolute;top:-6px;right:-6px;background:#b43728;color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:10px;line-height:1;cursor:pointer">×</button>
+    </span>`).join('');
+          return `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px">
+    ${thumbs}
+    <button type="button" class="btn btn-g sm" onclick="openTachePhotoPicker('${tacheId}','${date}')" title="Ajouter des photos">📷${photos.length ? '' : ' Ajouter une photo'}</button>
+  </div>`;
+        }
+
+        // Redimensionne/compresse une image côté client avant envoi (évite de
+        // dépasser les limites de payload et garde les lignes en base légères).
+        function compressImageFile(file, maxWidth = 1280, quality = 0.72) {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = e => {
+              const img = new Image();
+              img.onload = () => {
+                let w = img.width, h = img.height;
+                if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+              };
+              img.onerror = reject;
+              img.src = e.target.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        }
+
+        let _tachePhotoTarget = null; // { tacheId, date }
+        function openTachePhotoPicker(tacheId, date) {
+          _tachePhotoTarget = { tacheId, date };
+          document.getElementById('tache-photo-input').click();
+        }
+
+        async function onTachePhotoSelected(input) {
+          const files = Array.from(input.files || []);
+          if (!files.length || !_tachePhotoTarget) { input.value = ''; return; }
+          const { tacheId, date } = _tachePhotoTarget;
+          try {
+            const newPhotos = await Promise.all(files.map(f => compressImageFile(f)));
+            const existing = C.tachesComp.find(c => c.tache_id === tacheId && c.date === date);
+            const merged = [...tachePhotosArr(existing), ...newPhotos];
+            if (existing) {
+              await dbUpd('taches_completions', { photos: JSON.stringify(merged) }, [{ col: 'id', op: 'eq', val: existing.id }]);
+              existing.photos = JSON.stringify(merged);
+            } else {
+              const r = await dbIns('taches_completions', {
+                tache_id: tacheId, date, completee: true, completed_at: new Date().toISOString(),
+                photos: JSON.stringify(merged)
+              });
+              if (r.data?.[0]) C.tachesComp.push(r.data[0]);
+            }
+            toast('Photo(s) ajoutée(s) 📷', 'ok');
+          } catch (e) {
+            toast('Erreur : ' + e.message, 'err');
+          }
+          input.value = '';
+          _tachePhotoTarget = null;
+          if (document.getElementById('page-taches-pub')?.classList.contains('active')) await loadTachesPub();
+          if (document.getElementById('page-taches')?.classList.contains('active')) await renderTachesAdmin();
+        }
+
+        async function removeTachePhoto(tacheId, date, index) {
+          const existing = C.tachesComp.find(c => c.tache_id === tacheId && c.date === date);
+          if (!existing) return;
+          const current = tachePhotosArr(existing);
+          current.splice(index, 1);
+          await dbUpd('taches_completions', { photos: JSON.stringify(current) }, [{ col: 'id', op: 'eq', val: existing.id }]);
+          existing.photos = JSON.stringify(current);
+          toast('Photo supprimée', 'ok');
+          if (document.getElementById('page-taches-pub')?.classList.contains('active')) await loadTachesPub();
+          if (document.getElementById('page-taches')?.classList.contains('active')) await renderTachesAdmin();
+        }
 
         function setTachesFreqFilter(f) {
           _tachesFreqFilter = f;
@@ -5373,9 +5490,10 @@
           onchange="toggleTache('${t.id}','${date}',this.checked)">
         <span class="ts"></span>
       </label>
-      <div style="flex:1">
+      <div style="flex:1;min-width:160px">
         <div style="font-weight:700;font-size:13px;${done ? 'text-decoration:line-through' : ''}">${t.titre}</div>
         ${t.description ? `<div style="font-size:11px;color:var(--muted)">${t.description}</div>` : ''}
+        ${done ? renderTachePhotos(t.id, date, comp) : ''}
       </div>
       <span class="b bgo" style="font-size:10px">${freq}</span>
       ${done ? `<span class="b bg" style="font-size:10px">✅${comp.completee_par ? ' ' + comp.completee_par : ''}</span>` : ''}
@@ -5631,16 +5749,13 @@
                 // 2. On sépare les heures et les minutes et on les transforme en nombres
                 let [heures, minutes] = heureStr.split(':').map(Number);
 
-                // 3. On ajoute les 30 minutes de marge
-                minutes += 120;
+                // 3. On ajoute la marge (2h) avant de retirer un cours de la vue cliente
+                let totalMin = heures * 60 + minutes + 120;
+                totalMin = ((totalMin % (24 * 60)) + 24 * 60) % (24 * 60); // repasse à 00h après 23h59
+                heures = Math.floor(totalMin / 60);
+                minutes = totalMin % 60;
 
-                // 4. On gère le dépassement si les minutes dépassent 59
-                if (minutes >= 60) {
-                  minutes -= 60;
-                  heures = (heures + 1) % 24; // % 24 permet de repasser à 00h après 23h
-                }
-
-                // 5. On reformate en "HH:MM" (en ajoutant un '0' devant si nécessaire)
+                // 4. On reformate en "HH:MM" (en ajoutant un '0' devant si nécessaire)
                 const h = `${String(heures).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 
                 console.log('Filtrage séance', s.id, 'heure : ', h, 'now : ', nowTime);
@@ -9571,32 +9686,57 @@
         //  ANNONCES (gestion, réservée au dev)
         // ══════════════════════════════════════════════════
         let C_annonces = [];
+        // Rôles ciblables — 'public' = la page cliente, sans aucun rôle actif
+        const ANNONCE_ROLES = ['public', 'admin', 'marine', 'dev', 'stagiaire', 'travaux', 'inscription'];
+        const ANNONCE_ROLE_LABEL = { public: 'Page cliente', admin: 'Admin', marine: 'Marine', dev: 'Dev', stagiaire: 'Stagiaire', travaux: 'Travaux', inscription: 'Inscription' };
+
+        // Rôle actuellement actif dans CE navigateur, sous la forme utilisée
+        // pour le ciblage des annonces ('public' = aucun rôle élevé actif).
+        function getCurrentRoleKey() {
+          if (isAdmin) return 'admin';
+          if (isKenny) return 'dev';
+          if (isMarine) return 'marine';
+          if (isStagiaire) return 'stagiaire';
+          if (isTravaux) return 'travaux';
+          if (isInscriptionOnly) return 'inscription';
+          return 'public';
+        }
 
         async function loadAnnoncesAdmin() {
           const t = document.getElementById('tb-annonces');
-          if (t) t.innerHTML = '<tr class="er"><td colspan="4"><div class="spin"></div></td></tr>';
+          if (t) t.innerHTML = '<tr class="er"><td colspan="5"><div class="spin"></div></td></tr>';
           C_annonces = await dbSel('annonces', { order: [{ col: 'created_at', asc: false }] });
           renderAnnoncesAdmin();
         }
 
         function renderAnnoncesAdmin() {
           const t = document.getElementById('tb-annonces'); if (!t) return;
-          if (!C_annonces.length) { t.innerHTML = '<tr class="er"><td colspan="4">Aucune annonce</td></tr>'; return; }
-          t.innerHTML = C_annonces.map(a => `<tr style="${!a.actif ? 'opacity:.5' : ''}">
+          if (!C_annonces.length) { t.innerHTML = '<tr class="er"><td colspan="5">Aucune annonce</td></tr>'; return; }
+          t.innerHTML = C_annonces.map(a => {
+            // cibles vide/absent = ancienne annonce, affichée à tout le monde (comportement d'origine)
+            const cibles = (a.cibles || '').split(',').filter(Boolean);
+            const chips = cibles.length
+              ? cibles.map(c => `<span class="access-chip" style="font-size:10px">${ANNONCE_ROLE_LABEL[c] || c}</span>`).join(' ')
+              : '<span style="color:var(--muted);font-size:11px">Tout le monde</span>';
+            return `<tr style="${!a.actif ? 'opacity:.5' : ''}">
       <td>${new Date(a.created_at).toLocaleDateString('fr-FR')}</td>
-      <td style="max-width:420px">${a.message}</td>
+      <td style="max-width:340px">${a.message}</td>
+      <td><div style="display:flex;flex-wrap:wrap;gap:4px">${chips}</div></td>
       <td><span class="b ${a.actif ? 'br' : 'bg'}">${a.actif ? '🔴 Active' : 'Désactivée'}</span></td>
       <td style="display:flex;gap:5px">
         <button class="btn btn-g sm" onclick="toggleAnnonceActif('${a.id}',${!a.actif})">${a.actif ? 'Désactiver' : 'Réactiver'}</button>
         <button class="btn btn-d sm" onclick="delAnnonce('${a.id}')">🗑</button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+          }).join('');
         }
 
         async function publierAnnonce() {
           const message = v('annonce-msg').trim();
           if (!message) { toast('Le message est requis', 'err'); return; }
-          await dbIns('annonces', { message, actif: true });
+          const cibles = ANNONCE_ROLES.filter(r => document.getElementById('annonce-cible-' + r)?.checked);
+          if (!cibles.length) { toast('Sélectionnez au moins un destinataire', 'err'); return; }
+          await dbIns('annonces', { message, actif: true, cibles: cibles.join(',') });
           toast('Annonce publiée 📢', 'ok');
           document.getElementById('annonce-msg').value = '';
           await loadAnnoncesAdmin();
@@ -9615,10 +9755,10 @@
           await loadAnnoncesAdmin();
         }
 
-        // ── Affichage pour TOUS les visiteurs (public + tous rôles) ──
-        // 1ère apparition d'une annonce active : overlay plein écran, bloquant.
-        // Une fois fermée (par appareil, via localStorage) : bandeau rouge
-        // persistant et non bloquant, tant que l'annonce reste active.
+        // ── Affichage pour TOUS les visiteurs, filtré par destinataire ──
+        // 1ère apparition d'une annonce active QUI ME CONCERNE : overlay plein
+        // écran, bloquant. Une fois fermée (par appareil, via localStorage) :
+        // bandeau rouge persistant et non bloquant, tant que l'annonce reste active.
         let _currentAnnonceId = null;
 
         async function checkAnnonceDisplay() {
@@ -9627,7 +9767,13 @@
               filter: [{ col: 'actif', op: 'eq', val: 'true' }],
               order: [{ col: 'created_at', asc: false }]
             });
-            const annonce = actives[0] || null;
+            const myRole = getCurrentRoleKey();
+            // cibles vide/absent = ancienne annonce sans ciblage → visible par tous, pour compatibilité
+            const pourMoi = actives.filter(a => {
+              const cibles = (a.cibles || '').split(',').filter(Boolean);
+              return cibles.length === 0 || cibles.includes(myRole);
+            });
+            const annonce = pourMoi[0] || null;
             const overlay = document.getElementById('annonce-overlay');
             const banner = document.getElementById('annonce-banner');
             if (!annonce) {

@@ -429,7 +429,7 @@ export default async function handler(req, res) {
         // Exception : cocher/décocher une tâche du jour est accessible SANS connexion
         // (checklist affichée publiquement), mais limité à l'insert/update des seuls
         // champs completee / completed_at (+ tache_id / date à la création).
-        const TACHES_COMP_PUBLIC_FIELDS = ['completee', 'completed_at', 'tache_id', 'date'];
+        const TACHES_COMP_PUBLIC_FIELDS = ['completee', 'completed_at', 'tache_id', 'date', 'photos'];
         const isTachesCompletionPublic =
           body.table === 'taches_completions' &&
           ['insert', 'update'].includes(body.method) &&
