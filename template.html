@@ -6126,10 +6126,10 @@
           grid.innerHTML = cavs.map(c => {
             const sb = semaineBadgeInfo(c);
             return `
-  <label class="cav-check">
+  <p class="cav-check">
     <input type="checkbox" value="${c.id}" ${assigned.includes(c.id) && !isNew ? 'checked' : ''} onchange="updateCavCount()">
-    <p>${c.nom ? ' ' + c.nom.toUpperCase() : ''}${cap(c.prenom || '')}${sb ? ` <span style="font-size:10px;color:${sb.warn ? '#b46414' : '#2856a0'};font-weight:700">(${sb.text})</span>` : ''}</p>
-  </label>`;
+    <span>${c.nom ? ' ' + c.nom.toUpperCase() || '' : '' || ''}${cap(c.prenom)}${sb ? ` <span style="font-size:10px;color:${sb.warn ? '#b46414' : '#2856a0'};font-weight:700">(${sb.text})</span>` : ''}</span>
+  </p>`;
           }).join('');
           updateCavCount();
         }
