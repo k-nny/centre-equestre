@@ -4,7 +4,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <title>Gestion — Les Écuries de l'Octroi</title>
   <style>
     /* ── Light theme ── */
@@ -2115,6 +2114,9 @@
       color: var(--muted);
     }
   </style>
+  <!-- Génération de PDF côté client (contrat d'inscription envoyé par email à l'approbation) -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </head>
 
 <body>
@@ -2773,40 +2775,28 @@
         <div class="page" id="page-annonces">
           <div class="ph">
             <h2>📢 Annonces</h2>
-            <p class="no-upper">Message affiché en grand à tous les visiteurs (1ère visite), puis en bandeau rouge
-              persistant jusqu'à désactivation.</p>
+            <p class="no-upper">Message affiché en grand à tous les visiteurs (1ère visite), puis en bandeau rouge persistant jusqu'à désactivation.</p>
           </div>
           <div class="tc" style="margin-bottom:20px">
             <div class="tt">
               <h3>Nouvelle annonce</h3>
             </div>
             <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px">
-              <textarea id="annonce-msg" rows="3"
-                placeholder="Ex : Maintenance du site ce soir à partir de 20h, l'application sera indisponible quelques minutes."
+              <textarea id="annonce-msg" rows="3" placeholder="Ex : Maintenance du site ce soir à partir de 20h, l'application sera indisponible quelques minutes."
                 style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:Arial,sans-serif;font-size:14px;outline:none;resize:vertical"></textarea>
               <div>
-                <label
-                  style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:6px">À
-                  qui afficher cette annonce ?</label>
+                <label style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:6px">À qui afficher cette annonce ?</label>
                 <div style="display:flex;gap:14px;flex-wrap:wrap">
-                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-public"
-                      checked> Page cliente (sans rôle)</label>
-                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-admin">
-                    Admin</label>
-                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-marine">
-                    Marine</label>
-                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-dev">
-                    Dev</label>
-                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-stagiaire">
-                    Stagiaire</label>
-                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-travaux">
-                    Travaux</label>
-                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox"
-                      id="annonce-cible-inscription"> Inscription</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-public" checked> Page cliente (sans rôle)</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-admin"> Admin</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-marine"> Marine</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-dev"> Dev</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-stagiaire"> Stagiaire</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-travaux"> Travaux</label>
+                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-inscription"> Inscription</label>
                 </div>
               </div>
-              <button class="btn btn-p" style="width:fit-content" onclick="publierAnnonce()">📢 Publier
-                l'annonce</button>
+              <button class="btn btn-p" style="width:fit-content" onclick="publierAnnonce()">📢 Publier l'annonce</button>
             </div>
           </div>
           <div class="tc">
@@ -3013,8 +3003,8 @@
         <div id="insc-print-root" style="display:none"></div>
 
         <!-- Input caché partagé pour l'ajout de photos aux tâches validées -->
-        <input type="file" id="tache-photo-input" accept="image/*" multiple capture="environment" style="display:none"
-          onchange="onTachePhotoSelected(this)">
+        <input type="file" id="photo-input" accept="image/*" multiple capture="environment"
+          style="display:none" onchange="onPhotoFileSelected(this)">
 
         <!-- Cours ponctuel -->
         <div class="mo" id="mo-ponctuel">
@@ -3385,8 +3375,7 @@
               <span class="roles-notice-icon">🔐</span>
               <div>
                 <strong>Gestion des mots de passe</strong>
-                <span>Les mots de passe sont stockés hashés en base — ils ne peuvent plus être affichés, seulement
-                  remplacés par un nouveau.</span>
+                <span>Les mots de passe sont stockés hashés en base — ils ne peuvent plus être affichés, seulement remplacés par un nouveau.</span>
               </div>
             </div>
 
@@ -5348,7 +5337,7 @@
         <div style="flex:1;min-width:160px">
           <div style="font-weight:700;font-size:14px;${done ? 'text-decoration:line-through;color:var(--muted)' : ''}">${t.titre}</div>
           ${t.description ? `<div style="font-size:12px;color:var(--muted);margin-top:2px">${t.description}</div>` : ''}
-          ${done ? renderTachePhotos(t.id, today, comp) : ''}
+          ${done ? renderPhotosBlock('tache', t.id, today, comp) : ''}
         </div>
       </div>
     </div>`;
@@ -5378,33 +5367,17 @@
           // Rafraîchit la vue actuellement affichée (publique ou admin) sans planter
           if (document.getElementById('page-taches-pub')?.classList.contains('active')) await loadTachesPub();
           if (document.getElementById('page-taches')?.classList.contains('active')) await renderTachesAdmin();
+          // Ouvre directement l'appareil photo/gestionnaire de fichiers quand on
+          // coche (pas besoin de descendre chercher le bouton 📷)
+          if (checked) openPhotoPicker('tache', tacheId, date);
         }
         let _tachesFreqFilter = 'all';
 
-        // ── Photos attachées à une validation de tâche ──
+        // ══════════════════════════════════════════════════
+        //  PHOTOS (partagé entre Tâches et Travaux)
+        // ══════════════════════════════════════════════════
         // Stockées en base64 (comme les captures d'écran de tickets), après
         // compression côté client pour rester sous les limites de payload.
-        function tachePhotosArr(comp) {
-          if (!comp || !comp.photos) return [];
-          try { const p = typeof comp.photos === 'string' ? JSON.parse(comp.photos) : comp.photos; return Array.isArray(p) ? p : []; }
-          catch { return []; }
-        }
-
-        function renderTachePhotos(tacheId, date, comp) {
-          const photos = tachePhotosArr(comp);
-          const thumbs = photos.map((src, i) => `
-    <span style="position:relative;display:inline-block">
-      <img src="${src}" onclick="window.open('${src.replace(/'/g, "\\'")}','_blank')" style="width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer">
-      <button type="button" onclick="event.stopPropagation();removeTachePhoto('${tacheId}','${date}',${i})" style="position:absolute;top:-6px;right:-6px;background:#b43728;color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:10px;line-height:1;cursor:pointer">×</button>
-    </span>`).join('');
-          return `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px">
-    ${thumbs}
-    <button type="button" class="btn btn-g sm" onclick="openTachePhotoPicker('${tacheId}','${date}')" title="Ajouter des photos">📷${photos.length ? '' : ' Ajouter une photo'}</button>
-  </div>`;
-        }
-
-        // Redimensionne/compresse une image côté client avant envoi (évite de
-        // dépasser les limites de payload et garde les lignes en base légères).
         function compressImageFile(file, maxWidth = 1280, quality = 0.72) {
           return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -5426,50 +5399,118 @@
           });
         }
 
-        let _tachePhotoTarget = null; // { tacheId, date }
-        function openTachePhotoPicker(tacheId, date) {
-          _tachePhotoTarget = { tacheId, date };
-          document.getElementById('tache-photo-input').click();
+        function photosArrFromRecord(rec) {
+          if (!rec || !rec.photos) return [];
+          try { const p = typeof rec.photos === 'string' ? JSON.parse(rec.photos) : rec.photos; return Array.isArray(p) ? p : []; }
+          catch { return []; }
         }
 
-        async function onTachePhotoSelected(input) {
+        // kind: 'tache' (rec = ligne taches_completions, clé tache_id+date) ou
+        // 'travail' (rec = ligne travaux, clé id seule, date = null)
+        function renderPhotosBlock(kind, id, date, rec) {
+          const photos = photosArrFromRecord(rec);
+          const dateArg = date ? `'${date}'` : 'null';
+          const thumbs = photos.map((src, i) => `
+    <span style="position:relative;display:inline-block">
+      <img src="${src}" onclick="openPhotoLightbox('${src.replace(/'/g, "\\'")}')" style="width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer">
+      <button type="button" onclick="event.stopPropagation();removePhoto('${kind}','${id}',${dateArg},${i})" style="position:absolute;top:-6px;right:-6px;background:#b43728;color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:10px;line-height:1;cursor:pointer">×</button>
+    </span>`).join('');
+          return `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px">
+    ${thumbs}
+    <button type="button" class="btn btn-g sm" onclick="openPhotoPicker('${kind}','${id}',${dateArg})" title="Ajouter des photos">📷${photos.length ? '' : ' Ajouter'}</button>
+  </div>`;
+        }
+
+        // Ouvre directement l'appareil photo / le gestionnaire de fichiers
+        // (l'attribut capture sur l'input fait le travail sur mobile).
+        let _photoPickerCtx = null; // { kind, id, date }
+        function openPhotoPicker(kind, id, date) {
+          _photoPickerCtx = { kind, id, date };
+          document.getElementById('photo-input').click();
+        }
+
+        function refreshPhotoViews() {
+          if (document.getElementById('page-taches-pub')?.classList.contains('active')) loadTachesPub();
+          if (document.getElementById('page-taches')?.classList.contains('active')) renderTachesAdmin();
+          if (document.getElementById('page-travaux')?.classList.contains('active')) renderTravaux();
+        }
+
+        async function onPhotoFileSelected(input) {
           const files = Array.from(input.files || []);
-          if (!files.length || !_tachePhotoTarget) { input.value = ''; return; }
-          const { tacheId, date } = _tachePhotoTarget;
+          input.value = '';
+          if (!files.length || !_photoPickerCtx) { _photoPickerCtx = null; return; }
+          const ctx = _photoPickerCtx;
           try {
             const newPhotos = await Promise.all(files.map(f => compressImageFile(f)));
-            const existing = C.tachesComp.find(c => c.tache_id === tacheId && c.date === date);
-            const merged = [...tachePhotosArr(existing), ...newPhotos];
-            if (existing) {
-              await dbUpd('taches_completions', { photos: JSON.stringify(merged) }, [{ col: 'id', op: 'eq', val: existing.id }]);
-              existing.photos = JSON.stringify(merged);
-            } else {
-              const r = await dbIns('taches_completions', {
-                tache_id: tacheId, date, completee: true, completed_at: new Date().toISOString(),
-                photos: JSON.stringify(merged)
-              });
-              if (r.data?.[0]) C.tachesComp.push(r.data[0]);
+            if (ctx.kind === 'tache') {
+              const existing = C.tachesComp.find(c => c.tache_id === ctx.id && c.date === ctx.date);
+              const merged = [...photosArrFromRecord(existing), ...newPhotos];
+              if (existing) {
+                await dbUpd('taches_completions', { photos: JSON.stringify(merged) }, [{ col: 'id', op: 'eq', val: existing.id }]);
+                existing.photos = JSON.stringify(merged);
+              } else {
+                const r = await dbIns('taches_completions', {
+                  tache_id: ctx.id, date: ctx.date, completee: true, completed_at: new Date().toISOString(),
+                  photos: JSON.stringify(merged)
+                });
+                if (r.data?.[0]) C.tachesComp.push(r.data[0]);
+              }
+            } else if (ctx.kind === 'travail') {
+              const existing = C.travaux.find(x => x.id === ctx.id);
+              const merged = [...photosArrFromRecord(existing), ...newPhotos];
+              await dbUpd('travaux', { photos: JSON.stringify(merged) }, [{ col: 'id', op: 'eq', val: ctx.id }]);
+              if (existing) existing.photos = JSON.stringify(merged);
             }
             toast('Photo(s) ajoutée(s) 📷', 'ok');
           } catch (e) {
             toast('Erreur : ' + e.message, 'err');
+            _photoPickerCtx = null;
+            refreshPhotoViews();
+            return;
           }
-          input.value = '';
-          _tachePhotoTarget = null;
-          if (document.getElementById('page-taches-pub')?.classList.contains('active')) await loadTachesPub();
-          if (document.getElementById('page-taches')?.classList.contains('active')) await renderTachesAdmin();
+          // Popup : proposer d'en ajouter une autre tout de suite (utile quand on
+          // prend une photo avec l'appareil, qui ne renvoie qu'une image à la fois)
+          if (confirm('Photo ajoutée ✅\n\nVoulez-vous en ajouter une autre ?')) {
+            openPhotoPicker(ctx.kind, ctx.id, ctx.date);
+            return;
+          }
+          _photoPickerCtx = null;
+          refreshPhotoViews();
         }
 
-        async function removeTachePhoto(tacheId, date, index) {
-          const existing = C.tachesComp.find(c => c.tache_id === tacheId && c.date === date);
-          if (!existing) return;
-          const current = tachePhotosArr(existing);
-          current.splice(index, 1);
-          await dbUpd('taches_completions', { photos: JSON.stringify(current) }, [{ col: 'id', op: 'eq', val: existing.id }]);
-          existing.photos = JSON.stringify(current);
+        async function removePhoto(kind, id, date, index) {
+          if (kind === 'tache') {
+            const existing = C.tachesComp.find(c => c.tache_id === id && c.date === date);
+            if (!existing) return;
+            const current = photosArrFromRecord(existing);
+            current.splice(index, 1);
+            await dbUpd('taches_completions', { photos: JSON.stringify(current) }, [{ col: 'id', op: 'eq', val: existing.id }]);
+            existing.photos = JSON.stringify(current);
+          } else if (kind === 'travail') {
+            const existing = C.travaux.find(x => x.id === id);
+            if (!existing) return;
+            const current = photosArrFromRecord(existing);
+            current.splice(index, 1);
+            await dbUpd('travaux', { photos: JSON.stringify(current) }, [{ col: 'id', op: 'eq', val: id }]);
+            existing.photos = JSON.stringify(current);
+          }
           toast('Photo supprimée', 'ok');
-          if (document.getElementById('page-taches-pub')?.classList.contains('active')) await loadTachesPub();
-          if (document.getElementById('page-taches')?.classList.contains('active')) await renderTachesAdmin();
+          refreshPhotoViews();
+        }
+
+        // Visionneuse plein écran — remplace window.open(dataUri) qui est
+        // bloqué par les navigateurs ("Not allowed to navigate top frame to
+        // data URL") : on affiche l'image dans un calque interne à la page.
+        function openPhotoLightbox(src) {
+          let box = document.getElementById('photo-lightbox');
+          if (!box) {
+            box = document.createElement('div');
+            box.id = 'photo-lightbox';
+            box.style.cssText = 'position:fixed;inset:0;z-index:11000;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out';
+            box.onclick = () => box.remove();
+            document.body.appendChild(box);
+          }
+          box.innerHTML = `<img src="${src}" style="max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5)">`;
         }
 
         function setTachesFreqFilter(f) {
@@ -5507,7 +5548,7 @@
       <div style="flex:1;min-width:160px">
         <div style="font-weight:700;font-size:13px;${done ? 'text-decoration:line-through' : ''}">${t.titre}</div>
         ${t.description ? `<div style="font-size:11px;color:var(--muted)">${t.description}</div>` : ''}
-        ${done ? renderTachePhotos(t.id, date, comp) : ''}
+        ${done ? renderPhotosBlock('tache', t.id, date, comp) : ''}
       </div>
       <span class="b bgo" style="font-size:10px">${freq}</span>
       ${done ? `<span class="b bg" style="font-size:10px">✅${comp.completee_par ? ' ' + comp.completee_par : ''}</span>` : ''}
@@ -5643,6 +5684,7 @@
         <div style="flex:1;min-width:160px">
           <div style="font-weight:700;font-size:14px;${t.fait ? 'text-decoration:line-through;color:var(--muted)' : ''}">${t.titre}</div>
           ${t.description ? `<div style="font-size:12px;color:var(--muted);margin-top:2px">${t.description}</div>` : ''}
+          ${t.fait ? renderPhotosBlock('travail', t.id, null, t) : ''}
         </div>
         <span class="b ${TRAVAUX_PRIO_BADGE[t.priorite] || 'bgo'}" style="font-size:10px">${TRAVAUX_PRIO_LABEL[t.priorite] || t.priorite}</span>
         ${t.fait ? `<span class="b bg" style="font-size:10px">✅${t.fait_par ? ' ' + t.fait_par : ''}</span>` : ''}
@@ -5660,6 +5702,8 @@
           if (t) Object.assign(t, data);
           toast(checked ? 'Marqué comme fait ✅' : 'Travail réouvert', 'ok');
           renderTravaux();
+          // Ouvre directement l'appareil photo/gestionnaire de fichiers quand on coche
+          if (checked) openPhotoPicker('travail', id, null);
         }
 
         function newTravail() {
@@ -6126,10 +6170,10 @@
           grid.innerHTML = cavs.map(c => {
             const sb = semaineBadgeInfo(c);
             return `
-  <p class="cav-check">
+  <label class="cav-check">
     <input type="checkbox" value="${c.id}" ${assigned.includes(c.id) && !isNew ? 'checked' : ''} onchange="updateCavCount()">
-    <span>${c.nom ? ' ' + c.nom.toUpperCase() || '' : '' || ''}${cap(c.prenom)}${sb ? ` <span style="font-size:10px;color:${sb.warn ? '#b46414' : '#2856a0'};font-weight:700">(${sb.text})</span>` : ''}</span>
-  </p>`;
+    <span>${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}${sb ? ` <span style="font-size:10px;color:${sb.warn ? '#b46414' : '#2856a0'};font-weight:700">(${sb.text})</span>` : ''}</span>
+  </label>`;
           }).join('');
           updateCavCount();
         }
@@ -9578,166 +9622,17 @@
           }
           openMo('mo-insc-detail');
         }
-        async function generateInscriptionPdf(insc) {
-          const original = document.getElementById('contrat-card');
-          if (!original) {
-            throw new Error("Formulaire d'inscription introuvable");
-          }
-
-          // Création d'un clone temporaire
-          const clone = original.cloneNode(true);
-          clone.removeAttribute('id');
-
-          const setVal = (sel, val) => {
-            const el = clone.querySelector(sel);
-            if (el) el.value = val || '';
-          };
-
-          const setChecked = (sel, val) => {
-            const el = clone.querySelector(sel);
-            if (el) el.checked = !!val;
-          };
-
-          // ── Cavalier ──────────────────────────────────────
-          setVal('#insc-cav-prenom', insc.cav_prenom);
-          setVal('#insc-cav-nom', insc.cav_nom);
-          setVal('#insc-cav-naissance', insc.cav_naissance);
-          setVal('#insc-cav-sexe', insc.cav_sexe);
-          setVal('#insc-cav-adresse', insc.cav_adresse);
-          setVal('#insc-cav-mail', insc.cav_mail);
-          setVal('#insc-cav-tel', insc.cav_tel);
-
-          // ── Responsable légal ─────────────────────────────
-          setVal('#insc-resp-nom', insc.resp_nom);
-          setVal('#insc-resp-parente', insc.resp_parente);
-          setVal('#insc-resp-adresse', insc.resp_adresse);
-          setVal('#insc-resp-mail', insc.resp_mail);
-          setVal('#insc-resp-tel', insc.resp_tel);
-
-          // ── Urgence ───────────────────────────────────────
-          setVal('#insc-urg1-nom', insc.urgence1_nom);
-          setVal('#insc-urg1-parente', insc.urgence1_parente);
-          setVal('#insc-urg1-tel', insc.urgence1_tel);
-
-          setVal('#insc-urg2-nom', insc.urgence2_nom);
-          setVal('#insc-urg2-parente', insc.urgence2_parente);
-          setVal('#insc-urg2-tel', insc.urgence2_tel);
-
-          // ── Cases à cocher ─────────────────────────────────
-          setChecked('#insc-chk-medical1', insc.chk_medical1);
-          setChecked('#insc-chk-medical2', insc.chk_medical2);
-          setChecked('#insc-chk-image', insc.chk_image);
-          setChecked('#insc-chk-whatsapp', insc.chk_whatsapp);
-          setChecked('#insc-chk-fichier', insc.chk_fichier);
-          setChecked('#insc-chk-reglement', insc.chk_reglement);
-
-          // ── Assurance FFE ─────────────────────────────────
-          setChecked(
-            '#insc-chk-assurance-oui',
-            insc.assurance_choix === 'souscrite'
-          );
-
-          setChecked(
-            '#insc-chk-assurance-non',
-            insc.assurance_choix === 'refusee'
-          );
-
-          setVal('#insc-cheque-num', insc.cheque_num);
-          setVal('#insc-assurance-compagnie', insc.assurance_compagnie);
-          setVal('#insc-cheque-avance-num', insc.cheque_avance_num);
-
-          // ── Validation / signature ────────────────────────
-          setChecked('#insc-chk-final', true);
-          setVal('#insc-initiales', insc.initiales);
-
-          const saisonEl = clone.querySelector('#insc-saison');
-
-          if (saisonEl) {
-            saisonEl.textContent =
-              'Saison ' + (insc.saison
-                ? insc.saison.replace('-', '/')
-                : '—');
-          }
-
-          // ── Lecture seule ──────────────────────────────────
-          clone.querySelectorAll('input, textarea, select').forEach(el => {
-            el.disabled = true;
-          });
-
-          // Pas de boutons dans le PDF
-          const actions = clone.querySelector('.contrat-actions');
-          if (actions) actions.remove();
-
-          // Conteneur temporaire hors écran
-          const container = document.createElement('div');
-
-          container.style.position = 'fixed';
-          container.style.left = '-10000px';
-          container.style.top = '0';
-          container.style.width = '210mm';
-          container.style.background = '#fff';
-          container.style.zIndex = '-1';
-
-          container.appendChild(clone);
-          document.body.appendChild(container);
-
-          try {
-            // Laisse le navigateur appliquer les styles
-            await new Promise(resolve => setTimeout(resolve, 300));
-
-            const opt = {
-              margin: [8, 8, 8, 8],
-
-              filename:
-                `Formulaire - inscription - ${insc.cav_prenom || 'cavalier'} -${insc.cav_nom || ''}.pdf`,
-
-              image: {
-                type: 'jpeg',
-                quality: 0.95
-              },
-
-              html2canvas: {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: '#ffffff'
-              },
-
-              jsPDF: {
-                unit: 'mm',
-                format: 'a4',
-                orientation: 'portrait'
-              },
-
-              pagebreak: {
-                mode: ['css', 'legacy']
-              }
-            };
-
-            // Génère le PDF en Data URI
-            const dataUri = await html2pdf()
-              .set(opt)
-              .from(clone)
-              .outputPdf('datauristring');
-
-            return dataUri;
-
-          } finally {
-            // Toujours supprimer le clone temporaire
-            container.remove();
-          }
-        }
-
 
         // ── Impression / PDF d'un contrat rempli (admin/dev) ──
         // Clone le formulaire public (déjà stylé pour l'impression) et le
         // remplit avec les données de l'inscription sélectionnée, sans jamais
         // toucher au vrai formulaire public (aucun risque de fuite entre les deux).
-        function printInscription(id) {
-          const insc = C_inscriptions.find(x => x.id === id); if (!insc) return;
+        // Construit un clone du formulaire, rempli avec les données d'une
+        // inscription, en lecture seule — réutilisé par l'impression ET par
+        // la génération du PDF envoyé par email à l'approbation.
+        function buildFilledContratClone(insc) {
           const original = document.getElementById('contrat-card');
-          const printRoot = document.getElementById('insc-print-root');
-          if (!original || !printRoot) return;
-
+          if (!original) return null;
           const clone = original.cloneNode(true);
           clone.removeAttribute('id');
 
@@ -9787,6 +9682,14 @@
           // Lecture seule + retrait des boutons d'action (Imprimer/Valider)
           clone.querySelectorAll('input, textarea, select').forEach(el => el.disabled = true);
           const actions = clone.querySelector('.contrat-actions'); if (actions) actions.remove();
+          return clone;
+        }
+
+        function printInscription(id) {
+          const insc = C_inscriptions.find(x => x.id === id); if (!insc) return;
+          const printRoot = document.getElementById('insc-print-root');
+          const clone = buildFilledContratClone(insc);
+          if (!clone || !printRoot) return;
 
           printRoot.innerHTML = '';
           printRoot.appendChild(clone);
@@ -9802,137 +9705,111 @@
           if (printRoot) printRoot.innerHTML = '';
         });
 
+        // Génère le PDF du contrat rempli, en base64, pour l'envoi par email
+        // à l'approbation. Rendu hors-écran (mais mis en page normalement,
+        // nécessaire pour html2canvas) puis capturé en image intégrée au PDF.
+        async function generateInscriptionPdfBase64(insc) {
+          if (!window.html2canvas || !window.jspdf) {
+            throw new Error("La génération de PDF n'a pas pu se charger (vérifiez la connexion internet) — réessayez.");
+          }
+          const clone = buildFilledContratClone(insc);
+          if (!clone) throw new Error('Formulaire introuvable pour générer le PDF');
+
+          const holder = document.createElement('div');
+          holder.style.cssText = 'position:fixed;left:-9999px;top:0;width:900px;background:#fff;z-index:-1';
+          clone.style.maxWidth = 'none';
+          holder.appendChild(clone);
+          document.body.appendChild(holder);
+          try {
+            const canvas = await window.html2canvas(clone, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+            const pageW = pdf.internal.pageSize.getWidth();
+            const pageH = pdf.internal.pageSize.getHeight();
+            const imgW = pageW;
+            const imgH = (canvas.height * imgW) / canvas.width;
+            const imgData = canvas.toDataURL('image/jpeg', 0.88);
+            let y = 0;
+            if (imgH <= pageH) {
+              pdf.addImage(imgData, 'JPEG', 0, 0, imgW, imgH);
+            } else {
+              // Contenu plus haut qu'une page A4 : découpe sur plusieurs pages
+              let remaining = imgH, position = 0;
+              while (remaining > 0) {
+                pdf.addImage(imgData, 'JPEG', 0, position, imgW, imgH);
+                remaining -= pageH;
+                position -= pageH;
+                if (remaining > 0) pdf.addPage();
+              }
+            }
+            return pdf.output('datauristring'); // "data:application/pdf;base64,...."
+          } finally {
+            document.body.removeChild(holder);
+          }
+        }
+
         async function approuverInscription() {
           const id = v('insc-detail-id');
-          const i = C_inscriptions.find(x => x.id === id);
-
-          if (!i) return;
-
-          if (i.approuve) {
-            toast('Déjà approuvée', 'err');
-            return;
-          }
-
-          if (!confirm(
-            `Créer un cavalier pour ${cap(i.cav_prenom || '')}${i.cav_nom ? ' ' + i.cav_nom.toUpperCase() : ''} ?`
-          )) return;
-
+          const i = C_inscriptions.find(x => x.id === id); if (!i) return;
+          if (i.approuve) { toast('Déjà approuvée', 'err'); return; }
+          if (!confirm(`Créer un cavalier pour ${cap(i.cav_prenom || '')}${i.cav_nom ? ' ' + i.cav_nom.toUpperCase() : ''} ?`)) return;
           const btn = document.getElementById('insc-approve-btn');
-
-          if (btn) {
-            btn.disabled = true;
-            btn.textContent = '⏳ Création…';
-          }
-
+          if (btn) { btn.disabled = true; btn.textContent = '⏳ Création…'; }
+          let newCavId = null;
           try {
-
-            // ═══════════════════════════════════════════════
-            // 1. Création du cavalier
-            // ═══════════════════════════════════════════════
             const r = await dbIns('cavaliers', {
               prenom: i.cav_prenom,
               nom: i.cav_nom || null,
               telephone: i.cav_tel || null,
             });
+            newCavId = r.data?.[0]?.id;
+            if (!newCavId) throw new Error('La création du cavalier a échoué (aucun identifiant retourné par la base).');
 
-            const newCavId = r.data?.[0]?.id;
-
-            if (!newCavId) {
-              throw new Error('Création du cavalier impossible');
+            // Envoi de l'email uniquement si une adresse a été renseignée dans le formulaire
+            if (i.cav_mail) {
+              if (btn) btn.textContent = '⏳ Génération du PDF…';
+              const pdfBase64 = await generateInscriptionPdfBase64(i);
+              if (btn) btn.textContent = '⏳ Envoi de l\'email…';
+              const nomComplet = `${cap(i.cav_prenom || '')}${i.cav_nom ? ' ' + i.cav_nom.toUpperCase() : ''}`;
+              await dbReq({
+                action: 'send-inscription-email', token: sessionToken,
+                toEmail: i.cav_mail, pdfBase64, cavNom: nomComplet
+              });
             }
 
-            // ═══════════════════════════════════════════════
-            // 2. Validation de l'inscription
-            // ═══════════════════════════════════════════════
-            const auteur = isKenny
-              ? 'Kenny'
-              : (isAdmin ? 'Admin' : '');
-
-            const approuveAt = new Date().toISOString();
-
+            const auteur = isKenny ? 'Kenny' : (isAdmin ? 'Admin' : '');
             await dbUpd('inscriptions', {
               approuve: true,
               approuve_par: auteur || null,
-              approuve_at: approuveAt,
+              approuve_at: new Date().toISOString(),
               cavalier_id: newCavId,
-            }, [
-              { col: 'id', op: 'eq', val: id }
-            ]);
-
-            Object.assign(i, {
-              approuve: true,
-              approuve_par: auteur,
-              approuve_at: approuveAt,
-              cavalier_id: newCavId
-            });
-
-            // ═══════════════════════════════════════════════
-            // 3. Envoi du formulaire PDF au cavalier
-            // ═══════════════════════════════════════════════
-
-            if (i.cav_mail) {
-
-              if (btn) {
-                btn.textContent = '📄 Génération du PDF…';
-              }
-
-              const pdfDataUri = await generateInscriptionPdf(i);
-
-              if (btn) {
-                btn.textContent = '📧 Envoi du mail…';
-              }
-
-              const emailResponse = await dbReq({
-                action: 'send-inscription-email',
-                inscription: {
-                  cav_prenom: i.cav_prenom,
-                  cav_nom: i.cav_nom,
-                  cav_mail: i.cav_mail,
-                },
-                pdfBase64: pdfDataUri,
-                token: sessionToken,
-              });
-
-              if (!emailResponse?.ok) {
-                throw new Error(
-                  emailResponse?.error ||
-                  'Le formulaire a été accepté mais le mail n’a pas pu être envoyé.'
-                );
-              }
-
-              toast(
-                'Inscription approuvée · cavalier créé · PDF envoyé par email ✅',
-                'ok'
-              );
-
-            } else {
-
-              // Pas de mail renseigné
-              toast(
-                'Inscription approuvée · cavalier créé ✅ (aucun email renseigné)',
-                'ok'
-              );
-            }
-
-            // ═══════════════════════════════════════════════
-            // 4. Rafraîchissement de l'interface
-            // ═══════════════════════════════════════════════
-            await loadCav();
-            renderCavaliers();
-            popSelects();
+            }, [{ col: 'id', op: 'eq', val: id }]);
+            Object.assign(i, { approuve: true, approuve_par: auteur, approuve_at: new Date().toISOString(), cavalier_id: newCavId });
+            toast('Inscription approuvée · cavalier créé' + (i.cav_mail ? ' · email envoyé ✅' : ' ✅'), 'ok');
+            await loadCav(); renderCavaliers(); popSelects();
             renderInscriptionsAdmin();
             openInscDetail(id);
-
           } catch (e) {
-
-            console.error('Erreur approbation inscription:', e);
-
-            toast('Erreur : ' + e.message, 'err');
-
-            if (btn) {
-              btn.disabled = false;
-              btn.textContent = '✅ Approuver & créer le cavalier';
+            // En cas de problème (création, PDF, email…) : on annule tout — le
+            // cavalier n'est pas créé — et l'inscription reste disponible pour
+            // être revalidée plus tard.
+            if (newCavId) {
+              try {
+                await dbDel('cavaliers', [{ col: 'id', op: 'eq', val: newCavId }]);
+                await loadCav(); renderCavaliers(); popSelects();
+              } catch (e2) {
+                alert('⚠️ Erreur grave : le cavalier a été créé mais n\'a pas pu être annulé automatiquement.\n\n'
+                  + 'Merci de supprimer manuellement le cavalier créé par erreur pour "' + (i.cav_prenom || '') + '" dans la page Cavaliers.\n\n'
+                  + 'Détail technique : ' + e2.message);
+                if (btn) { btn.disabled = false; btn.textContent = '✅ Approuver & créer le cavalier'; }
+                return;
+              }
             }
+            alert('⚠️ Impossible de valider cette inscription.\n\n'
+              + "Le cavalier n'a PAS été créé (annulation automatique).\n\n"
+              + 'Cause probable : ' + e.message + '\n\n'
+              + 'Vous pouvez réessayer : cette inscription reste disponible et pourra être revalidée.');
+            if (btn) { btn.disabled = false; btn.textContent = '✅ Approuver & créer le cavalier'; }
           }
         }
 

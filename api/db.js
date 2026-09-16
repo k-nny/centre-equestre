@@ -197,124 +197,6 @@ export default async function handler(req, res) {
     });
     return res.json({ ok: emailRes.ok });
   }
-  // ── Envoi du formulaire d'inscription accepté au cavalier ───────────────
-  // Accessible uniquement à l'admin et au dev.
-  // Le PDF est généré côté navigateur puis transmis ici en base64.
-  if (req.method === 'POST' && req.body.action === 'send-inscription-email') {
-    const { inscription, pdfBase64, token } = req.body;
-
-    if (!verifyToken(token, 'admin') && !verifyToken(token, 'dev')) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    if (!inscription) {
-      return res.status(400).json({ error: 'Inscription manquante' });
-    }
-
-    if (!inscription.cav_mail) {
-      return res.status(400).json({
-        error: 'Aucune adresse email renseignée pour le cavalier'
-      });
-    }
-
-    if (!pdfBase64) {
-      return res.status(400).json({
-        error: 'PDF manquant'
-      });
-    }
-
-    const resendKey = process.env.RESEND_API_KEY;
-
-    if (!resendKey) {
-      return res.status(500).json({
-        error: 'RESEND_API_KEY manquante'
-      });
-    }
-
-    // Adresse qui recevra les réponses lorsque le cavalier cliquera sur "Répondre"
-    const replyToEmail = 'kenny.dodey@gmail.com';
-
-    const prenom = inscription.cav_prenom || '';
-    const nom = inscription.cav_nom || '';
-
-    const html = `
-    <p>Bonjour ${prenom}${nom ? ' ' + nom : ''},</p>
-
-    <p>
-      Nous vous confirmons que votre inscription a été
-      <strong>acceptée par les Écuries de l'Octroi</strong>.
-    </p>
-
-    <p>
-      Vous trouverez ci-joint votre
-      <strong>formulaire d'inscription</strong> ainsi que le
-      <strong>Règlement Intérieur</strong>.
-    </p>
-
-    <p>
-      Ce document reprend l'ensemble des informations renseignées
-      lors de votre inscription.
-    </p>
-
-    <p>
-      Nous vous remercions pour votre confiance et vous souhaitons
-      la bienvenue aux Écuries de l'Octroi.
-    </p>
-
-    <p style="margin-top:25px;color:#777;font-size:12px;">
-      <em>
-        Ce mail a été envoyé automatiquement par l'application
-        de gestion des écuries.
-      </em>
-    </p>
-  `;
-
-    // Accepte aussi bien :
-    // data:application/pdf;base64,XXXX
-    // que XXXX directement
-    const cleanPdfBase64 = pdfBase64
-      .replace(/^data:application\/pdf;base64,/, '');
-
-    const body = {
-      from: 'Ecuries <onboarding@resend.dev>',
-      to: inscription.cav_mail,
-      reply_to: replyToEmail,
-      subject: `[Inscription acceptée] ${prenom}${nom ? ' ' + nom : ''}`,
-      html,
-
-      attachments: [
-        {
-          filename: `Formulaire-inscription-${prenom}${nom ? '-' + nom : ''}.pdf`,
-          content: cleanPdfBase64,
-          encoding: 'base64',
-        },
-      ],
-    };
-
-    const emailRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${resendKey}`,
-      },
-      body: JSON.stringify(body),
-    });
-
-    const responseText = await emailRes.text();
-
-    if (!emailRes.ok) {
-      return res.status(500).json({
-        error: "Échec de l'envoi de l'email",
-        details: responseText,
-      });
-    }
-
-    return res.status(200).json({
-      ok: true,
-      email: inscription.cav_mail,
-    });
-  }
-
   if (req.method === 'POST' && req.body.action === 'send-ticket-retour-email') {
     const { message, ticketTitre, auteur, token } = req.body;
 
@@ -348,6 +230,60 @@ export default async function handler(req, res) {
       body: JSON.stringify(body)
     });
     return res.json({ ok: emailRes.ok });
+  }
+
+  // ── Route : envoyer le contrat d'inscription approuvé par email ────
+  // POST /api/db { action: 'send-inscription-email', token, toEmail, pdfBase64, cavNom }
+  // ⚠️ Retourne un statut non-2xx en cas d'échec : le front s'appuie
+  // là-dessus pour annuler la création du cavalier si l'email échoue.
+  if (req.method === 'POST' && req.body.action === 'send-inscription-email') {
+    const { token, toEmail, pdfBase64, cavNom } = req.body;
+    if (!verifyToken(token, 'admin') && !verifyToken(token, 'dev')) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    if (!toEmail || !pdfBase64) {
+      return res.status(400).json({ error: "Adresse email ou PDF manquant pour l'envoi" });
+    }
+
+    const resendKey = process.env.RESEND_API_KEY;
+    // ⚠️ Adresse à laquelle doivent arriver les réponses des familles si
+    // elles répondent à cet email — remplace par la vraie adresse de contact.
+    const REPLY_TO_EMAIL = 'dev.gestion.ecuries.octroi@gmail.com';
+
+    const nomLabel = cavNom || 'votre cavalier';
+    const html = `
+  <p>Bonjour,</p>
+  <p>Voici le contrat d'inscription de <strong>${nomLabel}</strong>, validé par notre équipe. Vous le trouverez ci-joint au format PDF.</p>
+  <p><em>Ce message a été envoyé automatiquement par l'application de gestion des Écuries de l'Octroi. Vous pouvez répondre directement à cet email si besoin.</em></p>
+`;
+    const pdfContent = (pdfBase64 || '').replace(/^data:application\/pdf;base64,/, '');
+
+    const body2 = {
+      from: "Les Écuries de l'Octroi <onboarding@resend.dev>",
+      to: toEmail,
+      reply_to: REPLY_TO_EMAIL,
+      subject: `Votre contrat d'inscription — ${nomLabel}`,
+      html,
+      attachments: [
+        { filename: 'contrat-inscription.pdf', content: pdfContent, encoding: 'base64' }
+      ]
+    };
+
+    let emailRes2;
+    try {
+      emailRes2 = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${resendKey}` },
+        body: JSON.stringify(body2)
+      });
+    } catch (e) {
+      return res.status(502).json({ error: "Impossible de contacter le service d'envoi d'email : " + e.message });
+    }
+    if (!emailRes2.ok) {
+      const errText = await emailRes2.text();
+      return res.status(502).json({ error: "Échec de l'envoi de l'email : " + errText });
+    }
+    return res.status(200).json({ ok: true });
   }
 
   // ── Route : changer le mot de passe d'un rôle (admin/dev uniquement) ──
@@ -570,7 +506,7 @@ export default async function handler(req, res) {
           if (body.method !== 'update') {
             return res.status(403).json({ error: 'Le rôle Travaux ne peut que consulter et marquer les travaux comme faits' });
           }
-          const allowedFields = ['fait', 'completed_at', 'fait_par'];
+          const allowedFields = ['fait', 'completed_at', 'fait_par', 'photos'];
           const dataKeys = Object.keys(body.data || {});
           if (dataKeys.some(k => !allowedFields.includes(k))) {
             return res.status(403).json({ error: 'Le rôle Travaux ne peut pas modifier ces champs' });
