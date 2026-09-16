@@ -6128,7 +6128,7 @@
             return `
   <label class="cav-check">
     <input type="checkbox" value="${c.id}" ${assigned.includes(c.id) && !isNew ? 'checked' : ''} onchange="updateCavCount()">
-    <span>${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}${sb ? ` <span style="font-size:10px;color:${sb.warn ? '#b46414' : '#2856a0'};font-weight:700">(${sb.text})</span>` : ''}</span>
+    <p>${c.nom ? ' ' + c.nom.toUpperCase() : ''}${cap(c.prenom || '')}${sb ? ` <span style="font-size:10px;color:${sb.warn ? '#b46414' : '#2856a0'};font-weight:700">(${sb.text})</span>` : ''}</p>
   </label>`;
           }).join('');
           updateCavCount();
