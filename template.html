@@ -748,9 +748,9 @@
     /* ── Cav check grid ── */
     .cav-checkgrid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 5px;
-      max-height: 200px;
+      max-height: 240px;
       overflow-y: auto;
       background: var(--bg);
       border: 1px solid var(--border);
@@ -1835,35 +1835,36 @@
       margin-bottom: 12px;
     }
 
-    .contrat-initiales {
+    .signature-pad-wrap {
       display: flex;
-      align-items: center;
-      gap: 10px;
+      flex-direction: column;
+      gap: 6px;
     }
 
-    .contrat-initiales label {
+    .signature-pad-wrap label {
       font-size: 12px;
       font-weight: 800;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: .5px;
-      white-space: nowrap;
     }
 
-    .contrat-initiales input {
-      width: 110px;
-      text-align: center;
-      text-transform: uppercase;
-      font-weight: 800;
-      letter-spacing: 2px;
+    #insc-signature-canvas {
+      width: 100%;
+      height: 110px;
       background: var(--surface);
-      border: 1px solid var(--border);
+      border: 1.5px dashed var(--border);
       border-radius: 8px;
-      padding: 8px 10px;
-      font-family: Arial, sans-serif;
-      font-size: 15px;
-      color: var(--gold);
-      outline: none;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .signature-pad-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--muted);
     }
 
     .contrat-footer {
@@ -1922,6 +1923,100 @@
       body.printing-insc #insc-print-root {
         display: block !important;
       }
+
+      /* Mise en page resserrée pour limiter le contrat à ~3 pages à l'impression */
+      .contrat-card {
+        padding: 12px 22px !important;
+      }
+
+      .contrat-top {
+        margin-bottom: 8px !important;
+        padding-bottom: 6px !important;
+      }
+
+      .contrat-top .titre {
+        font-size: 15px !important;
+      }
+
+      .contrat-top .titre .logo-h {
+        font-size: 18px !important;
+      }
+
+      .contrat-top .saison {
+        font-size: 13px !important;
+      }
+
+      .contrat-sec {
+        margin-bottom: 7px !important;
+        break-inside: avoid;
+      }
+
+      .contrat-sec>h4 {
+        font-size: 10.5px !important;
+        margin-bottom: 3px !important;
+      }
+
+      .contrat-field {
+        margin-bottom: 3px !important;
+      }
+
+      .contrat-field label {
+        font-size: 9px !important;
+        margin-bottom: 0 !important;
+      }
+
+      .contrat-field input,
+      .contrat-field textarea {
+        font-size: 10.5px !important;
+        padding: 1px 1px !important;
+      }
+
+      .contrat-chk {
+        font-size: 9.5px !important;
+        margin-bottom: 2px !important;
+        gap: 5px !important;
+        line-height: 1.25 !important;
+      }
+
+      .contrat-chk input[type="checkbox"] {
+        width: 10px !important;
+        height: 10px !important;
+        margin-top: 1px !important;
+      }
+
+      .contrat-txt {
+        font-size: 9.5px !important;
+        margin-bottom: 3px !important;
+        line-height: 1.3 !important;
+      }
+
+      .contrat-chk .sub {
+        font-size: 9px !important;
+        margin-top: 1px !important;
+      }
+
+      .contrat-bottom {
+        margin-top: 8px !important;
+        padding-top: 8px !important;
+        gap: 14px !important;
+      }
+
+      .signature-pad-wrap label,
+      .contrat-signature-officiel .lbl {
+        font-size: 9px !important;
+      }
+
+      #insc-signature-canvas,
+      .contrat-signature-officiel .sig-box {
+        height: 55px !important;
+        min-height: 0 !important;
+      }
+
+      .contrat-footer {
+        margin-top: 8px !important;
+        padding-top: 6px !important;
+        font-size: 8.5px !important;
+      }
     }
 
     #insc-print-root {
@@ -1941,6 +2036,10 @@
 
       .contrat-card {
         padding: 18px;
+      }
+
+      .cav-checkgrid {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -2392,17 +2491,11 @@
                 dommages corporels auxquels la pratique de l'équitation peut m'exposer ainsi que des conditions
                 d'assurance offertes par la licence FFE et que celle-ci est indispensable pour le passage des examens
                 fédéraux.</p>
-              <label class="contrat-chk"><input type="radio" name="insc-assurance" id="insc-chk-assurance-oui">
+              <label class="contrat-chk"><input type="checkbox" id="insc-chk-assurance-oui">
                 Je souscris les garanties d'assurance individuelle du cavalier offertes par la licence de la Fédération
                 Française d'Équitation.</label>
-              <div class="sub" style="margin-left:25px;margin-bottom:10px">Le chèque n° <input type="text"
+              <div class="sub" style="margin-left:25px">Le chèque n° <input type="text"
                   id="insc-cheque-num"> sera encaissé le 5 septembre.</div>
-              <label class="contrat-chk"><input type="radio" name="insc-assurance" id="insc-chk-assurance-non">
-                Je refuse l'assurance individuelle de cavalier de la licence FFE et je justifie être assuré(e) pour les
-                dommages corporels ainsi que la responsabilité civile pour la pratique de l'équitation, auprès de
-                <em>(compagnie/N° contrat)</em> :</label>
-              <div class="sub" style="margin-left:25px"><input type="text" id="insc-assurance-compagnie"
-                  style="width:280px"></div>
             </div>
 
             <!-- Engagement -->
@@ -2430,11 +2523,15 @@
                 <label class="contrat-chk">
                   <input type="checkbox" id="insc-chk-final">
                   J'ai bien lu et j'approuve ce formulaire ainsi que le Règlement Intérieur. Je reconnais qu'en
-                  renseignant mes initiales ci-dessous, cela représente la signature du présent contrat d'inscription.
+                  signant ci-dessous, cela représente la signature du présent contrat d'inscription.
                 </label>
-                <div class="contrat-initiales">
-                  <label>Mes initiales :</label>
-                  <input type="text" id="insc-initiales" maxlength="6" placeholder="Ex: K.D.">
+                <div class="signature-pad-wrap">
+                  <label>Ma signature :</label>
+                  <canvas id="insc-signature-canvas"></canvas>
+                  <div class="signature-pad-actions">
+                    <span>Dessinez avec le doigt ou la souris</span>
+                    <button type="button" class="btn btn-g sm" onclick="clearSignaturePad()">↺ Effacer</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2994,6 +3091,19 @@
               <button class="btn btn-d sm" onclick="delInscriptionAdmin()">🗑 Supprimer</button>
               <button class="btn btn-p" id="insc-approve-btn" onclick="approuverInscription()">✅ Approuver & créer le
                 cavalier</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Choix en cas de cavalier déjà existant (prénom+nom identiques) -->
+        <div class="mo" id="mo-cav-duplicate">
+          <div class="md" style="max-width:440px">
+            <h3>⚠️ Cavalier déjà existant</h3>
+            <div id="dup-cav-body" style="font-size:13px;line-height:1.6;margin-bottom:16px"></div>
+            <div class="mf" style="flex-direction:column;align-items:stretch;gap:8px">
+              <button class="btn btn-p" onclick="resolveDupCav('update')" style="width:100%">🔄 Mettre à jour le cavalier existant</button>
+              <button class="btn btn-o" onclick="resolveDupCav('duplicate')" style="width:100%">➕ Créer quand même un second cavalier</button>
+              <button class="btn btn-g" onclick="resolveDupCav('cancel')" style="width:100%">Annuler</button>
             </div>
           </div>
         </div>
@@ -6169,10 +6279,11 @@
           if (!cavs.length) { grid.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:4px">Aucun cavalier disponible</div>'; return; }
           grid.innerHTML = cavs.map(c => {
             const sb = semaineBadgeInfo(c);
+            const label = c.nom ? `${c.nom.toUpperCase()} ${cap(c.prenom || '')}` : cap(c.prenom || '');
             return `
   <label class="cav-check">
     <input type="checkbox" value="${c.id}" ${assigned.includes(c.id) && !isNew ? 'checked' : ''} onchange="updateCavCount()">
-    <span>${cap(c.prenom || '')}${c.nom ? ' ' + c.nom.toUpperCase() : ''}${sb ? ` <span style="font-size:10px;color:${sb.warn ? '#b46414' : '#2856a0'};font-weight:700">(${sb.text})</span>` : ''}</span>
+    <span>${label}${sb ? ` <span style="font-size:10px;color:${sb.warn ? '#b46414' : '#2856a0'};font-weight:700">(${sb.text})</span>` : ''}</span>
   </label>`;
           }).join('');
           updateCavCount();
@@ -9467,6 +9578,73 @@
         function initInscriptionPage() {
           const el = document.getElementById('insc-saison');
           if (el) el.textContent = 'Saison ' + getAnneeScolaire().replace('-', '/');
+          initSignaturePad();
+        }
+
+        // ── Signature dessinée (remplace les initiales tapées — plus
+        //    personnelle, plus difficile à contester en cas de litige) ──
+        let _sigCtx = null, _sigDrawing = false, _sigHasDrawn = false, _sigLast = null;
+
+        function initSignaturePad() {
+          const canvas = document.getElementById('insc-signature-canvas');
+          if (!canvas || canvas.dataset.inited === '1') return;
+          canvas.dataset.inited = '1';
+          const setup = () => {
+            const rect = canvas.getBoundingClientRect();
+            if (!rect.width || !rect.height) return; // pas encore visible/layouté
+            const ratio = window.devicePixelRatio || 1;
+            canvas.width = rect.width * ratio;
+            canvas.height = rect.height * ratio;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(ratio, ratio);
+            ctx.strokeStyle = '#2c2417';
+            ctx.lineWidth = 2.2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            _sigCtx = ctx;
+          };
+          setup();
+          window.addEventListener('resize', () => { _sigHasDrawn = false; setup(); });
+
+          const getPos = e => {
+            const r = canvas.getBoundingClientRect();
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: cx - r.left, y: cy - r.top };
+          };
+          const start = e => { e.preventDefault(); _sigDrawing = true; _sigHasDrawn = true; _sigLast = getPos(e); };
+          const move = e => {
+            if (!_sigDrawing || !_sigCtx) return;
+            e.preventDefault();
+            const p = getPos(e);
+            _sigCtx.beginPath();
+            _sigCtx.moveTo(_sigLast.x, _sigLast.y);
+            _sigCtx.lineTo(p.x, p.y);
+            _sigCtx.stroke();
+            _sigLast = p;
+          };
+          const end = () => { _sigDrawing = false; };
+
+          canvas.addEventListener('mousedown', start);
+          canvas.addEventListener('mousemove', move);
+          window.addEventListener('mouseup', end);
+          canvas.addEventListener('touchstart', start, { passive: false });
+          canvas.addEventListener('touchmove', move, { passive: false });
+          canvas.addEventListener('touchend', end);
+        }
+
+        function clearSignaturePad() {
+          const canvas = document.getElementById('insc-signature-canvas');
+          if (!canvas || !_sigCtx) return;
+          _sigCtx.clearRect(0, 0, canvas.width, canvas.height);
+          _sigHasDrawn = false;
+        }
+
+        function isSignatureEmpty() { return !_sigHasDrawn; }
+
+        function getSignatureDataUrl() {
+          const canvas = document.getElementById('insc-signature-canvas');
+          return canvas ? canvas.toDataURL('image/png') : null;
         }
 
         function collectInscriptionData() {
@@ -9495,11 +9673,10 @@
             chk_whatsapp: document.getElementById('insc-chk-whatsapp').checked,
             chk_fichier: document.getElementById('insc-chk-fichier').checked,
             chk_reglement: document.getElementById('insc-chk-reglement').checked,
-            assurance_choix: document.getElementById('insc-chk-assurance-oui').checked ? 'souscrite' : (document.getElementById('insc-chk-assurance-non').checked ? 'refusee' : null),
+            assurance_choix: document.getElementById('insc-chk-assurance-oui').checked ? 'souscrite' : null,
             cheque_num: v('insc-cheque-num').trim() || null,
-            assurance_compagnie: v('insc-assurance-compagnie').trim() || null,
             cheque_avance_num: v('insc-cheque-avance-num').trim() || null,
-            initiales: v('insc-initiales').trim().toUpperCase(),
+            signature_data: isSignatureEmpty() ? null : getSignatureDataUrl(),
             saison: getAnneeScolaire(),
           };
         }
@@ -9508,8 +9685,9 @@
           const data = collectInscriptionData();
           if (!data.cav_prenom) { toast('Le prénom du cavalier est requis', 'err'); return; }
           if (!data.chk_reglement) { toast('Merci de cocher la case du Règlement Intérieur', 'err'); return; }
+          if (!document.getElementById('insc-chk-assurance-oui').checked) { toast("Merci de cocher la case de souscription à l'assurance (obligatoire avec le forfait)", 'err'); return; }
           if (!document.getElementById('insc-chk-final').checked) { toast('Merci de cocher la case de validation finale', 'err'); return; }
-          if (!data.initiales) { toast('Merci de renseigner vos initiales pour signer', 'err'); return; }
+          if (isSignatureEmpty()) { toast('Merci de signer dans le cadre prévu avant de valider', 'err'); return; }
           const btn = document.querySelector('.contrat-actions .btn-p');
           if (btn) { btn.disabled = true; btn.textContent = '⏳ Envoi…'; }
           try {
@@ -9605,14 +9783,13 @@
       <div>
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🎫 Licence FFE</div>
         <div style="font-size:13px">
-          ${i.assurance_choix === 'souscrite' ? '<span class="b bg">Garantie souscrite</span>' + (i.cheque_num ? ' — chèque n° ' + i.cheque_num : '') : ''}
-          ${i.assurance_choix === 'refusee' ? '<span class="b bo">Assurance refusée</span>' + (i.assurance_compagnie ? ' — ' + i.assurance_compagnie : '') : ''}
-          ${!i.assurance_choix ? '<span style="color:var(--muted)">Non renseigné</span>' : ''}
+          ${i.assurance_choix === 'souscrite' ? '<span class="b bg">Garantie souscrite</span>' + (i.cheque_num ? ' — chèque n° ' + i.cheque_num : '') : '<span style="color:var(--muted)">Non renseigné</span>'}
         </div>
       </div>
       <div>
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">✍️ Signature électronique</div>
-        <div style="font-size:13px">Initiales : <strong style="color:var(--gold);letter-spacing:1px">${i.initiales || '—'}</strong> · reçu le ${new Date(i.created_at).toLocaleDateString('fr-FR')} à ${new Date(i.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
+        <div style="font-size:13px;margin-bottom:6px">Reçu le ${new Date(i.created_at).toLocaleDateString('fr-FR')} à ${new Date(i.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
+        ${i.signature_data ? `<img src="${i.signature_data}" style="max-width:220px;max-height:90px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:4px">` : '<span style="color:var(--muted);font-size:12px">Aucune signature enregistrée</span>'}
         ${i.approuve ? `<div style="margin-top:6px"><span class="b bg">✅ Approuvée${i.approuve_par ? ' par ' + i.approuve_par : ''}${i.approuve_at ? ' le ' + fmtDate(i.approuve_at.slice(0, 10)) : ''}</span></div>` : ''}
       </div>`;
           const approveBtn = document.getElementById('insc-approve-btn');
@@ -9669,13 +9846,25 @@
           setChecked('#insc-chk-reglement', insc.chk_reglement);
           // Assurance FFE
           setChecked('#insc-chk-assurance-oui', insc.assurance_choix === 'souscrite');
-          setChecked('#insc-chk-assurance-non', insc.assurance_choix === 'refusee');
           setVal('#insc-cheque-num', insc.cheque_num);
-          setVal('#insc-assurance-compagnie', insc.assurance_compagnie);
           setVal('#insc-cheque-avance-num', insc.cheque_avance_num);
-          // Validation / signature électronique
+          // Validation / signature électronique — le <canvas> ne clone pas son
+          // contenu dessiné (c'est du pixel, pas du DOM) : on le remplace par
+          // une image statique de la signature enregistrée.
           setChecked('#insc-chk-final', true);
-          setVal('#insc-initiales', insc.initiales);
+          const sigCanvas = clone.querySelector('#insc-signature-canvas');
+          if (sigCanvas) {
+            if (insc.signature_data) {
+              const img = document.createElement('img');
+              img.src = insc.signature_data;
+              img.style.cssText = 'width:100%;height:110px;object-fit:contain;background:#fff;border:1.5px solid var(--border);border-radius:8px';
+              sigCanvas.replaceWith(img);
+            } else {
+              sigCanvas.style.opacity = '.25';
+            }
+          }
+          const sigActions = clone.querySelector('.signature-pad-actions');
+          if (sigActions) sigActions.remove();
           const saisonEl = clone.querySelector('#insc-saison');
           if (saisonEl) saisonEl.textContent = 'Saison ' + (insc.saison ? insc.saison.replace('-', '/') : '—');
 
@@ -9748,22 +9937,57 @@
           }
         }
 
+        // ── Doublon cavalier (même prénom + nom) : demande un choix à l'admin ──
+        let _dupCavResolve = null;
+        function askDuplicateCavalierChoice(existingCav, insc) {
+          return new Promise(resolve => {
+            const body = document.getElementById('dup-cav-body');
+            body.innerHTML = `Un cavalier nommé <strong>${cap(insc.cav_prenom || '')}${insc.cav_nom ? ' ' + insc.cav_nom.toUpperCase() : ''}</strong> existe déjà dans la liste des cavaliers${existingCav.telephone ? ' (téléphone actuel : ' + existingCav.telephone + ')' : ''}.<br><br>Que voulez-vous faire ?`;
+            _dupCavResolve = resolve;
+            openMo('mo-cav-duplicate');
+          });
+        }
+        function resolveDupCav(choice) {
+          closeMo('mo-cav-duplicate');
+          if (_dupCavResolve) { _dupCavResolve(choice); _dupCavResolve = null; }
+        }
+
         async function approuverInscription() {
           const id = v('insc-detail-id');
           const i = C_inscriptions.find(x => x.id === id); if (!i) return;
           if (i.approuve) { toast('Déjà approuvée', 'err'); return; }
-          if (!confirm(`Créer un cavalier pour ${cap(i.cav_prenom || '')}${i.cav_nom ? ' ' + i.cav_nom.toUpperCase() : ''} ?`)) return;
+
+          // Détection d'un cavalier déjà existant avec le même prénom + nom
+          const norm = s => (s || '').trim().toLowerCase();
+          const existingCav = C.cav.find(c => norm(c.prenom) === norm(i.cav_prenom) && norm(c.nom) === norm(i.cav_nom));
+          let choice = 'create';
+          if (existingCav) {
+            choice = await askDuplicateCavalierChoice(existingCav, i);
+            if (choice === 'cancel') return;
+          } else {
+            if (!confirm(`Créer un cavalier pour ${cap(i.cav_prenom || '')}${i.cav_nom ? ' ' + i.cav_nom.toUpperCase() : ''} ?`)) return;
+          }
+
           const btn = document.getElementById('insc-approve-btn');
           if (btn) { btn.disabled = true; btn.textContent = '⏳ Création…'; }
           let newCavId = null;
+          let updatedCavBackup = null; // pour pouvoir restaurer si la suite échoue
           try {
-            const r = await dbIns('cavaliers', {
-              prenom: i.cav_prenom,
-              nom: i.cav_nom || null,
-              telephone: i.cav_tel || null,
-            });
-            newCavId = r.data?.[0]?.id;
-            if (!newCavId) throw new Error('La création du cavalier a échoué (aucun identifiant retourné par la base).');
+            if (choice === 'update' && existingCav) {
+              updatedCavBackup = { id: existingCav.id, prenom: existingCav.prenom, nom: existingCav.nom, telephone: existingCav.telephone };
+              await dbUpd('cavaliers', {
+                prenom: i.cav_prenom, nom: i.cav_nom || null, telephone: i.cav_tel || null,
+              }, [{ col: 'id', op: 'eq', val: existingCav.id }]);
+              newCavId = existingCav.id;
+            } else {
+              const r = await dbIns('cavaliers', {
+                prenom: i.cav_prenom,
+                nom: i.cav_nom || null,
+                telephone: i.cav_tel || null,
+              });
+              newCavId = r.data?.[0]?.id;
+              if (!newCavId) throw new Error('La création du cavalier a échoué (aucun identifiant retourné par la base).');
+            }
 
             // Envoi de l'email uniquement si une adresse a été renseignée dans le formulaire
             if (i.cav_mail) {
@@ -9785,28 +10009,33 @@
               cavalier_id: newCavId,
             }, [{ col: 'id', op: 'eq', val: id }]);
             Object.assign(i, { approuve: true, approuve_par: auteur, approuve_at: new Date().toISOString(), cavalier_id: newCavId });
-            toast('Inscription approuvée · cavalier créé' + (i.cav_mail ? ' · email envoyé ✅' : ' ✅'), 'ok');
+            toast('Inscription approuvée · cavalier ' + (choice === 'update' ? 'mis à jour' : 'créé') + (i.cav_mail ? ' · email envoyé ✅' : ' ✅'), 'ok');
             await loadCav(); renderCavaliers(); popSelects();
             renderInscriptionsAdmin();
             openInscDetail(id);
           } catch (e) {
-            // En cas de problème (création, PDF, email…) : on annule tout — le
-            // cavalier n'est pas créé — et l'inscription reste disponible pour
-            // être revalidée plus tard.
-            if (newCavId) {
-              try {
+            // En cas de problème (création/MAJ, PDF, email…) : on annule tout —
+            // le cavalier n'est ni créé ni modifié — et l'inscription reste
+            // disponible pour être revalidée plus tard.
+            try {
+              if (choice === 'update' && updatedCavBackup) {
+                await dbUpd('cavaliers', {
+                  prenom: updatedCavBackup.prenom, nom: updatedCavBackup.nom, telephone: updatedCavBackup.telephone,
+                }, [{ col: 'id', op: 'eq', val: updatedCavBackup.id }]);
+                await loadCav(); renderCavaliers(); popSelects();
+              } else if (newCavId) {
                 await dbDel('cavaliers', [{ col: 'id', op: 'eq', val: newCavId }]);
                 await loadCav(); renderCavaliers(); popSelects();
-              } catch (e2) {
-                alert('⚠️ Erreur grave : le cavalier a été créé mais n\'a pas pu être annulé automatiquement.\n\n'
-                  + 'Merci de supprimer manuellement le cavalier créé par erreur pour "' + (i.cav_prenom || '') + '" dans la page Cavaliers.\n\n'
-                  + 'Détail technique : ' + e2.message);
-                if (btn) { btn.disabled = false; btn.textContent = '✅ Approuver & créer le cavalier'; }
-                return;
               }
+            } catch (e2) {
+              alert('⚠️ Erreur grave : le cavalier a été ' + (choice === 'update' ? 'modifié' : 'créé') + ' mais l\'annulation automatique a échoué.\n\n'
+                + 'Merci de vérifier manuellement le cavalier "' + (i.cav_prenom || '') + '" dans la page Cavaliers.\n\n'
+                + 'Détail technique : ' + e2.message);
+              if (btn) { btn.disabled = false; btn.textContent = '✅ Approuver & créer le cavalier'; }
+              return;
             }
             alert('⚠️ Impossible de valider cette inscription.\n\n'
-              + "Le cavalier n'a PAS été créé (annulation automatique).\n\n"
+              + "Le cavalier n'a PAS été " + (choice === 'update' ? 'modifié' : 'créé') + " (annulation automatique).\n\n"
               + 'Cause probable : ' + e.message + '\n\n'
               + 'Vous pouvez réessayer : cette inscription reste disponible et pourra être revalidée.');
             if (btn) { btn.disabled = false; btn.textContent = '✅ Approuver & créer le cavalier'; }

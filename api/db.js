@@ -248,7 +248,7 @@ export default async function handler(req, res) {
     const resendKey = process.env.RESEND_API_KEY;
     // ⚠️ Adresse à laquelle doivent arriver les réponses des familles si
     // elles répondent à cet email — remplace par la vraie adresse de contact.
-    const REPLY_TO_EMAIL = 'dev.gestion.ecuries.octroi@gmail.com';
+    const REPLY_TO_EMAIL = 'contact@example.com';
 
     const nomLabel = cavNom || 'votre cavalier';
     const html = `
