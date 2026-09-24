@@ -8725,7 +8725,7 @@
           const retours = await dbSel('ticket_retours', {
             select: '*',
             filter: [{ col: 'ticket_id', op: 'eq', val: ticketId }],
-            order: [{ col: 'created_at', asc: true }]
+            order: [{ col: 'created_at', asc: false }]
           });
           const el = document.getElementById('td-retours-list');
           if (!retours.length) {
