@@ -7800,7 +7800,7 @@
               ? `<span class="b ${sbInfo.warn ? 'bo' : 'bb'}" style="margin-left:5px;font-size:10px">📅 ${sbInfo.text}</span>`
               : '';
             return `<tr>
-  <td><strong>${cap(c.nom.toUpperCase() || '')}${c.prenom ? ' <span style="color:var(--muted);font-size:12px">' + c.prenom + '</span>' : ''}</strong>${semBadge}</td>
+  <td><strong>${c.nom.toUpperCase() || ''}${c.prenom ? ' <span style="color:var(--muted);font-size:12px">' + cap(c.prenom) + '</span>' : ''}</strong>${semBadge}</td>
       <td>${grpsHtml}</td>
       <td>${isAdmin ? (c.telephone || '—') : '<span style="color:var(--muted)">🔒</span>'}</td>
       <td style="display:flex;gap:5px"><button class="btn btn-g sm" onclick="editCav('${c.id}')">✏️</button><button class="btn btn-d sm" onclick="delCav('${c.id}')">🗑</button></td>
