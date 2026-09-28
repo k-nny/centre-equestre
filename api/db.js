@@ -307,10 +307,13 @@ export default async function handler(req, res) {
     const pdfContent = (pdfBase64 || '')
       .replace(/^data:application\/pdf;base64,/, '');
 
-    const pdfBuffer = Buffer.from(
-      pdfBase64.replace(/^data:application\/pdf;base64,/, ''),
-      'base64'
-    );
+    const base64Clean = pdfBase64.replace(/^data:application\/pdf;base64,/, '');
+
+    const pdfBuffer = Buffer.from(base64Clean, 'base64');
+
+    console.log("PDF base64 longueur :", base64Clean.length);
+    console.log("PDF buffer longueur :", pdfBuffer.length);
+    console.log("PDF signature :", pdfBuffer.subarray(0, 5).toString());
     try {
       await transporter.sendMail({
         from: `"Les Écuries de l'Octroi" <${process.env.GMAIL_USER}>`,
