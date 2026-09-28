@@ -24,8 +24,16 @@ function build() {
   console.log('   • SUPABASE_URL');
   console.log('   • SUPABASE_ANON');
   console.log('   • APP_KEY');
+  console.log('   • SESSION_SECRET   ⚠️ NOUVELLE — obligatoire, signe les sessions.');
+  console.log('                        Génère une valeur aléatoire longue, ex: openssl rand -hex 32');
+  console.log('');
+  console.log('   Anciennes variables (mots de passe en clair) — conservées comme');
+  console.log('   solution de repli tant que le mot de passe correspondant n\'a pas');
+  console.log('   été redéfini depuis le site (Paramètres > Mots de passe) :');
   console.log('   • ADMIN_PASSWORD');
   console.log('   • MARINE_PASSWORD');
+  console.log('   • DEV_PASSWORD');
+  console.log('   • STAGIAIRE_PASSWORD (anciennement BALADE_PASSWORD, toujours accepté)');
   console.log('   • TRAVAUX_PASSWORD');
   console.log('   • INSCRIPTION_PASSWORD');
 }
