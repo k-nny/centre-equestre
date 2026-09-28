@@ -307,7 +307,7 @@ export default async function handler(req, res) {
     const pdfContent = (pdfBase64 || '')
       .replace(/^data:application\/pdf;base64,/, '');
 
-    const base64Clean = pdfBase64.replace(/^data:application\/pdf;base64,/, '');
+    const base64Clean = pdfBase64.split(',')[1];
 
     const pdfBuffer = Buffer.from(base64Clean, 'base64');
 
