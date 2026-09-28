@@ -277,7 +277,16 @@ export default async function handler(req, res) {
       });
     }
 
-    const transporter = getGmailTransporter();
+    // const transporter = getGmailTransporter();
+    const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 
     if (!transporter) {
       return res.status(500).json({
