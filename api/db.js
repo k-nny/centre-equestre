@@ -36,11 +36,8 @@ const CLUB_EMAIL = 'dev-gestion-ecuries-octroi@gmail.com'; // ⚠️ REMPLACE PA
 const REGLEMENT_BASE64 = ''; // ⚠️ Colle ici le PDF du règlement (base64), optionnel
 
 function getGmailTransporter() {
-  const user = process.env.GMAIL_USER;
-  const pass = process.env.GMAIL_APP_PASSWORD;
-  console.log("EMAIL_USER :", process.env.GMAIL_USER);
-  console.log("EMAIL_PASS existe :", !!process.env.GMAIL_APP_PASSWORD);
-  console.log("EMAIL_PASS longueur :", process.env.GMAIL_APP_PASSWORD?.length);
+  const user = process.env.GMAIL_USER || '';
+  const pass = process.env.GMAIL_APP_PASSWORD || '';
   if (!user || !pass) return null;
   return nodemailer.createTransport({
     service: 'gmail',
@@ -277,18 +274,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // const transporter = getGmailTransporter();
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD
-      }
-    });
-    await transporter.verify();
-    console.log("Connexion Gmail OK");
+    const transporter = getGmailTransporter();
 
     if (!transporter) {
       return res.status(500).json({
@@ -320,10 +306,6 @@ export default async function handler(req, res) {
     // Retire le préfixe éventuel "data:application/pdf;base64,"
     const pdfContent = (pdfBase64 || '')
       .replace(/^data:application\/pdf;base64,/, '');
-
-    console.log("EMAIL_USER :", process.env.GMAIL_USER);
-    console.log("EMAIL_PASS existe :", !!process.env.GMAIL_APP_PASSWORD);
-    console.log("EMAIL_PASS longueur :", process.env.GMAIL_APP_PASSWORD?.length);
     try {
       await transporter.sendMail({
         from: `"Les Écuries de l'Octroi" <${process.env.GMAIL_USER}>`,
