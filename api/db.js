@@ -38,6 +38,9 @@ const REGLEMENT_BASE64 = ''; // ⚠️ Colle ici le PDF du règlement (base64), 
 function getGmailTransporter() {
   const user = process.env.GMAIL_USER || '';
   const pass = process.env.GMAIL_APP_PASSWORD || '';
+  console.log("EMAIL_USER :", process.env.EMAIL_USER);
+  console.log("EMAIL_PASS existe :", !!process.env.EMAIL_PASS);
+  console.log("EMAIL_PASS longueur :", process.env.EMAIL_PASS?.length);
   if (!user || !pass) return null;
   return nodemailer.createTransport({
     service: 'gmail',
