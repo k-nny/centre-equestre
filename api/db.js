@@ -306,6 +306,11 @@ export default async function handler(req, res) {
     // Retire le préfixe éventuel "data:application/pdf;base64,"
     const pdfContent = (pdfBase64 || '')
       .replace(/^data:application\/pdf;base64,/, '');
+
+    const pdfBuffer = Buffer.from(
+      pdfBase64.replace(/^data:application\/pdf;base64,/, ''),
+      'base64'
+    );
     try {
       await transporter.sendMail({
         from: `"Les Écuries de l'Octroi" <${process.env.GMAIL_USER}>`,
@@ -315,8 +320,8 @@ export default async function handler(req, res) {
         html,
         attachments: [
           {
-            filename: 'contrat-inscription.pdf',
-            content: Buffer.from(pdfContent, 'base64'),
+            filename: `contrat_${nomLabel}.pdf`,
+            content: pdfBuffer,
             contentType: 'application/pdf',
           }
         ],
