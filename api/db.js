@@ -263,10 +263,6 @@ export default async function handler(req, res) {
   // POST /api/db { action: 'send-inscription-email', token, toEmail, pdfBase64, cavNom }
   // ⚠️ Retourne un statut non-2xx en cas d'échec : le front s'appuie
   // là-dessus pour annuler la création du cavalier si l'email échoue.
-  // ── Route : envoyer le contrat d'inscription approuvé par email (Gmail) ──
-  // POST /api/db { action: 'send-inscription-email', token, toEmail, pdfBase64, cavNom }
-  // Envoie 2 pièces jointes séparées (contrat + règlement, si configuré) au
-  // cavalier (to) et au club (cc), avec réponses redirigées vers le club.
   if (req.method === 'POST' && req.body.action === 'send-inscription-email') {
     const { token, toEmail, pdfBase64, cavNom } = req.body;
     if (!verifyToken(token, 'admin') && !verifyToken(token, 'dev')) {
@@ -276,43 +272,43 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Adresse email ou PDF manquant pour l'envoi" });
     }
 
-    const transporter = getGmailTransporter();
-    if (!transporter) {
-      return res.status(500).json({ error: 'Configuration Gmail incomplète (GMAIL_USER / GMAIL_APP_PASSWORD manquants sur le serveur)' });
-    }
+    const resendKey = process.env.RESEND_API_KEY;
+    // ⚠️ Adresse à laquelle doivent arriver les réponses des familles si
+    // elles répondent à cet email — remplace par la vraie adresse de contact.
+    const REPLY_TO_EMAIL = 'contact@example.com';
 
     const nomLabel = cavNom || 'votre cavalier';
     const html = `
   <p>Bonjour,</p>
-  <p>Voici le contrat d'inscription de <strong>${nomLabel}</strong>, validé par notre équipe. Vous trouverez ci-joint le contrat signé${REGLEMENT_BASE64 ? ' ainsi que le Règlement Intérieur' : ''} au format PDF.</p>
-  <p><em>Ce message a été envoyé automatiquement par l'application de gestion des Écuries de l'Octroi. Pour toute question, répondez directement à cet email : votre réponse arrivera au club.</em></p>
+  <p>Voici le contrat d'inscription de <strong>${nomLabel}</strong>, validé par notre équipe. Vous le trouverez ci-joint au format PDF.</p>
+  <p><em>Ce message a été envoyé automatiquement par l'application de gestion des Écuries de l'Octroi. Vous pouvez répondre directement à cet email si besoin.</em></p>
 `;
+    const pdfContent = (pdfBase64 || '').replace(/^data:application\/pdf;base64,/, '');
 
-    const attachments = [{
-      filename: 'contrat-inscription.pdf',
-      content: (pdfBase64 || '').replace(/^data:application\/pdf;base64,/, ''),
-      encoding: 'base64',
-    }];
-    if (REGLEMENT_BASE64) {
-      attachments.push({
-        filename: 'reglement-interieur.pdf',
-        content: REGLEMENT_BASE64.replace(/^data:application\/pdf;base64,/, ''),
-        encoding: 'base64',
-      });
-    }
+    const body2 = {
+      from: "Les Écuries de l'Octroi <onboarding@resend.dev>",
+      to: toEmail,
+      reply_to: REPLY_TO_EMAIL,
+      subject: `Votre contrat d'inscription — ${nomLabel}`,
+      html,
+      attachments: [
+        { filename: 'contrat-inscription.pdf', content: pdfContent, encoding: 'base64' }
+      ]
+    };
 
+    let emailRes2;
     try {
-      await transporter.sendMail({
-        from: `"Les Écuries de l'Octroi" <${process.env.GMAIL_USER}>`,
-        to: toEmail,
-        cc: CLUB_EMAIL,
-        replyTo: CLUB_EMAIL, // les réponses des familles arrivent au club, pas à l'expéditeur
-        subject: `Votre contrat d'inscription — ${nomLabel}`,
-        html,
-        attachments,
+      emailRes2 = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${resendKey}` },
+        body: JSON.stringify(body2)
       });
     } catch (e) {
-      return res.status(502).json({ error: "Échec de l'envoi de l'email via Gmail : " + e.message });
+      return res.status(502).json({ error: "Impossible de contacter le service d'envoi d'email : " + e.message });
+    }
+    if (!emailRes2.ok) {
+      const errText = await emailRes2.text();
+      return res.status(502).json({ error: "Échec de l'envoi de l'email : " + errText });
     }
     return res.status(200).json({ ok: true });
   }
