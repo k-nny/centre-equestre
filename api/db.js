@@ -261,56 +261,77 @@ export default async function handler(req, res) {
 
   // ── Route : envoyer le contrat d'inscription approuvé par email ────
   // POST /api/db { action: 'send-inscription-email', token, toEmail, pdfBase64, cavNom }
-  // ⚠️ Retourne un statut non-2xx en cas d'échec : le front s'appuie
-  // là-dessus pour annuler la création du cavalier si l'email échoue.
   if (req.method === 'POST' && req.body.action === 'send-inscription-email') {
     const { token, toEmail, pdfBase64, cavNom } = req.body;
+
     if (!verifyToken(token, 'admin') && !verifyToken(token, 'dev')) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
+
     if (!toEmail || !pdfBase64) {
-      return res.status(400).json({ error: "Adresse email ou PDF manquant pour l'envoi" });
+      return res.status(400).json({
+        error: "Adresse email ou PDF manquant pour l'envoi"
+      });
     }
 
-    const resendKey = process.env.RESEND_API_KEY;
-    // ⚠️ Adresse à laquelle doivent arriver les réponses des familles si
-    // elles répondent à cet email — remplace par la vraie adresse de contact.
-    const REPLY_TO_EMAIL = 'contact@example.com';
+    const transporter = getGmailTransporter();
+
+    if (!transporter) {
+      return res.status(500).json({
+        error: "Configuration Gmail manquante : GMAIL_USER ou GMAIL_APP_PASSWORD"
+      });
+    }
 
     const nomLabel = cavNom || 'votre cavalier';
+
     const html = `
-  <p>Bonjour,</p>
-  <p>Voici le contrat d'inscription de <strong>${nomLabel}</strong>, validé par notre équipe. Vous le trouverez ci-joint au format PDF.</p>
-  <p><em>Ce message a été envoyé automatiquement par l'application de gestion des Écuries de l'Octroi. Vous pouvez répondre directement à cet email si besoin.</em></p>
-`;
-    const pdfContent = (pdfBase64 || '').replace(/^data:application\/pdf;base64,/, '');
+    <p>Bonjour,</p>
 
-    const body2 = {
-      from: "Les Écuries de l'Octroi <onboarding@resend.dev>",
-      to: toEmail,
-      reply_to: REPLY_TO_EMAIL,
-      subject: `Votre contrat d'inscription — ${nomLabel}`,
-      html,
-      attachments: [
-        { filename: 'contrat-inscription.pdf', content: pdfContent, encoding: 'base64' }
-      ]
-    };
+    <p>
+      Voici le contrat d'inscription de
+      <strong>${nomLabel}</strong>,
+      validé par notre équipe.
+      Vous le trouverez ci-joint au format PDF.
+    </p>
 
-    let emailRes2;
+    <p>
+      <em>
+        Ce message a été envoyé automatiquement par l'application
+        de gestion des Écuries de l'Octroi.
+        Vous pouvez répondre directement à cet email si besoin.
+      </em>
+    </p>
+  `;
+
+    // Retire le préfixe éventuel "data:application/pdf;base64,"
+    const pdfContent = (pdfBase64 || '')
+      .replace(/^data:application\/pdf;base64,/, '');
+
     try {
-      emailRes2 = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${resendKey}` },
-        body: JSON.stringify(body2)
+      await transporter.sendMail({
+        from: `"Les Écuries de l'Octroi" <${process.env.GMAIL_USER}>`,
+        to: toEmail,
+        replyTo: process.env.GMAIL_USER,
+        subject: `Votre contrat d'inscription — ${nomLabel}`,
+        html,
+        attachments: [
+          {
+            filename: 'contrat-inscription.pdf',
+            content: Buffer.from(pdfContent, 'base64'),
+            contentType: 'application/pdf',
+          }
+        ],
       });
+
+      return res.status(200).json({ ok: true });
+
     } catch (e) {
-      return res.status(502).json({ error: "Impossible de contacter le service d'envoi d'email : " + e.message });
+      console.error('Erreur envoi Gmail:', e);
+
+      return res.status(502).json({
+        error: "Échec de l'envoi de l'email : " + e.message
+      });
     }
-    if (!emailRes2.ok) {
-      const errText = await emailRes2.text();
-      return res.status(502).json({ error: "Échec de l'envoi de l'email : " + errText });
-    }
-    return res.status(200).json({ ok: true });
   }
 
   // ── Route : changer le mot de passe d'un rôle (admin/dev uniquement) ──
