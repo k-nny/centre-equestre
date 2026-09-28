@@ -26,7 +26,7 @@ import nodemailer from 'nodemailer';
 // ══════════════════════════════════════════════════
 // ⚠️ Adresse du club : reçoit une copie de chaque contrat approuvé, et
 // c'est à cette adresse que les réponses des familles doivent arriver.
-const CLUB_EMAIL = 'contact@example.com'; // ⚠️ REMPLACE PAR LA VRAIE ADRESSE DU CLUB
+const CLUB_EMAIL = 'dev-gestion-ecuries-octroi@gmail.com'; // ⚠️ REMPLACE PAR LA VRAIE ADRESSE DU CLUB
 
 // ⚠️ Règlement intérieur, encodé en base64, joint à chaque envoi en plus
 // du contrat (2 pièces jointes séparées). Laisse vide pour n'envoyer que

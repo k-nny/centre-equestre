@@ -8,5 +8,8 @@
   },
   "engines": {
     "node": ">=16"
+  },
+  "dependencies": {
+    "nodemailer": "^10.0.11"
   }
 }
