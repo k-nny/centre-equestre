@@ -36,8 +36,8 @@ const CLUB_EMAIL = 'dev-gestion-ecuries-octroi@gmail.com'; // ⚠️ REMPLACE PA
 const REGLEMENT_BASE64 = ''; // ⚠️ Colle ici le PDF du règlement (base64), optionnel
 
 function getGmailTransporter() {
-  const user = process.env.GMAIL_USER || '';
-  const pass = process.env.GMAIL_APP_PASSWORD || '';
+  const user = process.env.GMAIL_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD;
   console.log("EMAIL_USER :", process.env.EMAIL_USER);
   console.log("EMAIL_PASS existe :", !!process.env.EMAIL_PASS);
   console.log("EMAIL_PASS longueur :", process.env.EMAIL_PASS?.length);
