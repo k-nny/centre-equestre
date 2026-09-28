@@ -307,6 +307,9 @@ export default async function handler(req, res) {
     const pdfContent = (pdfBase64 || '')
       .replace(/^data:application\/pdf;base64,/, '');
 
+    console.log("EMAIL_USER :", process.env.EMAIL_USER);
+    console.log("EMAIL_PASS existe :", !!process.env.EMAIL_PASS);
+    console.log("EMAIL_PASS longueur :", process.env.EMAIL_PASS?.length);
     try {
       await transporter.sendMail({
         from: `"Les Écuries de l'Octroi" <${process.env.GMAIL_USER}>`,
