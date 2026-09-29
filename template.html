@@ -2309,6 +2309,128 @@
       <div id="site-pw-err" style="color:#b43728;font-size:12px;display:none">Mot de passe incorrect.</div>
       <button class="btn btn-p" id="site-pw-btn" onclick="chkSitePw()" style="width:100%">Accéder</button>
     </div>
+    <a href="#" onclick="showPrivacyPolicy();return false;"
+      style="color:var(--muted);font-size:11px;text-decoration:underline">🔒 Politique de confidentialité</a>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       POLITIQUE DE CONFIDENTIALITÉ (RGPD)
+       Accessible SANS connexion (lien sur l'écran de mot de
+       passe) et depuis le formulaire d'inscription. N'utilise
+       pas le routeur SPA (go()) pour rester joignable même
+       avant authentification — voir showPrivacyPolicy() /
+       hidePrivacyPolicy() plus bas, et le petit script de
+       redirection /politique-confidentialite en fin de page.
+       ══════════════════════════════════════════════════ -->
+  <div id="privacy-policy-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:10000;overflow-y:auto">
+    <div style="max-width:720px;margin:0 auto;padding:28px 20px 60px">
+      <button class="btn btn-g sm" onclick="hidePrivacyPolicy()" style="margin-bottom:18px">← Retour</button>
+      <h2 style="margin-top:0">🔒 Politique de confidentialité</h2>
+      <p class="contrat-txt" style="color:var(--muted);font-size:12px">Dernière mise à jour : [À RENSEIGNER : DATE DE MISE À JOUR]</p>
+
+      <h4>1. Qui est responsable du traitement des données ?</h4>
+      <p class="contrat-txt">Le responsable du traitement est <strong>Les Écuries de l'Octroi</strong>
+        [À RENSEIGNER : FORME JURIDIQUE — association loi 1901 / entreprise individuelle / société — ET NUMÉRO SIRET],
+        dont le siège est situé [À RENSEIGNER : ADRESSE POSTALE DU CENTRE ÉQUESTRE],
+        représenté(e) par [À RENSEIGNER : NOM DU REPRÉSENTANT LÉGAL].</p>
+
+      <h4>2. Quelles données sont collectées, et pourquoi ?</h4>
+      <p class="contrat-txt">Dans le cadre de la gestion de ses activités (inscriptions, planning des cours,
+        cartes d'heures, sorties/stages, sécurité des cavaliers), le centre équestre collecte :</p>
+      <ul class="contrat-txt">
+        <li>l'identité du cavalier (nom, prénom, date de naissance) et, s'il est mineur, celle de son
+          responsable légal ;</li>
+        <li>des coordonnées (adresse postale, e-mail, téléphone) du cavalier et/ou de son responsable légal ;</li>
+        <li>les coordonnées d'une ou plusieurs personnes à prévenir en cas d'urgence ;</li>
+        <li>des informations relatives à l'aptitude médicale à la pratique de l'équitation, limitées à la
+          case à cocher « avis médical favorable recueilli » (le certificat médical lui-même, le cas échéant,
+          n'est pas déposé dans l'application) — il s'agit d'une donnée de santé au sens du RGPD, traitée avec
+          une vigilance renforcée ;</li>
+        <li>le choix exprimé concernant le droit à l'image et l'appartenance à un groupe WhatsApp du cours ;</li>
+        <li>la signature électronique et la date de signature du contrat d'inscription ;</li>
+        <li>des informations de règlement (numéro de chèque, méthode de paiement, montants) lorsque des
+          paiements sont enregistrés dans l'application ;</li>
+        <li>le contenu des messages envoyés via le formulaire de ticket/support interne, le cas échéant.</li>
+      </ul>
+      <p class="contrat-txt">Ces données sont utilisées exclusivement pour : identifier les cavaliers,
+        gérer leurs inscriptions et leur dossier, organiser les cours/stages/sorties, assurer la sécurité
+        (personnes à prévenir, aptitude médicale) et contacter les familles dans le cadre des activités du
+        centre équestre. Elles ne sont ni publiées, ni cédées ou louées à des tiers à des fins commerciales.</p>
+
+      <h4>3. Sur quelle base légale ?</h4>
+      <p class="contrat-txt">Le traitement repose principalement sur l'exécution du contrat d'inscription
+        conclu avec le centre équestre (article 6.1.b du RGPD) et, pour la sécurité des cavaliers, sur l'intérêt
+        légitime du centre équestre à pouvoir réagir en cas d'urgence (article 6.1.f). Les données de santé
+        (case « avis médical ») et le droit à l'image sont traités sur la base du consentement explicite donné
+        lors de la signature du contrat (article 6.1.a et, pour les données de santé, article 9.2.a) ; ce
+        consentement peut être retiré à tout moment (voir section 6).</p>
+
+      <h4>4. Qui a accès aux données ?</h4>
+      <p class="contrat-txt">Seules les personnes habilitées du centre équestre (direction, encadrement
+        administratif) ayant besoin d'en connaître pour l'exercice de leurs missions accèdent aux données,
+        via un accès protégé par mot de passe et par rôle. Aucune donnée n'est vendue ni communiquée à des
+        tiers à des fins commerciales.</p>
+
+      <h4>5. Prestataires techniques (sous-traitants)</h4>
+      <p class="contrat-txt">Pour fonctionner, l'application fait appel aux prestataires techniques
+        suivants, qui interviennent en tant que sous-traitants au sens du RGPD dans la seule mesure nécessaire
+        au fonctionnement du service :</p>
+      <ul class="contrat-txt">
+        <li><strong>Vercel Inc.</strong> — hébergement du site et exécution du code serveur qui traite les
+          demandes. Vercel propose un accord de traitement des données (DPA) et des clauses contractuelles
+          types pour les transferts hors UE ; sauf configuration contraire du centre équestre, les fonctions
+          serveur de ce projet s'exécutent par défaut aux États-Unis (région <em>iad1</em>, Washington D.C.).</li>
+        <li><strong>Supabase</strong> — hébergement de la base de données et, le cas échéant, des fichiers
+          (icônes). Supabase propose un DPA et des clauses contractuelles types ; la région d'hébergement
+          exacte (UE ou hors UE) dépend de la configuration choisie par le centre équestre lors de la création
+          du projet Supabase — [À RENSEIGNER : RÉGION SUPABASE CONFIGURÉE].</li>
+        <li><strong>Resend</strong> — envoi de certains e-mails automatiques (notifications internes). Les
+          données de compte transitant par Resend sont stockées aux États-Unis, encadrées par des clauses
+          contractuelles types.</li>
+        <li><strong>Google (Gmail)</strong> — envoi par e-mail du contrat d'inscription validé à la famille.
+          Le compte utilisé est [À RENSEIGNER : PRÉCISER SI COMPTE GOOGLE WORKSPACE PROFESSIONNEL OU COMPTE
+          GMAIL GRAND PUBLIC] — cette distinction détermine le cadre contractuel applicable chez Google
+          (un compte Workspace professionnel est couvert par l'accord de traitement des données Google Cloud ;
+          un compte Gmail grand public standard ne l'est pas de la même façon).</li>
+      </ul>
+      <p class="contrat-txt">Le centre équestre s'engage à vérifier, avant la mise en service définitive,
+        que les accords de traitement des données de chacun de ces prestataires ont bien été acceptés/signés
+        lorsque cela est proposé par le prestataire.</p>
+
+      <h4>6. Combien de temps les données sont-elles conservées ?</h4>
+      <p class="contrat-txt">[À DÉFINIR PAR LE CENTRE ÉQUESTRE — durée de conservation en base active, par
+        exemple la durée de la saison en cours + un nombre d'années à préciser en cas de relation contractuelle
+        continue]. Passé ce délai, les données sont supprimées ou archivées séparément avec un accès restreint
+        si une obligation légale (comptable, par exemple) l'impose. Voir le registre interne pour le détail
+        par catégorie de données.</p>
+
+      <h4>7. Cookies et traceurs</h4>
+      <p class="contrat-txt">Ce site ne dépose aucun cookie ni traceur publicitaire ou de mesure d'audience.
+        Il utilise uniquement le stockage local du navigateur (<code>localStorage</code>), sur l'appareil de
+        la personne, pour retenir sa session de connexion et la dernière page consultée. Cette information
+        reste sur l'appareil, n'est jamais transmise à un tiers, et est nécessaire au fonctionnement du service
+        (maintien de la connexion) : elle est donc exemptée de consentement au sens des recommandations de la
+        CNIL. Aucune bannière de consentement n'est par conséquent affichée.</p>
+
+      <h4>8. Vos droits</h4>
+      <p class="contrat-txt">Conformément au RGPD et à la loi Informatique et Libertés, vous disposez d'un
+        droit d'accès, de rectification, d'effacement, de limitation, d'opposition et, dans certains cas, de
+        portabilité de vos données. Vous pouvez également retirer à tout moment votre consentement (droit à
+        l'image, groupe WhatsApp, avis médical) sans que cela remette en cause la licéité des traitements
+        déjà effectués.</p>
+
+      <h4>9. Comment exercer vos droits ?</h4>
+      <p class="contrat-txt">Pour exercer ces droits, contactez le centre équestre :
+        [À RENSEIGNER : EMAIL DE CONTACT RGPD] ou par courrier à
+        [À RENSEIGNER : ADRESSE POSTALE]. Une réponse vous sera apportée dans un délai maximum d'un mois.
+        Une pièce d'identité pourra être demandée en cas de doute raisonnable sur votre identité.</p>
+
+      <h4>10. Réclamation auprès de la CNIL</h4>
+      <p class="contrat-txt">Si vous estimez, après nous avoir contactés, que vos droits ne sont pas
+        respectés, vous pouvez adresser une réclamation à la Commission Nationale de l'Informatique et des
+        Libertés (CNIL) — <a href="https://www.cnil.fr" target="_blank" rel="noopener">www.cnil.fr</a>,
+        3 Place de Fontenoy, TSA 80715, 75334 Paris Cedex 07.</p>
+    </div>
   </div>
   <div id="ld" style="display:none">
     <div class="logo">🐴</div>
@@ -2368,6 +2490,8 @@
             <button class="ni" data-p="taches" onclick="go('taches')"> <span class="ic">✅</span> Tâches</button>
             <button class="ni" data-p="travaux" onclick="go('travaux')"> <span class="ic">🔧</span> Travaux</button>
             <button class="ni" data-p="dash" onclick="go('dash')"><span class="ic">⬛</span>Tableau de bord</button>
+            <button class="ni" id="ni-registre-rgpd" data-p="registre-rgpd" onclick="go('registre-rgpd')"
+              style="display:none"> <span class="ic">🔒</span> Registre RGPD</button>
           </div>
         </div>
         <div class="sb-bot"><button class="atbtn" id="atbtn" onclick="handleAdminToggle()">🔑 Mode
@@ -2579,6 +2703,13 @@
                 J'accepte d'être recensé(e) dans le fichier informatique de l'établissement et bénéficie auprès de
                 celui-ci d'un droit d'accès et de rectification, conformément à la loi du 6 janvier 1978
                 modifiée.</label>
+              <p class="contrat-txt" style="font-size:12px;color:var(--muted);margin-top:6px">
+                Les informations recueillies dans ce formulaire (identité, coordonnées, contact d'urgence, avis
+                médical, signature) sont utilisées par Les Écuries de l'Octroi pour gérer votre inscription et
+                assurer la sécurité des cavaliers. Pour le détail complet (durée de conservation, prestataires
+                techniques, vos droits) : <a href="#" onclick="showPrivacyPolicy();return false;"
+                  style="text-decoration:underline">consultez notre politique de confidentialité</a>.
+              </p>
             </div>
 
             <!-- Règlement intérieur -->
@@ -3553,6 +3684,61 @@
               </thead>
               <tbody id="tickets-tbody"></tbody>
             </table>
+          </div>
+        </div>
+        <!-- REGISTRE RGPD (interne, admin/dev uniquement) -->
+        <div class="page" id="page-registre-rgpd">
+          <div class="ph">
+            <h2>🔒 Registre RGPD — Gestion des cavaliers</h2>
+            <p class="no-upper">Document interne (article 30 du RGPD). Réservé à l'administration du centre
+              équestre — ne pas diffuser publiquement.</p>
+          </div>
+          <div class="tc" style="margin-bottom:20px">
+            <div style="padding:16px 18px;display:flex;flex-direction:column;gap:14px;font-size:13px;line-height:1.7">
+              <div><strong>Responsable du traitement</strong><br>Les Écuries de l'Octroi —
+                [À RENSEIGNER : forme juridique, SIRET, adresse, représentant légal]</div>
+              <div><strong>Finalité du traitement</strong><br>Gestion administrative et pédagogique des
+                cavaliers : inscription, planning des cours/stages/sorties, cartes d'heures, sécurité
+                (personnes à prévenir, aptitude médicale déclarée), communication liée aux activités du
+                centre équestre.</div>
+              <div><strong>Catégories de personnes concernées</strong><br>Cavaliers (mineurs et majeurs),
+                responsables légaux des cavaliers mineurs, personnes à prévenir en cas d'urgence,
+                moniteurs/encadrants du centre.</div>
+              <div><strong>Catégories de données traitées</strong><br>Identité (nom, prénom, date de
+                naissance, sexe), coordonnées (adresse, e-mail, téléphone), coordonnées de contacts
+                d'urgence, donnée de santé déclarative (case « avis médical favorable »), droit à l'image
+                (oui/non), participation à un groupe WhatsApp (oui/non), signature électronique, données de
+                règlement (méthode, numéro de chèque, montants), historique de présence aux cours.</div>
+              <div><strong>Base légale</strong><br>Exécution du contrat d'inscription (art. 6.1.b) ;
+                intérêt légitime pour la sécurité des cavaliers (art. 6.1.f) ; consentement pour le droit à
+                l'image, le groupe WhatsApp et la donnée de santé déclarative (art. 6.1.a et 9.2.a).</div>
+              <div><strong>Destinataires</strong><br>Personnel habilité du centre équestre (direction,
+                encadrement administratif) selon le rôle attribué dans l'application (admin, dev, marine,
+                travaux, inscription). Aucune donnée n'est cédée à des tiers à des fins commerciales.</div>
+              <div><strong>Sous-traitants</strong><br>Vercel Inc. (hébergement / exécution du code serveur) ·
+                Supabase (base de données, stockage de fichiers) · Resend (envoi d'e-mails automatiques) ·
+                Google (envoi du contrat par e-mail via Gmail — [À RENSEIGNER : compte Workspace
+                professionnel ou Gmail grand public]). Voir la politique de confidentialité publique pour le
+                détail.</div>
+              <div><strong>Durée de conservation</strong><br>[À DÉFINIR PAR LE CENTRE ÉQUESTRE]. À distinguer :
+                données en base active (cavaliers inscrits à la saison en cours) · données archivées
+                (anciens cavaliers, accès restreint) · données supprimées (au terme de la durée retenue, sauf
+                obligation légale de conservation plus longue, par ex. comptable).</div>
+              <div><strong>Mesures de sécurité</strong><br>Accès à l'application protégé par mot de passe et
+                par rôle ; jetons de session signés (HMAC) ; mots de passe des rôles chiffrés en base
+                (AES-256-GCM) ; Row Level Security activée sur les tables Supabase ; clé secrète Supabase
+                (service_role) jamais utilisée côté serveur ni exposée au navigateur ; les lectures des
+                tables contenant des données personnelles sensibles (inscriptions, cartes d'heures, tickets,
+                travaux) exigent désormais une session authentifiée côté serveur, et non plus seulement côté
+                interface. [À COMPLÉTER : mesures organisationnelles propres au centre équestre — ex.
+                habilitations papier, politique de mots de passe, sauvegardes].</div>
+              <div><strong>Transferts hors UE</strong><br>[À VÉRIFIER PAR LE CENTRE ÉQUESTRE] — selon la
+                région choisie pour le projet Supabase et la configuration Vercel, un transfert hors UE est
+                possible (par défaut, les fonctions serveur Vercel de ce projet s'exécutent aux États-Unis
+                sauf configuration contraire ; Resend stocke les données de compte aux États-Unis). Ces
+                transferts, lorsqu'ils existent, sont encadrés par les clauses contractuelles types proposées
+                par chaque prestataire.</div>
+            </div>
           </div>
         </div>
         <!-- PARAMÈTRES -->
@@ -4832,7 +5018,7 @@
           }
           if (!r.ok) throw new Error(j.error || 'Erreur serveur'); return j;
         }
-        async function dbSel(table, { select = '*', filter = [], order = [] } = {}) { const r = await dbReq({ action: 'query', method: 'select', table, select, filter, order }); return r.data || []; }
+        async function dbSel(table, { select = '*', filter = [], order = [] } = {}) { const r = await dbReq({ action: 'query', method: 'select', table, select, filter, order, token: sessionToken }); return r.data || []; }
         async function dbIns(table, data) { return dbReq({ action: 'query', method: 'insert', table, data, token: sessionToken }); }
         async function dbUpd(table, data, filter) { return dbReq({ action: 'query', method: 'update', table, data, filter, token: sessionToken }); }
         async function dbDel(table, filter) { return dbReq({ action: 'query', method: 'delete', table, filter, token: sessionToken }); }
@@ -4855,6 +5041,25 @@
           if (localStorage.getItem('ce_travaux_active') === '1') return 'travaux';
           if (localStorage.getItem('ce_inscription_active') === '1') return 'inscription';
           return null;
+        }
+
+        // ── Politique de confidentialité : accessible sans connexion ──────
+        function showPrivacyPolicy() {
+          document.getElementById('privacy-policy-overlay').style.display = 'block';
+          window.scrollTo(0, 0);
+        }
+        function hidePrivacyPolicy() {
+          document.getElementById('privacy-policy-overlay').style.display = 'none';
+          // Si on était arrivé directement sur /politique-confidentialite, on revient
+          // à l'URL racine pour ne pas rouvrir la page au prochain rechargement.
+          if (window.location.pathname.replace(/\/$/, '') === '/politique-confidentialite') {
+            window.history.replaceState({}, '', '/');
+          }
+        }
+        // Ouvre directement la politique si on arrive via l'URL /politique-confidentialite
+        // (voir vercel.json pour la règle de réécriture qui sert index.html sur cette URL).
+        if (window.location.pathname.replace(/\/$/, '') === '/politique-confidentialite') {
+          window.addEventListener('DOMContentLoaded', showPrivacyPolicy);
         }
 
         window.onload = async () => {
@@ -5204,6 +5409,7 @@
           document.body.classList.remove('inscription-only-nav');
           document.getElementById('mc').classList.add('wb'); document.getElementById('anav').style.display = 'block';
           const niAnnonces = document.getElementById('ni-annonces'); if (niAnnonces) niAnnonces.style.display = 'none';
+          const niRegistre = document.getElementById('ni-registre-rgpd'); if (niRegistre) niRegistre.style.display = '';
           document.getElementById('nom-pers-co').textContent = '🔐 Claire';
           document.getElementById('atbtn').textContent = '🔒 Quitter Claire'; document.getElementById('atbtn').classList.add('on');
           localStorage.setItem('ce_admin_active', '1');
@@ -5366,6 +5572,7 @@
           document.getElementById('atbtn').classList.add('on');
           localStorage.setItem('ce_Kenny_active', '1');
           const niAnnonces = document.getElementById('ni-annonces'); if (niAnnonces) niAnnonces.style.display = '';
+          const niRegistre = document.getElementById('ni-registre-rgpd'); if (niRegistre) niRegistre.style.display = '';
           updateBannerPadding();
           renderCavaliers(); go(targetPage); toast('Mode Kenny activé', 'ok'); checkAnnonceDisplay();
         }
@@ -5386,7 +5593,7 @@
 
         // ── Nav ──
         function go(p) {
-          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches', 'balades', 'travaux', 'inscriptions-admin', 'params', 'annonces'];
+          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches', 'balades', 'travaux', 'inscriptions-admin', 'params', 'annonces', 'registre-rgpd'];
           // Bloquer les pages admin si pas de rôle élevé
           if (!isAdmin && !isKenny && !isMarine && !isTravaux && adm.includes(p)) return;
           // Marine : seulement séances (+ vue est déjà publique)
@@ -5397,6 +5604,10 @@
           if (isTravaux && !isAdmin && !isKenny && p !== 'travaux') return;
           // Inscription (kiosque) : uniquement le formulaire public, aucune autre page
           if (isInscriptionOnly && p !== 'inscription') return;
+          // Registre RGPD : document interne réservé à l'admin et au dev — contient
+          // des informations organisationnelles qui n'ont pas vocation à être vues
+          // par Marine ou le rôle Travaux.
+          if (p === 'registre-rgpd' && !isAdmin && !isKenny) return;
           // Annonces : réservé au dev, même l'admin n'y a pas accès
           if (p === 'annonces' && !isKenny) return;
           document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
@@ -5436,7 +5647,18 @@
 
         // ── Chargement ──
         async function loadAll() {
-          await Promise.all([loadGrp(), loadCav(), loadChv(), loadMon(), loadStatuts(), loadSemaine(), loadDiscIcons(), loadCartes(), loadAppSettings(), loadTaches()]);      // Rendu final une fois toutes les données chargées (évite les 0 cavaliers / moniteurs manquants)
+          // cartes_heures contient des données de paiement (montants, méthode) :
+          // désormais protégée côté serveur (voir api/db.js), donc on ne la charge
+          // que pour les rôles qui en ont réellement besoin dans l'interface
+          // (admin, dev, marine — via la page Séances / gestion des cartes).
+          // Un visiteur non connecté ne doit jamais tenter cet appel, sinon le
+          // chargement de la page publique échouerait (403).
+          const privileged = localStorage.getItem('ce_admin_active') === '1'
+            || localStorage.getItem('ce_Kenny_active') === '1'
+            || localStorage.getItem('ce_marine_active') === '1';
+          const tasks = [loadGrp(), loadCav(), loadChv(), loadMon(), loadStatuts(), loadSemaine(), loadDiscIcons(), loadAppSettings(), loadTaches()];
+          if (privileged) tasks.push(loadCartes()); else C.cartes = [];
+          await Promise.all(tasks);      // Rendu final une fois toutes les données chargées (évite les 0 cavaliers / moniteurs manquants)
           renderGroupes(); renderCavaliers(); renderMoniteurs(); renderChevaux(); popSelects();
         }
 
