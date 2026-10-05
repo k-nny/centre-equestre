@@ -2322,11 +2322,13 @@
        hidePrivacyPolicy() plus bas, et le petit script de
        redirection /politique-confidentialite en fin de page.
        ══════════════════════════════════════════════════ -->
-  <div id="privacy-policy-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:10000;overflow-y:auto">
+  <div id="privacy-policy-overlay"
+    style="display:none;position:fixed;inset:0;background:var(--bg);z-index:10000;overflow-y:auto">
     <div style="max-width:720px;margin:0 auto;padding:28px 20px 60px">
       <button class="btn btn-g sm" onclick="hidePrivacyPolicy()" style="margin-bottom:18px">← Retour</button>
       <h2 style="margin-top:0">🔒 Politique de confidentialité</h2>
-      <p class="contrat-txt" style="color:var(--muted);font-size:12px">Dernière mise à jour : [À RENSEIGNER : DATE DE MISE À JOUR]</p>
+      <p class="contrat-txt" style="color:var(--muted);font-size:12px">Dernière mise à jour : [À RENSEIGNER : DATE DE
+        MISE À JOUR]</p>
 
       <h4>1. Qui est responsable du traitement des données ?</h4>
       <p class="contrat-txt">Le responsable du traitement est <strong>Les Écuries de l'Octroi</strong>
@@ -3319,9 +3321,26 @@
                 <option value="haute">Haute 🔥</option>
               </select>
             </div>
+            <div class="fg" id="travail-new-photos-fg" style="display:none">
+              <label>Photo</label>
+              <div id="travail-new-photos-preview"
+                style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px"></div>
+            </div>
+            <input type="file" id="travail-new-photo-input" accept="image/*" multiple capture="environment"
+              style="display:none" onchange="onNewTravailPhotoSelected(this)">
             <div class="mf">
               <button class="btn btn-g" onclick="closeMo('mo-travail')">Annuler</button>
               <button class="btn btn-p" onclick="saveTravail()">Enregistrer</button>
+            </div>
+          </div>
+          <!-- Confirmation Oui/Non (remplace window.confirm pour les photos) -->
+          <div class="mo" id="mo-confirm-ouinon">
+            <div class="md" style="max-width:340px;text-align:center">
+              <p id="confirm-ouinon-msg" style="white-space:pre-line;margin:14px 0 20px"></p>
+              <div class="mf" style="justify-content:center">
+                <button class="btn btn-g" id="confirm-ouinon-non">Non</button>
+                <button class="btn btn-p" id="confirm-ouinon-oui">Oui</button>
+              </div>
             </div>
           </div>
         </div>
@@ -5809,6 +5828,7 @@
         }
 
         async function toggleTache(tacheId, date, checked) {
+          if (checked) openPhotoPicker('tache', tacheId, date);
           try {
             const existing = C.tachesComp.find(c => c.tache_id === tacheId && c.date === date);
             if (existing) {
@@ -5831,9 +5851,6 @@
           // Rafraîchit la vue actuellement affichée (publique ou admin) sans planter
           if (document.getElementById('page-taches-pub')?.classList.contains('active')) await loadTachesPub();
           if (document.getElementById('page-taches')?.classList.contains('active')) await renderTachesAdmin();
-          // Ouvre directement l'appareil photo/gestionnaire de fichiers quand on
-          // coche (pas besoin de descendre chercher le bouton 📷)
-          if (checked) openPhotoPicker('tache', tacheId, date);
         }
         let _tachesFreqFilter = 'all';
 
@@ -5899,6 +5916,18 @@
           if (document.getElementById('page-travaux')?.classList.contains('active')) renderTravaux();
         }
 
+        function confirmOuiNon(message) {
+          return new Promise(resolve => {
+            document.getElementById('confirm-ouinon-msg').textContent = message;
+            const oui = document.getElementById('confirm-ouinon-oui');
+            const non = document.getElementById('confirm-ouinon-non');
+            const finish = result => { oui.onclick = null; non.onclick = null; closeMo('mo-confirm-ouinon'); resolve(result); };
+            oui.onclick = () => finish(true);
+            non.onclick = () => finish(false);
+            openMo('mo-confirm-ouinon');
+          });
+        }
+
         async function onPhotoFileSelected(input) {
           const files = Array.from(input.files || []);
           input.value = '';
@@ -5934,7 +5963,7 @@
           }
           // Popup : proposer d'en ajouter une autre tout de suite (utile quand on
           // prend une photo avec l'appareil, qui ne renvoie qu'une image à la fois)
-          if (confirm('Photo ajoutée ✅\n\nVoulez-vous en ajouter une autre ?')) {
+          if (await confirmOuiNon('Photo ajoutée ✅\n\nVoulez-vous en ajouter une autre ?')) {
             openPhotoPicker(ctx.kind, ctx.id, ctx.date);
             return;
           }
@@ -6148,7 +6177,7 @@
         <div style="flex:1;min-width:160px">
           <div style="font-weight:700;font-size:14px;${t.fait ? 'text-decoration:line-through;color:var(--muted)' : ''}">${t.titre}</div>
           ${t.description ? `<div style="font-size:12px;color:var(--muted);margin-top:2px">${t.description}</div>` : ''}
-          ${t.fait ? renderPhotosBlock('travail', t.id, null, t) : ''}
+          ${renderPhotosBlock('travail', t.id, null, t)}
         </div>
         <span class="b ${TRAVAUX_PRIO_BADGE[t.priorite] || 'bgo'}" style="font-size:10px">${TRAVAUX_PRIO_LABEL[t.priorite] || t.priorite}</span>
         ${t.fait ? `<span class="b bg" style="font-size:10px">✅${t.fait_par ? ' ' + t.fait_par : ''}</span>` : ''}
@@ -6159,6 +6188,7 @@
         }
 
         async function toggleTravail(id, checked) {
+          if (checked) openPhotoPicker('travail', id, null);   // ← déplacé ici
           const auteur = isTravaux ? 'Travaux' : isKenny ? 'Kenny' : isAdmin ? 'Admin' : '';
           const data = { fait: checked, completed_at: checked ? new Date().toISOString() : null, fait_par: checked ? auteur : null };
           await dbUpd('travaux', data, [{ col: 'id', op: 'eq', val: id }]);
@@ -6166,14 +6196,41 @@
           if (t) Object.assign(t, data);
           toast(checked ? 'Marqué comme fait ✅' : 'Travail réouvert', 'ok');
           renderTravaux();
-          // Ouvre directement l'appareil photo/gestionnaire de fichiers quand on coche
-          if (checked) openPhotoPicker('travail', id, null);
+          // (supprimer l'ancien appel openPhotoPicker en bas de la fonction)
+        }
+
+        let _newTravailPhotos = [];
+        function renderNewTravailPhotosPreview() {
+          const el = document.getElementById('travail-new-photos-preview'); if (!el) return;
+          el.innerHTML = _newTravailPhotos.map((src, i) => `
+    <span style="position:relative;display:inline-block">
+      <img src="${src}" style="width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">
+      <button type="button" onclick="removeNewTravailPhoto(${i})" style="position:absolute;top:-6px;right:-6px;background:#b43728;color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:10px;line-height:1;cursor:pointer">×</button>
+    </span>`).join('') +
+            `<button type="button" class="btn btn-g sm" onclick="document.getElementById('travail-new-photo-input').click()">📷${_newTravailPhotos.length ? '' : ' Ajouter une photo'}</button>`;
+        }
+        async function onNewTravailPhotoSelected(input) {
+          const files = Array.from(input.files || []);
+          input.value = '';
+          if (!files.length) return;
+          try {
+            const newPhotos = await Promise.all(files.map(f => compressImageFile(f)));
+            _newTravailPhotos.push(...newPhotos);
+            renderNewTravailPhotosPreview();
+          } catch (e) { toast('Erreur photo : ' + e.message, 'err'); }
+        }
+        function removeNewTravailPhoto(i) {
+          _newTravailPhotos.splice(i, 1);
+          renderNewTravailPhotosPreview();
         }
 
         function newTravail() {
           document.getElementById('mo-travail-t').textContent = 'Nouveau travail';
           ['travail-id', 'travail-titre', 'travail-desc'].forEach(i => document.getElementById(i).value = '');
           document.getElementById('travail-prio').value = 'normale';
+          _newTravailPhotos = [];
+          document.getElementById('travail-new-photos-fg').style.display = '';
+          renderNewTravailPhotosPreview();
           openMo('mo-travail');
         }
 
@@ -6184,6 +6241,7 @@
           document.getElementById('travail-titre').value = t.titre;
           document.getElementById('travail-desc').value = t.description || '';
           document.getElementById('travail-prio').value = t.priorite || 'normale';
+          document.getElementById('travail-new-photos-fg').style.display = 'none';
           openMo('mo-travail');
         }
 
@@ -6196,10 +6254,15 @@
             description: v('travail-desc') || null,
             priorite: v('travail-prio') || 'normale',
           };
-          if (id) await dbUpd('travaux', data, [{ col: 'id', op: 'eq', val: id }]);
-          else await dbIns('travaux', { ...data, fait: false });
+          if (id) {
+            await dbUpd('travaux', data, [{ col: 'id', op: 'eq', val: id }]);
+          } else {
+            if (_newTravailPhotos.length) data.photos = JSON.stringify(_newTravailPhotos);
+            await dbIns('travaux', { ...data, fait: false });
+          }
           toast(id ? 'Travail modifié' : 'Travail créé', 'ok');
           closeMo('mo-travail');
+          _newTravailPhotos = [];
           await loadTravaux();
           renderTravaux();
         }
