@@ -5911,10 +5911,10 @@
           document.getElementById('photo-input').click();
         }
 
-        function refreshPhotoViews() {
-          if (document.getElementById('page-taches-pub')?.classList.contains('active')) loadTachesPub();
-          if (document.getElementById('page-taches')?.classList.contains('active')) renderTachesAdmin();
-          if (document.getElementById('page-travaux')?.classList.contains('active')) renderTravaux();
+        async function refreshPhotoViews() {
+          if (document.getElementById('page-taches-pub')?.classList.contains('active')) await loadTachesPub();
+          if (document.getElementById('page-taches')?.classList.contains('active')) await renderTachesAdmin();
+          if (document.getElementById('page-travaux')?.classList.contains('active')) { await loadTravaux(); renderTravaux(); }
         }
 
         function confirmOuiNon(message) {
@@ -5959,7 +5959,7 @@
           } catch (e) {
             toast('Erreur : ' + e.message, 'err');
             _photoPickerCtx = null;
-            refreshPhotoViews();
+            await refreshPhotoViews();
             return;
           }
           // Popup : proposer d'en ajouter une autre tout de suite (utile quand on
@@ -5969,7 +5969,7 @@
             return;
           }
           _photoPickerCtx = null;
-          refreshPhotoViews();
+          await refreshPhotoViews();
         }
 
         async function removePhoto(kind, id, date, index) {
@@ -5989,7 +5989,7 @@
             existing.photos = JSON.stringify(current);
           }
           toast('Photo supprimée', 'ok');
-          refreshPhotoViews();
+          await refreshPhotoViews();
         }
 
         // Visionneuse plein écran — remplace window.open(dataUri) qui est
