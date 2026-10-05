@@ -5163,6 +5163,7 @@
         function togSitePw() { const i = document.getElementById('site-pw-in'); i.type = i.type === 'password' ? 'text' : 'password'; }
 
         async function initApp(siteToken) {
+          sessionToken = siteToken;
           const today = new Date().toISOString().split('T')[0];
           ['pub-date', 'sea-date'].forEach(id => { const e = document.getElementById(id); if (e) e.value = today; });
           document.getElementById('pub-lbl').textContent = fmtL(today);
