@@ -2326,6 +2326,7 @@
     style="display:none;position:fixed;inset:0;background:var(--bg);z-index:10000;overflow-y:auto">
     <div style="max-width:720px;margin:0 auto;padding:28px 20px 60px">
       <button class="btn btn-g sm" onclick="hidePrivacyPolicy()" style="margin-bottom:18px">← Retour</button>
+      <div id="privacy-policy-body"></div>
       <h2 style="margin-top:0">🔒 Politique de confidentialité</h2>
       <p class="contrat-txt" style="color:var(--muted);font-size:12px">Dernière mise à jour : 06/10/2026</p>
 
@@ -2389,7 +2390,8 @@
           données de compte transitant par Resend sont stockées aux États-Unis, encadrées par des clauses
           contractuelles types.</li>
         <li><strong>Google (Gmail)</strong> — envoi par e-mail du contrat d'inscription validé à la famille.
-          Le compte utilisé est dev.gestion.ecuries.octroi@gmail.com — cette distinction détermine le cadre contractuel applicable chez Google
+          Le compte utilisé est dev.gestion.ecuries.octroi@gmail.com — cette distinction détermine le cadre contractuel
+          applicable chez Google
           (un compte Workspace professionnel est couvert par l'accord de traitement des données Google Cloud ;
           un compte Gmail grand public standard ne l'est pas de la même façon).</li>
       </ul>
@@ -2398,7 +2400,8 @@
         lorsque cela est proposé par le prestataire.</p>
 
       <h4>6. Combien de temps les données sont-elles conservées ?</h4>
-      <p class="contrat-txt">2 ans après la fin de la relation contractuelle. Passé ce délai, les données sont supprimées ou archivées séparément avec un accès restreint
+      <p class="contrat-txt">2 ans après la fin de la relation contractuelle. Passé ce délai, les données sont
+        supprimées ou archivées séparément avec un accès restreint
         si une obligation légale (comptable, par exemple) l'impose. Voir le registre interne pour le détail
         par catégorie de données.</p>
 
@@ -2420,7 +2423,8 @@
       <h4>9. Comment exercer vos droits ?</h4>
       <p class="contrat-txt">Pour exercer ces droits, contactez le centre équestre :
         dev.gestion.ecuries.octroi@gmail.com ou par courrier à
-        LES ECURIES DE L'OCTROI, 12 ALLEE DE L'OCTROI, 42800 CHATEAUNEUF. Une réponse vous sera apportée dans un délai maximum d'un mois.
+        LES ECURIES DE L'OCTROI, 12 ALLEE DE L'OCTROI, 42800 CHATEAUNEUF. Une réponse vous sera apportée dans un délai
+        maximum d'un mois.
         Une pièce d'identité pourra être demandée en cas de doute raisonnable sur votre identité.</p>
 
       <h4>10. Réclamation auprès de la CNIL</h4>
@@ -2429,6 +2433,7 @@
         Libertés (CNIL) — <a href="https://www.cnil.fr" target="_blank" rel="noopener">www.cnil.fr</a>,
         3 Place de Fontenoy, TSA 80715, 75334 Paris Cedex 07.</p>
     </div>
+  </div>
   </div>
   <div id="ld" style="display:none">
     <div class="logo">🐴</div>
@@ -2483,13 +2488,13 @@
             <button class="ni" data-p="moniteurs" onclick="go('moniteurs')"><span class="ic">👤</span>Moniteurs</button>
             <button class="ni" id="ni-params" data-p="params" onclick="go('params')"> <span
                 class="ic">⚙️</span>Paramètres</button>
+            <button class="ni" id="ni-registre-rgpd" data-p="registre-rgpd" onclick="go('registre-rgpd')"
+              style="display:none"> <span class="ic">🔒</span> Registre RGPD</button>
             <button class="ni" id="ni-tickets" onclick="go('tickets')"> <span class="ic">📝</span> Retours</button>
             <button class="ni" data-p="stages" onclick="go('stages')"><span class="ic">🏕</span>Stages</button>
             <button class="ni" data-p="taches" onclick="go('taches')"> <span class="ic">✅</span> Tâches</button>
             <button class="ni" data-p="travaux" onclick="go('travaux')"> <span class="ic">🔧</span> Travaux</button>
             <button class="ni" data-p="dash" onclick="go('dash')"><span class="ic">⬛</span>Tableau de bord</button>
-            <button class="ni" id="ni-registre-rgpd" data-p="registre-rgpd" onclick="go('registre-rgpd')"
-              style="display:none"> <span class="ic">🔒</span> Registre RGPD</button>
           </div>
         </div>
         <div class="sb-bot"><button class="atbtn" id="atbtn" onclick="handleAdminToggle()">🔑 Mode
@@ -3702,6 +3707,24 @@
             </table>
           </div>
         </div>
+        <!-- REGISTRE RGPD (interne, admin/dev uniquement) -->
+        <div class="page" id="page-registre-rgpd">
+          <div class="ph">
+            <h2>🔒 Registre RGPD — Gestion des cavaliers</h2>
+            <p class="no-upper">Document interne (article 30 du RGPD). Réservé à l'administration du centre
+              équestre — ne pas diffuser publiquement.</p>
+          </div>
+          <div style="padding:16px 18px">
+            <p class="no-upper" style="margin-top:0">Modifiez ici le texte affiché publiquement.</p>
+            <textarea id="privacy-policy-editor" rows="18"
+              style="width:100%;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
+            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+              <button class="btn btn-p" onclick="savePrivacyPolicyText()">Enregistrer</button>
+              <button class="btn btn-g" onclick="previewPrivacyPolicyText()">Aperçu</button>
+              <button class="btn btn-g" onclick="resetPrivacyPolicyText()">Réinitialiser au texte par défaut</button>
+            </div>
+          </div>
+        </div>
         <!-- PARAMÈTRES -->
         <div id="page-params" class="page">
           <div class="ph">
@@ -3991,6 +4014,7 @@
                   <span class="access-chip admin">📄 Inscriptions</span>
                   <span class="access-chip admin">👤 Moniteurs</span>
                   <span class="access-chip admin">⚙️ Paramètres</span>
+                  <span class="access-chip admin">🔒 Registre RGPD</span>
                   <span class="access-chip admin">📝 Retours</span>
                   <span class="access-chip admin">🏕 Stages</span>
                   <span class="access-chip admin">✅ Tâches</span>
@@ -4057,6 +4081,7 @@
                   <span class="access-chip admin">📄 Inscriptions</span>
                   <span class="access-chip admin">👤 Moniteurs</span>
                   <span class="access-chip admin">⚙️ Paramètres</span>
+                  <span class="access-chip admin">🔒 Registre RGPD</span>
                   <span class="access-chip admin">📝 Retours</span>
                   <span class="access-chip admin">🏕 Stages</span>
                   <span class="access-chip admin">✅ Tâches</span>
@@ -5004,10 +5029,126 @@
           return null;
         }
 
+        const DEFAULT_PRIVACY_POLICY_HTML = `
+          <h2 style="margin-top:0">🔒 Politique de confidentialité</h2>
+      <p class="contrat-txt" style="color:var(--muted);font-size:12px">Dernière mise à jour : 06/10/2026</p>
+
+      <h4>1. Qui est responsable du traitement des données ?</h4>
+      <p class="contrat-txt">Le responsable du traitement est <strong>Les Écuries de l'Octroi</strong>
+        Entrepreneur individuel — Enseignement de disciplines sportives et d’activités de loisirs — 432 408 961 00014,
+        dont le siège est situé : LES ECURIES DE L'OCTROI, 12 ALLEE DE L'OCTROI, 42800 CHATEAUNEUF,
+        représenté(e) par Claire MATHEVET.</p>
+
+      <h4>2. Quelles données sont collectées, et pourquoi ?</h4>
+      <p class="contrat-txt">Dans le cadre de la gestion de ses activités (inscriptions, planning des cours,
+        cartes d'heures, sorties/stages, sécurité des cavaliers), le centre équestre collecte :</p>
+      <ul class="contrat-txt">
+        <li>l'identité du cavalier (nom, prénom, date de naissance) et, s'il est mineur, celle de son
+          responsable légal ;</li>
+        <li>des coordonnées (adresse postale, e-mail, téléphone) du cavalier et/ou de son responsable légal ;</li>
+        <li>les coordonnées d'une ou plusieurs personnes à prévenir en cas d'urgence ;</li>
+        <li>des informations relatives à l'aptitude médicale à la pratique de l'équitation, limitées à la
+          case à cocher « avis médical favorable recueilli » (le certificat médical lui-même, le cas échéant,
+          n'est pas déposé dans l'application) — il s'agit d'une donnée de santé au sens du RGPD, traitée avec
+          une vigilance renforcée ;</li>
+        <li>le choix exprimé concernant le droit à l'image et l'appartenance à un groupe WhatsApp du cours ;</li>
+        <li>la signature électronique et la date de signature du contrat d'inscription ;</li>
+        <li>des informations de règlement (numéro de chèque, méthode de paiement, montants) lorsque des
+          paiements sont enregistrés dans l'application ;</li>
+        <li>le contenu des messages envoyés via le formulaire de ticket/support interne, le cas échéant.</li>
+      </ul>
+      <p class="contrat-txt">Ces données sont utilisées exclusivement pour : identifier les cavaliers,
+        gérer leurs inscriptions et leur dossier, organiser les cours/stages/sorties, assurer la sécurité
+        (personnes à prévenir, aptitude médicale) et contacter les familles dans le cadre des activités du
+        centre équestre. Elles ne sont ni publiées, ni cédées ou louées à des tiers à des fins commerciales.</p>
+
+      <h4>3. Sur quelle base légale ?</h4>
+      <p class="contrat-txt">Le traitement repose principalement sur l'exécution du contrat d'inscription
+        conclu avec le centre équestre (article 6.1.b du RGPD) et, pour la sécurité des cavaliers, sur l'intérêt
+        légitime du centre équestre à pouvoir réagir en cas d'urgence (article 6.1.f). Les données de santé
+        (case « avis médical ») et le droit à l'image sont traités sur la base du consentement explicite donné
+        lors de la signature du contrat (article 6.1.a et, pour les données de santé, article 9.2.a) ; ce
+        consentement peut être retiré à tout moment (voir section 6).</p>
+
+      <h4>4. Qui a accès aux données ?</h4>
+      <p class="contrat-txt">Seules les personnes habilitées du centre équestre (direction, encadrement
+        administratif) ayant besoin d'en connaître pour l'exercice de leurs missions accèdent aux données,
+        via un accès protégé par mot de passe et par rôle. Aucune donnée n'est vendue ni communiquée à des
+        tiers à des fins commerciales.</p>
+
+      <h4>5. Prestataires techniques (sous-traitants)</h4>
+      <p class="contrat-txt">Pour fonctionner, l'application fait appel aux prestataires techniques
+        suivants, qui interviennent en tant que sous-traitants au sens du RGPD dans la seule mesure nécessaire
+        au fonctionnement du service :</p>
+      <ul class="contrat-txt">
+        <li><strong>Vercel Inc.</strong> — hébergement du site et exécution du code serveur qui traite les
+          demandes. Vercel propose un accord de traitement des données (DPA) et des clauses contractuelles
+          types pour les transferts hors UE ; sauf configuration contraire du centre équestre, les fonctions
+          serveur de ce projet s'exécutent par défaut aux États-Unis (région <em>iad1</em>, Washington D.C.).</li>
+        <li><strong>Supabase</strong> — hébergement de la base de données et, le cas échéant, des fichiers
+          (icônes). Supabase propose un DPA et des clauses contractuelles types ; la région d'hébergement
+          exacte (UE ou hors UE) dépend de la configuration choisie par le centre équestre lors de la création
+          du projet Supabase — West EU.</li>
+        <li><strong>Resend</strong> — envoi de certains e-mails automatiques (notifications internes). Les
+          données de compte transitant par Resend sont stockées aux États-Unis, encadrées par des clauses
+          contractuelles types.</li>
+        <li><strong>Google (Gmail)</strong> — envoi par e-mail du contrat d'inscription validé à la famille.
+          Le compte utilisé est dev.gestion.ecuries.octroi@gmail.com — cette distinction détermine le cadre contractuel
+          applicable chez Google
+          (un compte Workspace professionnel est couvert par l'accord de traitement des données Google Cloud ;
+          un compte Gmail grand public standard ne l'est pas de la même façon).</li>
+      </ul>
+      <p class="contrat-txt">Le centre équestre s'engage à vérifier, avant la mise en service définitive,
+        que les accords de traitement des données de chacun de ces prestataires ont bien été acceptés/signés
+        lorsque cela est proposé par le prestataire.</p>
+
+      <h4>6. Combien de temps les données sont-elles conservées ?</h4>
+      <p class="contrat-txt">2 ans après la fin de la relation contractuelle. Passé ce délai, les données sont
+        supprimées ou archivées séparément avec un accès restreint
+        si une obligation légale (comptable, par exemple) l'impose. Voir le registre interne pour le détail
+        par catégorie de données.</p>
+
+      <h4>7. Cookies et traceurs</h4>
+      <p class="contrat-txt">Ce site ne dépose aucun cookie ni traceur publicitaire ou de mesure d'audience.
+        Il utilise uniquement le stockage local du navigateur (<code>localStorage</code>), sur l'appareil de
+        la personne, pour retenir sa session de connexion et la dernière page consultée. Cette information
+        reste sur l'appareil, n'est jamais transmise à un tiers, et est nécessaire au fonctionnement du service
+        (maintien de la connexion) : elle est donc exemptée de consentement au sens des recommandations de la
+        CNIL. Aucune bannière de consentement n'est par conséquent affichée.</p>
+
+      <h4>8. Vos droits</h4>
+      <p class="contrat-txt">Conformément au RGPD et à la loi Informatique et Libertés, vous disposez d'un
+        droit d'accès, de rectification, d'effacement, de limitation, d'opposition et, dans certains cas, de
+        portabilité de vos données. Vous pouvez également retirer à tout moment votre consentement (droit à
+        l'image, groupe WhatsApp, avis médical) sans que cela remette en cause la licéité des traitements
+        déjà effectués.</p>
+
+      <h4>9. Comment exercer vos droits ?</h4>
+      <p class="contrat-txt">Pour exercer ces droits, contactez le centre équestre :
+        dev.gestion.ecuries.octroi@gmail.com ou par courrier à
+        LES ECURIES DE L'OCTROI, 12 ALLEE DE L'OCTROI, 42800 CHATEAUNEUF. Une réponse vous sera apportée dans un délai
+        maximum d'un mois.
+        Une pièce d'identité pourra être demandée en cas de doute raisonnable sur votre identité.</p>
+
+      <h4>10. Réclamation auprès de la CNIL</h4>
+      <p class="contrat-txt">Si vous estimez, après nous avoir contactés, que vos droits ne sont pas
+        respectés, vous pouvez adresser une réclamation à la Commission Nationale de l'Informatique et des
+        Libertés (CNIL) — <a href="https://www.cnil.fr" target="_blank" rel="noopener">www.cnil.fr</a>,
+        3 Place de Fontenoy, TSA 80715, 75334 Paris Cedex 07.</p>
+        `;
+
         // ── Politique de confidentialité : accessible sans connexion ──────
-        function showPrivacyPolicy() {
+        async function showPrivacyPolicy() {
+          const body = document.getElementById('privacy-policy-body');
+          body.innerHTML = APP_SETTINGS.privacy_policy_html || DEFAULT_PRIVACY_POLICY_HTML;
           document.getElementById('privacy-policy-overlay').style.display = 'block';
           window.scrollTo(0, 0);
+          if (!APP_SETTINGS.privacy_policy_html) {
+            try {
+              const r = await dbSel('app_params', { filter: [{ col: 'key', op: 'eq', val: 'privacy_policy_html' }] });
+              if (r?.[0]?.value) { APP_SETTINGS.privacy_policy_html = r[0].value; body.innerHTML = r[0].value; }
+            } catch { /* silencieux */ }
+          }
         }
         function hidePrivacyPolicy() {
           document.getElementById('privacy-policy-overlay').style.display = 'none';
@@ -5606,6 +5747,7 @@
             renderTachesAdmin();
           }
           if (p === 'params') renderParamsPage();
+          if (p === 'registre-rgpd') renderRegistreRgpdPage();
           if (p === 'travaux') loadTravauxPage();
           if (p === 'inscription') initInscriptionPage();
           if (p === 'inscriptions-admin') loadInscriptionsAdmin();
@@ -10561,6 +10703,27 @@
           if (_currentAnnonceId) localStorage.setItem('ce_annonce_seen_' + _currentAnnonceId, '1');
           document.getElementById('annonce-overlay').style.display = 'none';
           checkAnnonceDisplay(); // fait apparaître le bandeau persistant à la place
+        }
+
+        function renderRegistreRgpdPage() {
+          const ta = document.getElementById('privacy-policy-editor');
+          if (ta) ta.value = APP_SETTINGS.privacy_policy_html || DEFAULT_PRIVACY_POLICY_HTML;
+        }
+        async function savePrivacyPolicyText() {
+          const val = document.getElementById('privacy-policy-editor').value;
+          if (!val.trim()) { toast('Le texte ne peut pas être vide', 'err'); return; }
+          await upsertParam('privacy_policy_html', val);
+          APP_SETTINGS.privacy_policy_html = val;
+          toast('Politique de confidentialité enregistrée ✅', 'ok');
+        }
+        function previewPrivacyPolicyText() {
+          document.getElementById('privacy-policy-body').innerHTML = document.getElementById('privacy-policy-editor').value;
+          document.getElementById('privacy-policy-overlay').style.display = 'block';
+          window.scrollTo(0, 0);
+        }
+        function resetPrivacyPolicyText() {
+          if (!confirm('Remplacer par le texte par défaut ? Non enregistré tant que vous ne cliquez pas sur Enregistrer.')) return;
+          document.getElementById('privacy-policy-editor').value = DEFAULT_PRIVACY_POLICY_HTML;
         }
 
         // ══════════════════════════════════════════════════
