@@ -3606,10 +3606,20 @@
         <div class="page" id="page-registre-rgpd">
           <div class="ph">
             <h2>🔒 Registre RGPD — Gestion des cavaliers</h2>
-            <p class="no-upper">Réservé à l'administration du centre équestre — Ce texte apparaît publiquement. Visible depuis l'écran de connexion ainsi que depuis le formulaire d'inscription.</p>
+            <p class="no-upper">Réservé à l'administration du centre équestre — Ce texte apparaît publiquement. Visible
+              depuis l'écran de connexion ainsi que depuis le formulaire d'inscription.</p>
           </div>
           <div style="padding:16px 18px">
             <p class="no-upper" style="margin-top:0">Modifiez ici le texte affiché publiquement.</p>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+              <button type="button" class="btn btn-g sm" onclick="privacyWrapSelection('h4')">🔠 Titre de
+                section</button>
+              <button type="button" class="btn btn-g sm" onclick="privacyWrapSelection('p')">¶ Paragraphe</button>
+              <button type="button" class="btn btn-g sm" onclick="privacyWrapSelection('strong')"><strong>G</strong>
+                Gras</button>
+              <button type="button" class="btn btn-g sm" onclick="privacyInsertList()">• Liste à puces</button>
+              <button type="button" class="btn btn-g sm" onclick="privacyInsertLink()">🔗 Lien</button>
+            </div>
             <textarea id="privacy-policy-editor" rows="18"
               style="width:100%;font-family:monospace;font-size:12px;line-height:1.5"></textarea>
             <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
@@ -10597,6 +10607,39 @@
           if (_currentAnnonceId) localStorage.setItem('ce_annonce_seen_' + _currentAnnonceId, '1');
           document.getElementById('annonce-overlay').style.display = 'none';
           checkAnnonceDisplay(); // fait apparaître le bandeau persistant à la place
+        }
+
+        function privacyWrapSelection(tag) {
+          const ta = document.getElementById('privacy-policy-editor');
+          const start = ta.selectionStart, end = ta.selectionEnd;
+          const placeholder = tag === 'h4' ? 'Titre de section' : tag === 'strong' ? 'texte important' : 'Votre texte ici';
+          const selected = ta.value.slice(start, end) || placeholder;
+          const openTag = tag === 'p' ? '<p class="contrat-txt">' : `<${tag}>`;
+          const insert = openTag + selected + `</${tag}>` + (tag !== 'strong' ? '\n' : '');
+          ta.value = ta.value.slice(0, start) + insert + ta.value.slice(end);
+          ta.focus();
+          ta.setSelectionRange(start + insert.length, start + insert.length);
+        }
+        function privacyInsertList() {
+          const ta = document.getElementById('privacy-policy-editor');
+          const start = ta.selectionStart, end = ta.selectionEnd;
+          const selected = ta.value.slice(start, end);
+          const lines = (selected || 'Premier élément\nDeuxième élément').split('\n').map(l => l.trim()).filter(Boolean);
+          const insert = '<ul class="contrat-txt">\n' + lines.map(l => `  <li>${l}</li>`).join('\n') + '\n</ul>\n';
+          ta.value = ta.value.slice(0, start) + insert + ta.value.slice(end);
+          ta.focus();
+          ta.setSelectionRange(start + insert.length, start + insert.length);
+        }
+        function privacyInsertLink() {
+          const ta = document.getElementById('privacy-policy-editor');
+          const start = ta.selectionStart, end = ta.selectionEnd;
+          const selected = ta.value.slice(start, end) || 'texte du lien';
+          const url = prompt('Adresse du lien (ex: https://www.cnil.fr) :', 'https://');
+          if (!url) return;
+          const insert = `<a href="${url}" target="_blank" rel="noopener">${selected}</a>`;
+          ta.value = ta.value.slice(0, start) + insert + ta.value.slice(end);
+          ta.focus();
+          ta.setSelectionRange(start + insert.length, start + insert.length);
         }
 
         function renderRegistreRgpdPage() {
