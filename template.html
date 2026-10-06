@@ -2398,9 +2398,7 @@
         lorsque cela est proposé par le prestataire.</p>
 
       <h4>6. Combien de temps les données sont-elles conservées ?</h4>
-      <p class="contrat-txt">[À DÉFINIR PAR LE CENTRE ÉQUESTRE — durée de conservation en base active, par
-        exemple la durée de la saison en cours + un nombre d'années à préciser en cas de relation contractuelle
-        continue]. Passé ce délai, les données sont supprimées ou archivées séparément avec un accès restreint
+      <p class="contrat-txt">2 ans après la fin de la relation contractuelle. Passé ce délai, les données sont supprimées ou archivées séparément avec un accès restreint
         si une obligation légale (comptable, par exemple) l'impose. Voir le registre interne pour le détail
         par catégorie de données.</p>
 
@@ -3702,61 +3700,6 @@
               </thead>
               <tbody id="tickets-tbody"></tbody>
             </table>
-          </div>
-        </div>
-        <!-- REGISTRE RGPD (interne, admin/dev uniquement) -->
-        <div class="page" id="page-registre-rgpd">
-          <div class="ph">
-            <h2>🔒 Registre RGPD — Gestion des cavaliers</h2>
-            <p class="no-upper">Document interne (article 30 du RGPD). Réservé à l'administration du centre
-              équestre — ne pas diffuser publiquement.</p>
-          </div>
-          <div class="tc" style="margin-bottom:20px">
-            <div style="padding:16px 18px;display:flex;flex-direction:column;gap:14px;font-size:13px;line-height:1.7">
-              <div><strong>Responsable du traitement</strong><br>Les Écuries de l'Octroi —
-                [À RENSEIGNER : forme juridique, SIRET, adresse, représentant légal]</div>
-              <div><strong>Finalité du traitement</strong><br>Gestion administrative et pédagogique des
-                cavaliers : inscription, planning des cours/stages/sorties, cartes d'heures, sécurité
-                (personnes à prévenir, aptitude médicale déclarée), communication liée aux activités du
-                centre équestre.</div>
-              <div><strong>Catégories de personnes concernées</strong><br>Cavaliers (mineurs et majeurs),
-                responsables légaux des cavaliers mineurs, personnes à prévenir en cas d'urgence,
-                moniteurs/encadrants du centre.</div>
-              <div><strong>Catégories de données traitées</strong><br>Identité (nom, prénom, date de
-                naissance, sexe), coordonnées (adresse, e-mail, téléphone), coordonnées de contacts
-                d'urgence, donnée de santé déclarative (case « avis médical favorable »), droit à l'image
-                (oui/non), participation à un groupe WhatsApp (oui/non), signature électronique, données de
-                règlement (méthode, numéro de chèque, montants), historique de présence aux cours.</div>
-              <div><strong>Base légale</strong><br>Exécution du contrat d'inscription (art. 6.1.b) ;
-                intérêt légitime pour la sécurité des cavaliers (art. 6.1.f) ; consentement pour le droit à
-                l'image, le groupe WhatsApp et la donnée de santé déclarative (art. 6.1.a et 9.2.a).</div>
-              <div><strong>Destinataires</strong><br>Personnel habilité du centre équestre (direction,
-                encadrement administratif) selon le rôle attribué dans l'application (admin, dev, marine,
-                travaux, inscription). Aucune donnée n'est cédée à des tiers à des fins commerciales.</div>
-              <div><strong>Sous-traitants</strong><br>Vercel Inc. (hébergement / exécution du code serveur) ·
-                Supabase (base de données, stockage de fichiers) · Resend (envoi d'e-mails automatiques) ·
-                Google (envoi du contrat par e-mail via Gmail — [À RENSEIGNER : compte Workspace
-                professionnel ou Gmail grand public]). Voir la politique de confidentialité publique pour le
-                détail.</div>
-              <div><strong>Durée de conservation</strong><br>2 ans après la fin de la relation contractuelle. À distinguer :
-                données en base active (cavaliers inscrits à la saison en cours) · données archivées
-                (anciens cavaliers, accès restreint) · données supprimées (au terme de la durée retenue, sauf
-                obligation légale de conservation plus longue, par ex. comptable).</div>
-              <div><strong>Mesures de sécurité</strong><br>Accès à l'application protégé par mot de passe et
-                par rôle ; jetons de session signés (HMAC) ; mots de passe des rôles chiffrés en base
-                (AES-256-GCM) ; Row Level Security activée sur les tables Supabase ; clé secrète Supabase
-                (service_role) jamais utilisée côté serveur ni exposée au navigateur ; les lectures des
-                tables contenant des données personnelles sensibles (inscriptions, cartes d'heures, tickets,
-                travaux) exigent désormais une session authentifiée côté serveur, et non plus seulement côté
-                interface. [À COMPLÉTER : mesures organisationnelles propres au centre équestre — ex.
-                habilitations papier, politique de mots de passe, sauvegardes].</div>
-              <div><strong>Transferts hors UE</strong><br>[À VÉRIFIER PAR LE CENTRE ÉQUESTRE] — selon la
-                région choisie pour le projet Supabase et la configuration Vercel, un transfert hors UE est
-                possible (par défaut, les fonctions serveur Vercel de ce projet s'exécutent aux États-Unis
-                sauf configuration contraire ; Resend stocke les données de compte aux États-Unis). Ces
-                transferts, lorsqu'ils existent, sont encadrés par les clauses contractuelles types proposées
-                par chaque prestataire.</div>
-            </div>
           </div>
         </div>
         <!-- PARAMÈTRES -->
