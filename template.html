@@ -5916,16 +5916,13 @@
         if (document.getElementById('page-travaux')?.classList.contains('active')) { await loadTravaux(); renderTravaux(); }
       }
 
-      function confirmOuiNon(message) {
-        return new Promise(resolve => {
-          document.getElementById('confirm-ouinon-msg').textContent = message;
-          const oui = document.getElementById('confirm-ouinon-oui');
-          const non = document.getElementById('confirm-ouinon-non');
-          const finish = result => { oui.onclick = null; non.onclick = null; closeMo('mo-confirm-ouinon'); resolve(result); };
-          oui.onclick = () => finish(true);
-          non.onclick = () => finish(false);
-          openMo('mo-confirm-ouinon');
-        });
+      function askAddAnotherPhoto(ctx) {
+        document.getElementById('confirm-ouinon-msg').textContent = 'Photo ajoutée ✅\n\nVoulez-vous en ajouter une autre ?';
+        const oui = document.getElementById('confirm-ouinon-oui');
+        const non = document.getElementById('confirm-ouinon-non');
+        oui.onclick = () => { closeMo('mo-confirm-ouinon'); openPhotoPicker(ctx.kind, ctx.id, ctx.date); };
+        non.onclick = () => { closeMo('mo-confirm-ouinon'); _photoPickerCtx = null; };
+        openMo('mo-confirm-ouinon');
       }
 
       async function onPhotoFileSelected(input) {
@@ -5963,12 +5960,8 @@
         }
         // Popup : proposer d'en ajouter une autre tout de suite (utile quand on
         // prend une photo avec l'appareil, qui ne renvoie qu'une image à la fois)
-        if (await confirmOuiNon('Photo ajoutée ✅\n\nVoulez-vous en ajouter une autre ?')) {
-          openPhotoPicker(ctx.kind, ctx.id, ctx.date);
-          return;
-        }
-        _photoPickerCtx = null;
         await refreshPhotoViews();
+        askAddAnotherPhoto(ctx);
       }
 
       async function removePhoto(kind, id, date, index) {
