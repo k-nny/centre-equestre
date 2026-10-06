@@ -2322,11 +2322,13 @@
        hidePrivacyPolicy() plus bas, et le petit script de
        redirection /politique-confidentialite en fin de page.
        ══════════════════════════════════════════════════ -->
-  <div id="privacy-policy-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:10000;overflow-y:auto">
+  <div id="privacy-policy-overlay"
+    style="display:none;position:fixed;inset:0;background:var(--bg);z-index:10000;overflow-y:auto">
     <div style="max-width:720px;margin:0 auto;padding:28px 20px 60px">
       <button class="btn btn-g sm" onclick="hidePrivacyPolicy()" style="margin-bottom:18px">← Retour</button>
       <h2 style="margin-top:0">🔒 Politique de confidentialité</h2>
-      <p class="contrat-txt" style="color:var(--muted);font-size:12px">Dernière mise à jour : [À RENSEIGNER : DATE DE MISE À JOUR]</p>
+      <p class="contrat-txt" style="color:var(--muted);font-size:12px">Dernière mise à jour : [À RENSEIGNER : DATE DE
+        MISE À JOUR]</p>
 
       <h4>1. Qui est responsable du traitement des données ?</h4>
       <p class="contrat-txt">Le responsable du traitement est <strong>Les Écuries de l'Octroi</strong>
@@ -3321,7 +3323,8 @@
             </div>
             <div class="fg" id="travail-new-photos-fg" style="display:none">
               <label>Photo</label>
-              <div id="travail-new-photos-preview" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px"></div>
+              <div id="travail-new-photos-preview"
+                style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px"></div>
             </div>
             <input type="file" id="travail-new-photo-input" accept="image/*" multiple capture="environment"
               style="display:none" onchange="onNewTravailPhotoSelected(this)">
@@ -5920,14 +5923,11 @@
         }
 
         async function refreshPhotoViews() {
-          // Recharge systématiquement depuis la base (comme le ferait un F5)
-          // avant de redessiner, plutôt que de se fier à l'état local en
-          // mémoire — qui peut être perdu si l'onglet a été mis en veille/
-          // rechargé par le système pendant que l'appareil photo était ouvert
-          // (fréquent sur Android).
-          if (document.getElementById('page-taches-pub')?.classList.contains('active')) await loadTachesPub();
-          if (document.getElementById('page-taches')?.classList.contains('active')) await renderTachesAdmin();
-          if (document.getElementById('page-travaux')?.classList.contains('active')) { await loadTravaux(); renderTravaux(); }
+          try {
+            if (document.getElementById('page-taches-pub')?.classList.contains('active')) await loadTachesPub();
+            if (document.getElementById('page-taches')?.classList.contains('active')) await renderTachesAdmin();
+            if (document.getElementById('page-travaux')?.classList.contains('active')) { await loadTravaux(); renderTravaux(); }
+          } catch (e) { /* silencieux : la sauvegarde a déjà eu lieu, seul l'affichage peut être en retard */ }
         }
 
         // Modale Oui/Non pour proposer d'ajouter une autre photo. À la
