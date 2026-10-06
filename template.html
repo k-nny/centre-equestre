@@ -5321,6 +5321,8 @@
             else if (page === 'dash') renderDash();
             else if (page === 'taches-pub') await loadTachesPub();
             else if (page === 'balades-pub') await loadBaladesPub();
+            else if (page === 'travaux') { await loadTravaux(); renderTravaux(); }
+            else if (page === 'taches') await renderTachesAdmin();
           } catch { /* silencieux */ }
         }
 
