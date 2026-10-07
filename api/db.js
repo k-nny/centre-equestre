@@ -522,6 +522,21 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: 'Table protégée' });
       }
 
+      // ── RGPD / sécurité : tables contenant des données personnelles ou
+      // sensibles qui ne sont JAMAIS consultées par un visiteur non connecté
+      // dans l'interface (inscriptions, paiements, tickets, travaux).
+      // Avant ce correctif, seule l'interface cachait ces pages — un appel
+      // direct à /api/db (sans mot de passe) permettait de les lire en
+      // clair. On exige désormais un token de session valide (n'importe
+      // quel rôle) pour toute lecture ('select') sur ces tables.
+      const PERSONAL_DATA_TABLES = ['inscriptions', 'cartes_heures', 'tickets', 'ticket_retours', 'travaux'];
+      if (body.method === 'select' && PERSONAL_DATA_TABLES.includes(body.table)) {
+        const hasValidToken = ROLES.some(r => verifyToken(body.token, r));
+        if (!hasValidToken) {
+          return res.status(403).json({ error: 'Authentification requise pour accéder à ces données' });
+        }
+      }
+
       // Vérifier le token pour les mutations (insert/update/delete)
       const isMutation = ['insert', 'update', 'delete'].includes(body.method);
       if (isMutation) {
