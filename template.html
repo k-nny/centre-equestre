@@ -10609,38 +10609,46 @@
           checkAnnonceDisplay(); // fait apparaître le bandeau persistant à la place
         }
 
-        function privacyWrapSelection(tag) {
-          const ta = document.getElementById('privacy-policy-editor');
-          const start = ta.selectionStart, end = ta.selectionEnd;
-          const placeholder = tag === 'h4' ? 'Titre de section' : tag === 'strong' ? 'texte important' : 'Votre texte ici';
-          const selected = ta.value.slice(start, end) || placeholder;
-          const openTag = tag === 'p' ? '<p class="contrat-txt">' : `<${tag}>`;
-          const insert = openTag + selected + `</${tag}>` + (tag !== 'strong' ? '\n' : '');
-          ta.value = ta.value.slice(0, start) + insert + ta.value.slice(end);
-          ta.focus();
-          ta.setSelectionRange(start + insert.length, start + insert.length);
-        }
-        function privacyInsertList() {
-          const ta = document.getElementById('privacy-policy-editor');
-          const start = ta.selectionStart, end = ta.selectionEnd;
-          const selected = ta.value.slice(start, end);
-          const lines = (selected || 'Premier élément\nDeuxième élément').split('\n').map(l => l.trim()).filter(Boolean);
-          const insert = '<ul class="contrat-txt">\n' + lines.map(l => `  <li>${l}</li>`).join('\n') + '\n</ul>\n';
-          ta.value = ta.value.slice(0, start) + insert + ta.value.slice(end);
-          ta.focus();
-          ta.setSelectionRange(start + insert.length, start + insert.length);
-        }
-        function privacyInsertLink() {
-          const ta = document.getElementById('privacy-policy-editor');
-          const start = ta.selectionStart, end = ta.selectionEnd;
-          const selected = ta.value.slice(start, end) || 'texte du lien';
-          const url = prompt('Adresse du lien (ex: https://www.cnil.fr) :', 'https://');
-          if (!url) return;
-          const insert = `<a href="${url}" target="_blank" rel="noopener">${selected}</a>`;
-          ta.value = ta.value.slice(0, start) + insert + ta.value.slice(end);
-          ta.focus();
-          ta.setSelectionRange(start + insert.length, start + insert.length);
-        }
+        function privacyInsertAtSelection(text) {
+  const ta = document.getElementById('privacy-policy-editor');
+  ta.focus();
+  const ok = document.queryCommandSupported?.('insertText') && document.execCommand('insertText', false, text);
+  if (!ok) {
+    const start = ta.selectionStart, end = ta.selectionEnd;
+    ta.value = ta.value.slice(0, start) + text + ta.value.slice(end);
+    ta.setSelectionRange(start + text.length, start + text.length);
+  }
+}
+
+function privacyWrapSelection(tag) {
+  const ta = document.getElementById('privacy-policy-editor');
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  const placeholder = tag === 'h4' ? 'Titre de section' : tag === 'strong' ? 'texte important' : 'Votre texte ici';
+  const selected = ta.value.slice(start, end) || placeholder;
+  const openTag = tag === 'p' ? '<p class="contrat-txt">' : `<${tag}>`;
+  const text = openTag + selected + `</${tag}>` + (tag !== 'strong' ? '\n' : '');
+  privacyInsertAtSelection(text);
+}
+
+function privacyInsertList() {
+  const ta = document.getElementById('privacy-policy-editor');
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  const selected = ta.value.slice(start, end);
+  const lines = (selected || 'Premier élément\nDeuxième élément').split('\n').map(l => l.trim()).filter(Boolean);
+  const text = '<ul class="contrat-txt">\n' + lines.map(l => `  <li>${l}</li>`).join('\n') + '\n</ul>\n';
+  privacyInsertAtSelection(text);
+}
+
+function privacyInsertLink() {
+  const ta = document.getElementById('privacy-policy-editor');
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  const selected = ta.value.slice(start, end) || 'texte du lien';
+  const url = prompt('Adresse du lien (ex: https://www.cnil.fr) :', 'https://');
+  if (!url) return;
+  ta.focus();
+  ta.setSelectionRange(start, end);
+  privacyInsertAtSelection(`<a href="${url}" target="_blank" rel="noopener">${selected}</a>`);
+}
 
         function renderRegistreRgpdPage() {
           const ta = document.getElementById('privacy-policy-editor');
