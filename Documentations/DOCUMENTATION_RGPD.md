@@ -129,19 +129,3 @@ Deux scripts externes sont chargés depuis un CDN (jsDelivr) : `jspdf` et
 `html2canvas`, utilisés uniquement pour générer localement, dans le
 navigateur de l'administrateur, le PDF du contrat d'inscription. Ils ne
 déposent pas de traceur.
-
-## 9. Ce qui reste à faire
-
-- Compléter tout `[À RENSEIGNER]` restant dans la Politique de
-  confidentialité et le Registre RGPD (Admin/Dev → 🔒 Registre RGPD)
-- Vérifier RLS/policies sur `inscriptions`, `app_credentials`, `travaux`
-  directement dans le dashboard Supabase
-- Vérifier que `APP_KEY` n'est pas restée une valeur d'exemple
-- Décider consciemment du choix de visibilité publique de la page « Vue »
-  (voir section 5)
-- Définir les durées de conservation réelles
-- Vérifier le type de compte Google utilisé pour l'envoi des contrats
-  (Workspace professionnel ou Gmail grand public)
-
-Voir aussi `CHANGELOG.md` pour l'historique des correctifs de sécurité déjà
-appliqués.

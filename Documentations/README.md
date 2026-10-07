@@ -185,6 +185,3 @@ traitement, durées de conservation, etc.).
 - [`DOCUMENTATION_RGPD.md`](./DOCUMENTATION_RGPD.md) — cartographie des
   données personnelles, état de la sécurité, prestataires, ce qui reste à
   vérifier/renseigner
-- [`CHANGELOG.md`](./CHANGELOG.md) — historique des correctifs de sécurité
-  et de bugs apportés au projet
-- [`.env.example`](./.env.example) — modèle de configuration
