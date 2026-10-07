@@ -2396,62 +2396,6 @@
             administrateur</button></div>
       </nav>
       <main class="main" id="mc">
-        <!-- ANNONCES (dev uniquement) -->
-        <div class="page" id="page-annonces">
-          <div class="ph">
-            <h2>📢 Annonces</h2>
-            <p class="no-upper">Message affiché en grand à tous les visiteurs (1ère visite), puis en bandeau rouge
-              persistant jusqu'à désactivation.</p>
-          </div>
-          <div class="tc" style="margin-bottom:20px">
-            <div class="tt">
-              <h3>Nouvelle annonce</h3>
-            </div>
-            <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px">
-              <textarea id="annonce-msg" rows="3" placeholder="Ex : Maintenance du site ce soir à partir de 20h."
-                style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:Arial,sans-serif;font-size:14px;outline:none;resize:vertical"></textarea>
-              <div>
-                <label
-                  style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:6px">À
-                  qui afficher cette annonce ?</label>
-                <div style="display:flex;gap:14px;flex-wrap:wrap">
-                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-public"
-                      checked> Page cliente (sans rôle)</label>
-                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-admin">
-                    Admin</label>
-                  <label class="cav-check" style="padding:5px 9px"><input type="checkbox" id="annonce-cible-dev">
-                    Dev</label>
-                  <!-- Ajoute/retire des lignes ici selon les rôles existants dans cette version -->
-                </div>
-              </div>
-              <button class="btn btn-p" style="width:fit-content" onclick="publierAnnonce()">📢 Publier
-                l'annonce</button>
-            </div>
-          </div>
-          <div class="tc">
-            <div class="tt">
-              <h3>Historique</h3>
-            </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Message</th>
-                  <th>Cible</th>
-                  <th>Statut</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="tb-annonces">
-                <tr class="er">
-                  <td colspan="5">
-                    <div class="spin"></div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
         <!-- VUE PLANNING -->
         <div class="page active" id="page-vue">
           <div class="ph">
