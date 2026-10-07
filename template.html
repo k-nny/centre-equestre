@@ -2458,9 +2458,12 @@
             <h2>Planning</h2>
             <p id="pub-lbl" class="no-upper"></p>
           </div>
-          <div class="plan-nav">
+
+          <div class="plan-nav" style="display:flex;align-items:center;gap:8px">
             <input type="date" id="pub-date" onchange="loadVue()"
               style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px;color:var(--text);font-family:Arial,sans-serif;outline:none">
+            <button type="button" class="btn btn-g sm" id="vue-refresh-btn" onclick="refreshVueManuel()"
+              title="Recharger le planning">🔄 Actualiser</button>
           </div>
           <div id="vac-pub" class="vac-banner" style="display:none">🏖 <strong>Vacances scolaires</strong> — Aucun cours
             affiché (Zone A)</div>
@@ -6320,6 +6323,18 @@
         function stopVueRefresh() {
           if (_vueRefreshTimer) { clearTimeout(_vueRefreshTimer); clearInterval(_vueRefreshTimer); _vueRefreshTimer = null; }
         }
+        async function refreshVueManuel() {
+  const btn = document.getElementById('vue-refresh-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '🔄 Actualisation…'; }
+  try {
+    await loadVue();
+    toast('Planning à jour ✅', 'ok');
+  } catch (e) {
+    toast('Erreur lors de l\'actualisation', 'err');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 Actualiser'; }
+  }
+}
         async function loadVue() {
           const base = v('pub-date');
           document.getElementById('pub-lbl').textContent = fmtL(base);
@@ -10610,45 +10625,45 @@
         }
 
         function privacyInsertAtSelection(text) {
-  const ta = document.getElementById('privacy-policy-editor');
-  ta.focus();
-  const ok = document.queryCommandSupported?.('insertText') && document.execCommand('insertText', false, text);
-  if (!ok) {
-    const start = ta.selectionStart, end = ta.selectionEnd;
-    ta.value = ta.value.slice(0, start) + text + ta.value.slice(end);
-    ta.setSelectionRange(start + text.length, start + text.length);
-  }
-}
+          const ta = document.getElementById('privacy-policy-editor');
+          ta.focus();
+          const ok = document.queryCommandSupported?.('insertText') && document.execCommand('insertText', false, text);
+          if (!ok) {
+            const start = ta.selectionStart, end = ta.selectionEnd;
+            ta.value = ta.value.slice(0, start) + text + ta.value.slice(end);
+            ta.setSelectionRange(start + text.length, start + text.length);
+          }
+        }
 
-function privacyWrapSelection(tag) {
-  const ta = document.getElementById('privacy-policy-editor');
-  const start = ta.selectionStart, end = ta.selectionEnd;
-  const placeholder = tag === 'h4' ? 'Titre de section' : tag === 'strong' ? 'texte important' : 'Votre texte ici';
-  const selected = ta.value.slice(start, end) || placeholder;
-  const openTag = tag === 'p' ? '<p class="contrat-txt">' : `<${tag}>`;
-  const text = openTag + selected + `</${tag}>` + (tag !== 'strong' ? '\n' : '');
-  privacyInsertAtSelection(text);
-}
+        function privacyWrapSelection(tag) {
+          const ta = document.getElementById('privacy-policy-editor');
+          const start = ta.selectionStart, end = ta.selectionEnd;
+          const placeholder = tag === 'h4' ? 'Titre de section' : tag === 'strong' ? 'texte important' : 'Votre texte ici';
+          const selected = ta.value.slice(start, end) || placeholder;
+          const openTag = tag === 'p' ? '<p class="contrat-txt">' : `<${tag}>`;
+          const text = openTag + selected + `</${tag}>` + (tag !== 'strong' ? '\n' : '');
+          privacyInsertAtSelection(text);
+        }
 
-function privacyInsertList() {
-  const ta = document.getElementById('privacy-policy-editor');
-  const start = ta.selectionStart, end = ta.selectionEnd;
-  const selected = ta.value.slice(start, end);
-  const lines = (selected || 'Premier élément\nDeuxième élément').split('\n').map(l => l.trim()).filter(Boolean);
-  const text = '<ul class="contrat-txt">\n' + lines.map(l => `  <li>${l}</li>`).join('\n') + '\n</ul>\n';
-  privacyInsertAtSelection(text);
-}
+        function privacyInsertList() {
+          const ta = document.getElementById('privacy-policy-editor');
+          const start = ta.selectionStart, end = ta.selectionEnd;
+          const selected = ta.value.slice(start, end);
+          const lines = (selected || 'Premier élément\nDeuxième élément').split('\n').map(l => l.trim()).filter(Boolean);
+          const text = '<ul class="contrat-txt">\n' + lines.map(l => `  <li>${l}</li>`).join('\n') + '\n</ul>\n';
+          privacyInsertAtSelection(text);
+        }
 
-function privacyInsertLink() {
-  const ta = document.getElementById('privacy-policy-editor');
-  const start = ta.selectionStart, end = ta.selectionEnd;
-  const selected = ta.value.slice(start, end) || 'texte du lien';
-  const url = prompt('Adresse du lien (ex: https://www.cnil.fr) :', 'https://');
-  if (!url) return;
-  ta.focus();
-  ta.setSelectionRange(start, end);
-  privacyInsertAtSelection(`<a href="${url}" target="_blank" rel="noopener">${selected}</a>`);
-}
+        function privacyInsertLink() {
+          const ta = document.getElementById('privacy-policy-editor');
+          const start = ta.selectionStart, end = ta.selectionEnd;
+          const selected = ta.value.slice(start, end) || 'texte du lien';
+          const url = prompt('Adresse du lien (ex: https://www.cnil.fr) :', 'https://');
+          if (!url) return;
+          ta.focus();
+          ta.setSelectionRange(start, end);
+          privacyInsertAtSelection(`<a href="${url}" target="_blank" rel="noopener">${selected}</a>`);
+        }
 
         function renderRegistreRgpdPage() {
           const ta = document.getElementById('privacy-policy-editor');
