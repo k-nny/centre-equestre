@@ -6324,17 +6324,17 @@
           if (_vueRefreshTimer) { clearTimeout(_vueRefreshTimer); clearInterval(_vueRefreshTimer); _vueRefreshTimer = null; }
         }
         async function refreshVueManuel() {
-  const btn = document.getElementById('vue-refresh-btn');
-  if (btn) { btn.disabled = true; btn.textContent = '🔄 Actualisation…'; }
-  try {
-    await loadVue();
-    toast('Planning à jour ✅', 'ok');
-  } catch (e) {
-    toast('Erreur lors de l\'actualisation', 'err');
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '🔄 Actualiser'; }
-  }
-}
+          const btn = document.getElementById('vue-refresh-btn');
+          if (btn) { btn.disabled = true; btn.textContent = '🔄 Actualisation…'; }
+          try {
+            await loadVue();
+            toast('Planning à jour ✅', 'ok');
+          } catch (e) {
+            toast('Erreur lors de l\'actualisation', 'err');
+          } finally {
+            if (btn) { btn.disabled = false; btn.textContent = '🔄 Actualiser'; }
+          }
+        }
         async function loadVue() {
           const base = v('pub-date');
           document.getElementById('pub-lbl').textContent = fmtL(base);
