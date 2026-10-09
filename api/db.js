@@ -576,7 +576,7 @@ export default async function handler(req, res) {
           if (body.method !== 'update') {
             return res.status(403).json({ error: 'Le rôle Travaux ne peut que consulter et marquer les travaux comme faits' });
           }
-          const allowedFields = ['fait', 'completed_at', 'fait_par', 'photos'];
+          const allowedFields = ['fait', 'completed_at', 'fait_par', 'photos', 'reponses'];
           const dataKeys = Object.keys(body.data || {});
           if (dataKeys.some(k => !allowedFields.includes(k))) {
             return res.status(403).json({ error: 'Le rôle Travaux ne peut pas modifier ces champs' });
