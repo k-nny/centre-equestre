@@ -3177,7 +3177,24 @@
             </div>
           </div>
         </div>
-
+        <!-- Réponses / commentaires sur un travail -->
+        <div class="mo" id="mo-travail-rep">
+          <div class="md" style="max-width:520px">
+            <h3 id="mo-travail-rep-t">💬 Réponses</h3>
+            <input type="hidden" id="travail-rep-id">
+            <div id="travail-rep-list"
+              style="display:flex;flex-direction:column;gap:8px;max-height:40vh;overflow-y:auto;margin-bottom:12px">
+            </div>
+            <div class="fg"><label>Votre réponse</label>
+              <textarea id="travail-rep-txt" rows="3"
+                placeholder="Ex : mesures prises, remarques sur la validation..."></textarea>
+            </div>
+            <div class="mf">
+              <button class="btn btn-g" onclick="closeMo('mo-travail-rep')">Fermer</button>
+              <button class="btn btn-p" id="travail-rep-send" onclick="sendTravailReponse()">Envoyer</button>
+            </div>
+          </div>
+        </div>
         <!-- Confirmation Oui/Non (remplace window.confirm pour les photos) -->
         <div class="mo" id="mo-confirm-ouinon">
           <div class="md" style="max-width:340px;text-align:center">
@@ -6128,6 +6145,7 @@
           <div style="font-weight:700;font-size:14px;${t.fait ? 'text-decoration:line-through;color:var(--muted)' : ''}">${t.titre}</div>
           ${t.description ? `<div style="font-size:12px;color:var(--muted);margin-top:2px">${t.description}</div>` : ''}
           ${renderPhotosBlock('travail', t.id, null, t)}
+          ${renderTravailReponsesBlock(t)}
         </div>
         <span class="b ${TRAVAUX_PRIO_BADGE[t.priorite] || 'bgo'}" style="font-size:10px">${TRAVAUX_PRIO_LABEL[t.priorite] || t.priorite}</span>
         ${t.fait ? `<span class="b bg" style="font-size:10px">✅${t.fait_par ? ' ' + t.fait_par : ''}</span>` : ''}
@@ -6136,7 +6154,86 @@
       </div>
     </div>`).join('');
         }
-
+        function escHtml(s) {
+          return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        function travailReponses(t) {
+          try {
+            const p = typeof t?.reponses === 'string' ? JSON.parse(t.reponses) : t?.reponses;
+            return Array.isArray(p) ? p : [];
+          } catch { return []; }
+        }
+        function fmtRepDate(iso) {
+          const d = new Date(iso);
+          return isNaN(d) ? '' : d.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        }
+        function renderTravailReponseItem(r, travailId, canDelete) {
+          return `<div style="font-size:12px;padding:6px 10px;border:1px solid var(--border);border-radius:8px">
+    <div style="display:flex;justify-content:space-between;gap:8px">
+      <span><strong>${escHtml(r.auteur)}</strong> <span style="color:var(--muted)">· ${fmtRepDate(r.date)}</span></span>
+      ${canDelete ? `<button type="button" class="btn btn-d sm" onclick="delTravailReponse('${travailId}','${escHtml(r.id)}')">🗑</button>` : ''}
+    </div>
+    <div style="white-space:pre-line;margin-top:2px">${escHtml(r.texte)}</div>
+  </div>`;
+        }
+        function renderTravailReponsesBlock(t) {
+          const reps = travailReponses(t);
+          const list = reps.map(r => renderTravailReponseItem(r, t.id, false)).join('');
+          return `<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">${list}
+    <div><button type="button" class="btn btn-g sm" onclick="openTravailReponse('${t.id}')">💬 Répondre${reps.length ? ' (' + reps.length + ')' : ''}</button></div>
+  </div>`;
+        }
+        function renderTravailReponsesModal(id) {
+          const t = C.travaux.find(x => x.id === id);
+          const canManage = isAdmin || isKenny;
+          const reps = travailReponses(t);
+          document.getElementById('travail-rep-list').innerHTML = reps.length
+            ? reps.map(r => renderTravailReponseItem(r, id, canManage)).join('')
+            : '<div style="font-size:12px;color:var(--muted)">Aucune réponse pour le moment.</div>';
+        }
+        function openTravailReponse(id) {
+          const t = C.travaux.find(x => x.id === id); if (!t) return;
+          document.getElementById('mo-travail-rep-t').textContent = '💬 ' + t.titre;
+          document.getElementById('travail-rep-id').value = id;
+          document.getElementById('travail-rep-txt').value = '';
+          renderTravailReponsesModal(id);
+          openMo('mo-travail-rep');
+        }
+        // Relit la valeur la plus récente en base avant d'écrire, pour ne pas
+        // écraser la réponse qu'un collègue vient d'ajouter entre-temps.
+        async function saveTravailReponses(id, mutate) {
+          const fresh = await dbSel('travaux', { select: 'id,reponses', filter: [{ col: 'id', op: 'eq', val: id }] });
+          const updated = mutate(travailReponses(fresh[0] || C.travaux.find(x => x.id === id)));
+          await dbUpd('travaux', { reponses: JSON.stringify(updated) }, [{ col: 'id', op: 'eq', val: id }]);
+          const t = C.travaux.find(x => x.id === id);
+          if (t) t.reponses = JSON.stringify(updated);
+          renderTravailReponsesModal(id);
+          renderTravaux();
+        }
+        async function sendTravailReponse() {
+          const id = v('travail-rep-id');
+          const texte = v('travail-rep-txt').trim();
+          if (!texte) { toast('Écrivez une réponse', 'err'); return; }
+          const btn = document.getElementById('travail-rep-send');
+          btn.disabled = true;
+          try {
+            const auteur = isTravaux ? 'Travaux' : isKenny ? 'Kenny' : isAdmin ? 'Admin' : '';
+            await saveTravailReponses(id, list => [...list, {
+              id: (window.crypto?.randomUUID?.() || String(Date.now())),
+              auteur, date: new Date().toISOString(), texte
+            }]);
+            document.getElementById('travail-rep-txt').value = '';
+            toast('Réponse ajoutée ✅', 'ok');
+          } catch (e) { toast('Erreur : ' + e.message, 'err'); }
+          finally { btn.disabled = false; }
+        }
+        async function delTravailReponse(travailId, repId) {
+          if (!confirm('Supprimer cette réponse ?')) return;
+          try {
+            await saveTravailReponses(travailId, list => list.filter(r => r.id !== repId));
+            toast('Réponse supprimée', 'ok');
+          } catch (e) { toast('Erreur : ' + e.message, 'err'); }
+        }
         async function toggleTravail(id, checked) {
           // Ouvrir l'appareil photo tout de suite, AVANT le await réseau : sur
           // iOS Safari, un <input type=file> ne s'ouvre via .click() que si
