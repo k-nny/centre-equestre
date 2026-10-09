@@ -6196,7 +6196,7 @@
           const canManage = isAdmin || isKenny;
           const reps = travailReponses(t);
           document.getElementById('travail-rep-list').innerHTML = reps.length
-            ? reps.map(r => renderTravailReponseItem(r, id, canManage)).join('')
+            ? [...reps].reverse().map(r => renderTravailReponseItem(r, id, canManage)).join('')
             : '<div style="font-size:12px;color:var(--muted)">Aucune réponse pour le moment.</div>';
         }
         function openTravailReponse(id) {
