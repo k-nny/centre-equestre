@@ -6111,7 +6111,6 @@
           if (el) el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
           const canManage = isAdmin || isKenny;
           const newBtn = document.getElementById('travaux-new-btn');
-          if (newBtn) newBtn.style.display = canManage ? '' : 'none';
           await loadTravaux();
           renderTravaux();
         }
