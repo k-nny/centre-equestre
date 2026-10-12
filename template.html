@@ -6109,8 +6109,9 @@
         async function loadTravauxPage() {
           const el = document.getElementById('travaux-content');
           if (el) el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
-          const canManage = isAdmin || isKenny;
+          const canManage = isAdmin || isKenny || isTravaux;
           const newBtn = document.getElementById('travaux-new-btn');
+          if (newBtn) newBtn.style.display = canManage ? 'inline-block' : 'none';
           await loadTravaux();
           renderTravaux();
         }
@@ -6192,7 +6193,7 @@
         }
         function renderTravailReponsesModal(id) {
           const t = C.travaux.find(x => x.id === id);
-          const canManage = isAdmin || isKenny;
+          const canManage = isAdmin || isKenny || isTravaux ;
           const reps = travailReponses(t);
           document.getElementById('travail-rep-list').innerHTML = reps.length
             ? [...reps].reverse().map(r => renderTravailReponseItem(r, id, canManage)).join('')
