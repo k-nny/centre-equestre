@@ -569,7 +569,7 @@ export default async function handler(req, res) {
           return res.status(403).json({ error: 'Session invalide ou expirée' });
         }
         // Le rôle Travaux (seul, sans admin/dev) : lecture + "marquer fait" uniquement
-        if (isTravaux && !isAdmin && !isDev) {
+        if (!isTravaux && !isAdmin && !isDev) {
           if (body.table !== 'travaux') {
             return res.status(403).json({ error: 'Accès restreint au module Travaux' });
           }

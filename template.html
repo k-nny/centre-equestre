@@ -6126,7 +6126,7 @@
 
         function renderTravaux() {
           const el = document.getElementById('travaux-content'); if (!el) return;
-          const canManage = isAdmin || isKenny || isTravaux;
+          const canManage = isAdmin || isKenny;
           const items = C.travaux.filter(t => _travauxPrioFilter === 'all' || t.priorite === _travauxPrioFilter);
           if (!items.length) { el.innerHTML = '<div class="ls">Aucun travail pour le moment</div>'; return; }
           // Non faits d'abord (triés par priorité), puis faits en bas (triés par priorité aussi)
