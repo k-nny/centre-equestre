@@ -45,6 +45,8 @@ centre-equestre/
 ├── Signature.png           # Image utilisée dans la génération du PDF de contrat
 ├── favicon.ico
 ├── vercel.json             # Config Vercel (build, région des fonctions, réécritures d'URL)
+├── migration_casiers.sql   # À exécuter une fois dans Supabase (table des casiers)
+├── migration_casiers_zones.sql  # Uniquement si la 1re version de migration_casiers.sql a déjà été exécutée
 ├── package.json
 ├── README.md                (ce fichier)
 ├── DOCUMENTATION_RGPD.md     # Cartographie des données, sécurité, prestataires
@@ -128,7 +130,7 @@ projet Vercel — à vérifier si un hébergement strictement UE est requis
 | **admin** | Accès complet (sauf page Annonces, réservée au rôle dev) |
 | **dev** | Accès complet, y compris Annonces |
 | **marine** | Page Séances uniquement (+ planning public) |
-| **travaux** | Page Travaux uniquement |
+| **travaux** | Page Travaux uniquement : consulter, **ajouter** un travail, le marquer fait, ajouter photos et réponses — mais pas le modifier ni le supprimer |
 | **stagiaire** | Planning public, Tâches du jour, Balades (lecture) |
 | **inscription** | Formulaire d'inscription public uniquement (kiosque) |
 | *(aucun rôle / public)* | Planning (Vue), Tâches du jour, Balades, formulaire d'Inscription |
@@ -148,6 +150,16 @@ données personnelles sensibles — pas seulement côté interface.
 - **Stages / Balades** — gestion des inscriptions et participants
 - **Inscriptions en ligne** — formulaire public avec signature électronique,
   génération et envoi automatique du contrat PDF
+- **Casiers** (admin/dev) — plan des casiers (côté gauche / côté droit, plus autant de zones
+  supplémentaires que nécessaire, chacune avec sa propre numérotation qui repart du numéro de votre choix ;
+  lignes × colonnes modifiables avec confirmation), plusieurs occupants par casier (cavaliers qui paient, ou objets
+  rangés), suivi des paiements et rappel bien visible des impayés sur le tableau de bord
+  Couleurs du plan : jaune = libre, vert = tout payé, orange = certains n'ont pas payé, rouge = personne
+  n'a payé, gris = affaires du club (casier désigné « du club », ou ne contenant que des objets).
+  Les montants sont affichés tels quels (49,5€ reste 49,5€), cavaliers présentés « NOM Prénom » et triés
+  par nom puis prénom, comme dans le reste de l'application
+- **Travaux** — photos à la création et à la validation, et fil de réponses (mesures, infos de
+  validation) sur chaque travail
 - **Tickets / Retours** — remontées internes avec notification e-mail
 - **Registre RGPD** (admin/dev) — registre de traitement + éditeur de la
   politique de confidentialité publique (avec barre d'outils de mise en
@@ -175,10 +187,6 @@ Le projet inclut :
   Admin/Dev → 🔒 Registre RGPD) ;
 - un **registre de traitement** interne (Admin/Dev → 🔒 Registre RGPD) ;
 - la documentation technique associée : `DOCUMENTATION_RGPD.md`.
-
-Avant mise en production, complétez les informations marquées
-`[À RENSEIGNER]` dans ces deux pages (coordonnées du responsable de
-traitement, durées de conservation, etc.).
 
 ## Documentation complémentaire
 
