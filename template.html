@@ -588,7 +588,14 @@
     }
 
     .casier-cell:hover { filter: brightness(.96); }
-    .casier-unpaid { background: rgba(180, 55, 40, .10); }
+    /* États d'un casier */
+    .casier-st-free    { background: linear-gradient(rgba(250, 204, 21, .45), rgba(250, 204, 21, .45)), var(--surface); }
+    .casier-st-paid    { background: linear-gradient(rgba(34, 170, 85, .35), rgba(34, 170, 85, .35)), var(--surface); }
+    .casier-st-partial { background: linear-gradient(rgba(245, 140, 30, .40), rgba(245, 140, 30, .40)), var(--surface); }
+    .casier-st-none    { background: linear-gradient(rgba(215, 50, 45, .38), rgba(215, 50, 45, .38)), var(--surface); }
+    .casier-st-club    { background: linear-gradient(rgba(120, 120, 120, .35), rgba(120, 120, 120, .35)), var(--surface); }
+    .casier-legend { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; margin: 0 0 16px; }
+    .casier-legend span { padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); }
     .casier-num { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
     .casier-line { font-size: 12px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .casier-free { font-size: 11px; color: var(--muted); font-style: italic; }
@@ -3222,12 +3229,16 @@
             <h3 id="mo-casier-t">Casier</h3>
             <input type="hidden" id="casier-num">
             <input type="hidden" id="casier-zone">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:12px;cursor:pointer">
+              <input type="checkbox" id="casier-club" onchange="toggleCasierClub(this.checked)">
+              <span>Casier du club <span style="color:var(--muted)">(affaires du club — affiché en gris)</span></span>
+            </label>
             <div id="casier-occ-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
             <div style="border-top:1px solid var(--border);padding-top:12px">
-              <div class="fg"><label>Ajouter un cavalier</label>
+              <div class="fg" id="casier-add-cav-wrap"><label>Ajouter un cavalier</label>
                 <div style="display:flex;gap:6px;flex-wrap:wrap">
                   <select id="casier-add-cav" style="flex:1;min-width:150px"></select>
-                  <input type="number" id="casier-add-montant" min="0" step="1" placeholder="Montant €" style="width:110px">
+                  <input type="number" id="casier-add-montant" min="0" step="0.01" placeholder="Montant €" style="width:110px">
                   <button class="btn btn-p" onclick="addCasierCavalier()">Ajouter</button>
                 </div>
               </div>
@@ -3659,6 +3670,13 @@
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px">
             <button class="btn btn-g" onclick="openCasiersLayout()">⚙️ Modifier la disposition</button>
             <button class="btn btn-g" onclick="casiersNouvellePeriode()">🔄 Nouvelle période (tout remettre à « à payer »)</button>
+          </div>
+          <div class="casier-legend">
+            <span class="casier-st-free">Libre</span>
+            <span class="casier-st-paid">Tout payé</span>
+            <span class="casier-st-partial">Paiements en attente (certains ont payé)</span>
+            <span class="casier-st-none">Personne n'a payé</span>
+            <span class="casier-st-club">Affaires du club</span>
           </div>
           <div id="casiers-grids"></div>
         </div>
@@ -6215,7 +6233,7 @@
         async function loadTravauxPage() {
           const el = document.getElementById('travaux-content');
           if (el) el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
-          const canManage = isAdmin || isKenny || isTravaux;
+          const canManage = isAdmin || isKenny;
           const newBtn = document.getElementById('travaux-new-btn');
           if (newBtn) newBtn.style.display = canManage ? '' : 'none';
           await loadTravaux();
@@ -6367,7 +6385,14 @@
         const CASIERS_MAX_ROWS = 20, CASIERS_MAX_COLS = 12, CASIERS_MAX_ZONES = 10, CASIERS_MAX_START = 999;
 
         async function loadCasiers() {
-          C.casierOcc = await dbSel('casier_occupants', { order: [{ col: 'created_at', asc: true }] });
+          // On relit aussi les réglages (disposition, casiers du club) : ils restent ainsi à jour
+          // si quelqu'un les a modifiés depuis un autre appareil.
+          const [occ, params] = await Promise.all([
+            dbSel('casier_occupants', { order: [{ col: 'created_at', asc: true }] }),
+            dbSel('app_params'),
+          ]);
+          C.casierOcc = occ;
+          for (const p of params) if (p.key === 'casiers_layout' || p.key === 'casiers_club') APP_SETTINGS[p.key] = p.value;
         }
 
         // Entier dans [min, max], sinon null (une chaîne vide est refusée)
@@ -6417,15 +6442,61 @@
         }
         const casierSortKey = o => [(o.zone || ''), String(o.casier_numero).padStart(4, '0')].join('|');
 
+        // Même présentation que dans le reste de l'appli : « NOM Prénom » (version courte : « NOM P. »)
         function casierCavNom(id, short) {
           const c = C.cav.find(x => x.id === id);
           if (!c) return '(cavalier supprimé)';
           const prenom = cap(c.prenom || '');
-          const nom = c.nom || '';
-          return short
-            ? prenom + (nom ? ' ' + nom.charAt(0).toUpperCase() + '.' : '')
-            : prenom + (nom ? ' ' + nom.toUpperCase() : '');
+          const nom = (c.nom || '').toUpperCase();
+          if (!nom) return prenom;
+          return short ? nom + (prenom ? ' ' + prenom.charAt(0) + '.' : '') : nom + ' ' + prenom;
         }
+        // Tri comme ailleurs : par nom, puis par prénom (ordre alphabétique français)
+        const casierCavCompare = (a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || (a.prenom || '').localeCompare(b.prenom || '', 'fr');
+        // Dans un casier : les cavaliers d'abord (par nom puis prénom), puis les objets (par ordre alphabétique)
+        function casierOccCmp(a, b) {
+          if (a.type !== b.type) return a.type === 'cavalier' ? -1 : 1;
+          if (a.type === 'objet') return (a.libelle || '').localeCompare(b.libelle || '', 'fr');
+          const ca = C.cav.find(x => x.id === a.cavalier_id) || {}, cb = C.cav.find(x => x.id === b.cavalier_id) || {};
+          return casierCavCompare(ca, cb);
+        }
+        // Montant affiché TEL QUEL, jamais arrondi à l'euro : 49,5 → « 49,5€ », 50 → « 50€ », 49,25 → « 49,25€ ».
+        // (Le seul calcul fait ici est d'éliminer le bruit des nombres flottants : 0,1 + 0,2 → 0,3.)
+        function fmtEuro(n) {
+          const x = Math.round((parseFloat(n) || 0) * 100) / 100;
+          return x.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + '€';
+        }
+        // ── Casiers du club (affaires du club) : liste de clés « zone|numéro » dans app_params ──
+        function casiersClubSet() {
+          try {
+            const a = JSON.parse(APP_SETTINGS.casiers_club || '[]');
+            return new Set(Array.isArray(a) ? a.filter(x => typeof x === 'string') : []);
+          } catch { return new Set(); }
+        }
+        function casiersOccByKey() {
+          const m = new Map();
+          for (const o of C.casierOcc) {
+            const k = casierKey(o.zone, o.casier_numero);
+            if (!m.has(k)) m.set(k, []);
+            m.get(k).push(o);
+          }
+          return m;
+        }
+        // Couleur d'un casier :
+        //  club    = gris   (casier désigné « du club », ou qui ne contient que des objets)
+        //  free    = jaune  (libre)
+        //  paid    = vert   (tous les cavaliers ont payé)
+        //  partial = orange (certains ont payé, d'autres non)
+        //  none    = rouge  (personne n'a payé)
+        function casierStatus(occ, isClub) {
+          if (isClub) return 'club';
+          if (!occ.length) return 'free';
+          const cavs = occ.filter(o => o.type === 'cavalier');
+          if (!cavs.length) return 'club';
+          const nPaye = cavs.filter(o => o.paye).length;
+          return nPaye === cavs.length ? 'paid' : nPaye === 0 ? 'none' : 'partial';
+        }
+
         function casiersImpayes() {
           return C.casierOcc.filter(o => o.type === 'cavalier' && !o.paye);
         }
@@ -6433,7 +6504,7 @@
         // ── Rappel « qui n'a pas payé » : tableau de bord + page Casiers + pastille de menu ──
         function renderCasiersAlert() {
           const layout = casiersLayout();
-          const unpaid = casiersImpayes().sort((a, b) => casierSortKey(a).localeCompare(casierSortKey(b)));
+          const unpaid = casiersImpayes().sort((a, b) => casierSortKey(a).localeCompare(casierSortKey(b)) || casierOccCmp(a, b));
           const badge = document.getElementById('casiers-nav-badge');
           if (badge) { badge.textContent = unpaid.length; badge.style.display = unpaid.length ? '' : 'none'; }
           const build = withButton => {
@@ -6441,11 +6512,11 @@
             const chips = unpaid.map(o => {
               const m = parseFloat(o.montant);
               const zn = o.zone ? ' (' + (layout.zones.find(z => z.id === o.zone)?.nom || 'zone supprimée') + ')' : '';
-              return `<span class="b br" style="font-size:12px;padding:4px 10px;cursor:pointer" onclick="openCasier(${o.casier_numero}, '${escHtml(o.zone || '')}')">Casier ${o.casier_numero}${escHtml(zn)} · ${escHtml(casierCavNom(o.cavalier_id, true))}${m > 0 ? ' · ' + m.toFixed(0) + '€' : ''}</span>`;
+              return `<span class="b br" style="font-size:12px;padding:4px 10px;cursor:pointer" onclick="openCasier(${o.casier_numero}, '${escHtml(o.zone || '')}')">Casier ${o.casier_numero}${escHtml(zn)} · ${escHtml(casierCavNom(o.cavalier_id, true))}${m > 0 ? ' · ' + fmtEuro(m) : ''}</span>`;
             }).join('');
             const total = unpaid.reduce((s, o) => s + (parseFloat(o.montant) || 0), 0);
             return `<div style="border:2px solid #b43728;background:rgba(180,55,40,.08);border-radius:12px;padding:12px 16px;margin-bottom:16px">
-          <div style="font-weight:700;color:#b43728;font-size:14px">⚠️ Casiers : ${unpaid.length} paiement${unpaid.length > 1 ? 's' : ''} en attente${total > 0 ? ' (' + total.toFixed(0) + '€)' : ''}</div>
+          <div style="font-weight:700;color:#b43728;font-size:14px">⚠️ Casiers : ${unpaid.length} paiement${unpaid.length > 1 ? 's' : ''} en attente${total > 0 ? ' (' + fmtEuro(total) + ')' : ''}</div>
           <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">${chips}</div>
           ${withButton ? '<div style="margin-top:10px"><button class="btn btn-p sm" onclick="go(\'casiers\')">Voir les casiers</button></div>' : ''}
         </div>`;
@@ -6455,19 +6526,20 @@
         }
 
         // ── Grille façon plan ──  zone = '' pour les côtés gauche / droit
-        function casiersZoneHtml(titre, zone, rows, cols, start) {
+        function casiersZoneHtml(titre, zone, rows, cols, start, byKey, club) {
           const n = rows * cols;
           if (!n) return '';
           let cells = '';
           for (let i = 0; i < n; i++) {
             const num = start + i;
-            const occ = C.casierOcc.filter(o => (o.zone || '') === zone && o.casier_numero === num);
-            const unpaid = occ.some(o => o.type === 'cavalier' && !o.paye);
-            const lines = occ.map(o => o.type === 'objet'
+            const key = casierKey(zone, num);
+            const occ = byKey.get(key) || [];
+            const st = casierStatus(occ, club.has(key));
+            const lines = [...occ].sort(casierOccCmp).map(o => o.type === 'objet'
               ? `<div class="casier-line">📦 ${escHtml(o.libelle)}</div>`
               : `<div class="casier-line">${o.paye ? '✅' : '⚠️'} ${escHtml(casierCavNom(o.cavalier_id, true))}</div>`).join('');
-            cells += `<div class="casier-cell${unpaid ? ' casier-unpaid' : ''}" onclick="openCasier(${num}, '${escHtml(zone)}')">
-          <div class="casier-num">Casier ${num}</div>${lines || '<div class="casier-free">Libre</div>'}</div>`;
+            cells += `<div class="casier-cell casier-st-${st}" onclick="openCasier(${num}, '${escHtml(zone)}')">
+          <div class="casier-num">Casier ${num}</div>${lines || `<div class="casier-free">${st === 'club' ? 'Réservé au club' : 'Libre'}</div>`}</div>`;
           }
           return `<div style="margin-bottom:24px">
         <h3 style="margin:0 0 8px">${titre}</h3>
@@ -6477,22 +6549,29 @@
         function renderCasiersGrids() {
           const el = document.getElementById('casiers-grids'); if (!el) return;
           const l = casiersLayout(); const c = casiersCounts(l);
+          const byKey = casiersOccByKey(), club = casiersClubSet();
           el.innerHTML = c.all
-            ? casiersZoneHtml('Côté gauche', '', l.gauche.rows, l.gauche.cols, 1)
-            + casiersZoneHtml('Côté droit', '', l.droit.rows, l.droit.cols, c.L + 1)
-            + l.zones.map(z => casiersZoneHtml(escHtml(z.nom), z.id, z.rows, z.cols, z.start)).join('')
+            ? casiersZoneHtml('Côté gauche', '', l.gauche.rows, l.gauche.cols, 1, byKey, club)
+            + casiersZoneHtml('Côté droit', '', l.droit.rows, l.droit.cols, c.L + 1, byKey, club)
+            + l.zones.map(z => casiersZoneHtml(escHtml(z.nom), z.id, z.rows, z.cols, z.start, byKey, club)).join('')
             : '<div class="ls">Aucun casier : configurez la disposition avec « ⚙️ Modifier la disposition ».</div>';
         }
         function renderCasiersStats() {
           const el = document.getElementById('casiers-stats'); if (!el) return;
           const l = casiersLayout(); const c = casiersCounts(l);
-          const valid = casiersLockerKeys(l);
-          const occupied = new Set(C.casierOcc.map(o => casierKey(o.zone, o.casier_numero)).filter(k => valid.has(k))).size;
+          const byKey = casiersOccByKey(), club = casiersClubSet();
+          let libres = 0, loues = 0, nclub = 0;
+          for (const k of casiersLockerKeys(l)) {
+            const st = casierStatus(byKey.get(k) || [], club.has(k));
+            if (st === 'free') libres++; else if (st === 'club') nclub++; else loues++;
+          }
+          const att = casiersImpayes().length;
           el.innerHTML = `
         <div class="sc"><div class="lb">Casiers</div><div class="vl">${c.all}</div></div>
-        <div class="sc"><div class="lb">Occupés</div><div class="vl">${occupied}</div></div>
-        <div class="sc"><div class="lb">Libres</div><div class="vl">${c.all - occupied}</div></div>
-        <div class="sc"><div class="lb">Paiements en attente</div><div class="vl" style="${casiersImpayes().length ? 'color:#b43728' : ''}">${casiersImpayes().length}</div></div>`;
+        <div class="sc"><div class="lb">Libres</div><div class="vl">${libres}</div></div>
+        <div class="sc"><div class="lb">Loués</div><div class="vl">${loues}</div></div>
+        <div class="sc"><div class="lb">Club</div><div class="vl">${nclub}</div></div>
+        <div class="sc"><div class="lb">Paiements en attente</div><div class="vl" style="${att ? 'color:#b43728' : ''}">${att}</div></div>`;
         }
         function renderCasiersAll() {
           renderCasiersGrids(); renderCasiersStats(); renderCasiersAlert();
@@ -6525,7 +6604,10 @@
         function renderCasierModal() {
           const { num, zone } = casierCurrent();
           const occ = C.casierOcc.filter(o => (o.zone || '') === zone && o.casier_numero === num);
-          document.getElementById('casier-occ-list').innerHTML = occ.length ? occ.map(o => {
+          const isClub = casiersClubSet().has(casierKey(zone, num));
+          const cb = document.getElementById('casier-club'); if (cb) cb.checked = isClub;
+          const wrap = document.getElementById('casier-add-cav-wrap'); if (wrap) wrap.style.display = isClub ? 'none' : '';
+          document.getElementById('casier-occ-list').innerHTML = occ.length ? [...occ].sort(casierOccCmp).map(o => {
             if (o.type === 'objet') {
               return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:8px">
             <div style="flex:1;min-width:0">📦 <strong>${escHtml(o.libelle)}</strong></div>
@@ -6535,16 +6617,16 @@
             const unpaid = !o.paye;
             return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid ${unpaid ? '#b43728' : 'var(--border)'};border-radius:8px;${unpaid ? 'background:rgba(180,55,40,.06)' : ''}">
           <div style="flex:1;min-width:0"><strong>${escHtml(casierCavNom(o.cavalier_id))}</strong>
-            <div style="font-size:11px;color:var(--muted)">${m > 0 ? m.toFixed(0) + '€ · ' : ''}${o.paye ? 'payé' + (o.paye_le ? ' le ' + fmtDate(o.paye_le) : '') : '<span style="color:#b43728;font-weight:700">à payer</span>'}</div></div>
+            <div style="font-size:11px;color:var(--muted)">${m > 0 ? fmtEuro(m) + ' · ' : ''}${o.paye ? 'payé' + (o.paye_le ? ' le ' + fmtDate(o.paye_le) : '') : '<span style="color:#b43728;font-weight:700">à payer</span>'}</div></div>
           <button class="btn sm ${o.paye ? 'btn-g' : 'btn-p'}" onclick="toggleCasierPaye('${o.id}')">${o.paye ? '✅ Payé' : 'Marquer payé'}</button>
           <button class="btn btn-d sm" onclick="delCasierOcc('${o.id}')">🗑</button></div>`;
-          }).join('') : '<div style="font-size:12px;color:var(--muted)">Casier libre.</div>';
+          }).join('') : `<div style="font-size:12px;color:var(--muted)">${isClub ? 'Casier du club (aucun objet pour le moment).' : 'Casier libre.'}</div>`;
           const dejaLa = new Set(occ.filter(o => o.type === 'cavalier').map(o => o.cavalier_id));
           const sel = document.getElementById('casier-add-cav');
           const keep = sel.value;
           sel.innerHTML = '<option value="">— Choisir un cavalier —</option>' + [...C.cav]
             .filter(c => !dejaLa.has(c.id))
-            .sort((a, b) => (a.prenom || '').localeCompare(b.prenom || '', 'fr'))
+            .sort(casierCavCompare)
             .map(c => `<option value="${c.id}">${escHtml(casierCavNom(c.id))}</option>`).join('');
           if (keep && !dejaLa.has(keep)) sel.value = keep;
         }
@@ -6553,11 +6635,13 @@
 
         async function addCasierCavalier() {
           const { num, zone } = casierCurrent();
+          if (casiersClubSet().has(casierKey(zone, num))) { toast("Ce casier est un casier du club : décochez « Casier du club » pour y mettre un cavalier", 'err'); return; }
           const cavId = v('casier-add-cav');
           if (!cavId) { toast('Choisissez un cavalier', 'err'); return; }
           const mRaw = v('casier-add-montant');
           const montant = mRaw === '' ? null : parseFloat(mRaw);
           if (montant !== null && (isNaN(montant) || montant < 0)) { toast('Montant invalide', 'err'); return; }
+          if (montant !== null && Math.abs(montant * 100 - Math.round(montant * 100)) > 1e-6) { toast('Montant invalide : 2 décimales maximum (ex : 49,50)', 'err'); return; }
           try {
             await dbIns('casier_occupants', { casier_numero: num, zone: zone || null, type: 'cavalier', cavalier_id: cavId, montant, paye: false });
             document.getElementById('casier-add-montant').value = '';
@@ -6576,6 +6660,34 @@
             toast('Objet ajouté au casier ' + num, 'ok');
           } catch (e) { toast('Erreur : ' + e.message, 'err'); }
         }
+        // Désigne (ou retire) un casier comme « casier du club » : affiché en gris, jamais compté comme libre.
+        async function toggleCasierClub(checked) {
+          const { num, zone } = casierCurrent();
+          const cb = document.getElementById('casier-club');
+          if (checked && C.casierOcc.some(o => (o.zone || '') === zone && o.casier_numero === num && o.type === 'cavalier')) {
+            toast('Retirez d\'abord les cavaliers de ce casier pour en faire un casier du club', 'err');
+            if (cb) cb.checked = false;
+            return;
+          }
+          const key = casierKey(zone, num);
+          try {
+            // Relit la valeur la plus récente en base avant d'écrire (évite d'écraser une autre modification)
+            const fresh = await dbSel('app_params', { filter: [{ col: 'key', op: 'eq', val: 'casiers_club' }] });
+            let list = [];
+            try { const a = JSON.parse(fresh[0]?.value || '[]'); if (Array.isArray(a)) list = a.filter(x => typeof x === 'string'); } catch { }
+            const set = new Set(list);
+            if (checked) set.add(key); else set.delete(key);
+            const valid = casiersLockerKeys(casiersLayout());   // on nettoie au passage les casiers qui n'existent plus
+            const json = JSON.stringify([...set].filter(k => valid.has(k)).sort());
+            await upsertParam('casiers_club', json);
+            APP_SETTINGS.casiers_club = json;
+            renderCasiersAll();
+          } catch (e) {
+            toast('Erreur : ' + e.message, 'err');
+            if (cb) cb.checked = !checked;
+          }
+        }
+
         async function toggleCasierPaye(id) {
           const o = C.casierOcc.find(x => x.id === id); if (!o) return;
           const paye = !o.paye;
