@@ -6233,9 +6233,11 @@
         async function loadTravauxPage() {
           const el = document.getElementById('travaux-content');
           if (el) el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
-          const canManage = isAdmin || isKenny;
+          // Ajouter un travail : admin, dev ET rôle Travaux. Modifier / supprimer : admin et dev seulement
+          // (voir canManage dans renderTravaux), et le serveur le vérifie aussi.
+          const canAdd = isAdmin || isKenny || isTravaux;
           const newBtn = document.getElementById('travaux-new-btn');
-          if (newBtn) newBtn.style.display = canManage ? '' : 'none';
+          if (newBtn) newBtn.style.display = canAdd ? '' : 'none';
           await loadTravaux();
           renderTravaux();
         }
