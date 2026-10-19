@@ -21,7 +21,8 @@ technique complémentaire, pas de source de vérité pour le texte public.
 | `balade_participants`   | prénom                                                                                   | Cavaliers                     |
 | `moniteurs`              | prénom                                                                                   | Moniteurs                     |
 | `tickets` / `ticket_retours` | contenu libre (signalements internes), peut contenir des noms si mentionnés dans le texte | Personnel                |
-| `taches_completions`, `travaux` | `fait_par` (prénom), photos éventuelles                                          | Personnel                     |
+| `taches_completions`, `travaux` | `fait_par` (prénom), photos éventuelles, réponses internes en texte libre (`travaux.reponses`, auteur = rôle) | Personnel |
+| `casier_occupants`      | cavalier rattaché à un casier, montant et statut de paiement (payé / à payer, date) ; objets rangés (sans donnée personnelle) | Cavaliers / familles |
 | `app_params`             | contient notamment le texte de la politique de confidentialité (`privacy_policy_html`) — pas une donnée personnelle, mentionné pour information | — |
 
 Les autres tables (`groupes`, `seances`, `equides`, `disciplines`,
@@ -73,6 +74,10 @@ place pour les mutations (insert/update/delete). Sans cela, ces tables
 dès lors qu'on connaissait l'URL du site : l'interface masquait ces pages,
 mais l'API elle-même ne vérifiait rien pour la lecture.
 
+`casier_occupants` (casiers, paiements) est réservée à l'administration : `api/db.js` n'y donne accès
+qu'aux jetons de rôle `admin` ou `dev`, en lecture comme en écriture. La clé étrangère vers `cavaliers`
+est en `ON DELETE CASCADE` : supprimer un cavalier supprime aussi ses lignes de casier.
+
 Tables volontairement laissées en lecture publique (comportement voulu de
 l'application, pas un oubli) : `cavaliers`, `seances`, `affectations_seance`,
 `groupes`, `equides`, `moniteurs`, `stages`, `stage_participants`,
@@ -93,8 +98,9 @@ données personnelles qui doit être un choix assumé du centre équestre.
 - Jetons de session signés par HMAC-SHA256 (`SESSION_SECRET`), comparaison
   en temps constant (`crypto.timingSafeEqual`).
 - Les mutations vérifient le rôle **côté serveur**, pas seulement côté
-  interface (ex. le rôle Travaux ne peut modifier que des champs précis de
-  la table `travaux`, contrôle imposé par `api/db.js`).
+  interface (ex. le rôle Travaux peut ajouter un travail — champs limités, toujours « pas
+  encore fait » — et ne peut modifier que des champs précis de la table `travaux`
+  (fait, photos, réponses), sans jamais en supprimer : contrôle imposé par `api/db.js`).
 - Les jetons de session n'expirent jamais tant que le mot de passe du rôle
   n'est pas changé (point de conception à connaître, pas un bug).
 
