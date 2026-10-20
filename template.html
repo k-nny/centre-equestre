@@ -575,6 +575,31 @@
       color: #fff;
     }
 
+    /* ── Casiers ── */
+    .casier-cell {
+      background: var(--surface);
+      padding: 8px 10px;
+      min-height: 86px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow: hidden;
+    }
+
+    .casier-cell:hover { filter: brightness(.96); }
+    /* États d'un casier */
+    .casier-st-free    { background: linear-gradient(rgba(250, 204, 21, .45), rgba(250, 204, 21, .45)), var(--surface); }
+    .casier-st-paid    { background: linear-gradient(rgba(34, 170, 85, .35), rgba(34, 170, 85, .35)), var(--surface); }
+    .casier-st-partial { background: linear-gradient(rgba(245, 140, 30, .40), rgba(245, 140, 30, .40)), var(--surface); }
+    .casier-st-none    { background: linear-gradient(rgba(215, 50, 45, .38), rgba(215, 50, 45, .38)), var(--surface); }
+    .casier-st-club    { background: linear-gradient(rgba(120, 120, 120, .35), rgba(120, 120, 120, .35)), var(--surface); }
+    .casier-legend { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; margin: 0 0 16px; }
+    .casier-legend span { padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); }
+    .casier-num { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+    .casier-line { font-size: 12px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .casier-free { font-size: 11px; color: var(--muted); font-style: italic; }
+
     /* ── Modal ── */
     .mo {
       display: none;
@@ -2371,6 +2396,9 @@
             <button class="ni" data-p="balades" onclick="go('balades')"><span class="ic">🦄</span>Balades</button>
             <button class="ni" data-p="cavaliers" onclick="go('cavaliers')"><span class="ic">🧑</span>Cavaliers</button>
             <button class="ni" data-p="cartes" onclick="go('cartes')"><span class="ic">🎫</span>Cartes</button>
+            <button class="ni" id="ni-casiers" data-p="casiers" onclick="go('casiers')" style="display:none"><span
+                class="ic">🔐</span>Casiers <span id="casiers-nav-badge" class="b br"
+                style="display:none;margin-left:8px">0</span></button>
             <button class="ni" data-p="chevaux" onclick="go('chevaux')"><span class="ic">🐎</span>Chevaux</button>
             <button class="ni" data-p="seances" onclick="go('seances')"><span class="ic">📋</span>Cours</button>
             <button class="ni" data-p="disciplines" onclick="go('disciplines')"><span
@@ -3021,6 +3049,7 @@
             <h2>Tableau de bord</h2>
             <p id="td-lbl" class="no-upper"></p>
           </div>
+          <div id="casiers-alert-dash"></div>
           <div id="alerts"></div>
           <div class="sg">
             <div class="sc">
@@ -3177,17 +3206,15 @@
             </div>
           </div>
         </div>
-        <!-- Réponses / commentaires sur un travail -->
+
+        <!-- Réponses / commentaires sur un travail (infos de validation, mesures, etc.) -->
         <div class="mo" id="mo-travail-rep">
           <div class="md" style="max-width:520px">
             <h3 id="mo-travail-rep-t">💬 Réponses</h3>
             <input type="hidden" id="travail-rep-id">
-            <div id="travail-rep-list"
-              style="display:flex;flex-direction:column;gap:8px;max-height:40vh;overflow-y:auto;margin-bottom:12px">
-            </div>
+            <div id="travail-rep-list" style="display:flex;flex-direction:column;gap:8px;max-height:40vh;overflow-y:auto;margin-bottom:12px"></div>
             <div class="fg"><label>Votre réponse</label>
-              <textarea id="travail-rep-txt" rows="3"
-                placeholder="Ex : mesures prises, remarques sur la validation..."></textarea>
+              <textarea id="travail-rep-txt" rows="3" placeholder="Ex : mesures prises, remarques sur la validation..."></textarea>
             </div>
             <div class="mf">
               <button class="btn btn-g" onclick="closeMo('mo-travail-rep')">Fermer</button>
@@ -3195,6 +3222,72 @@
             </div>
           </div>
         </div>
+
+        <!-- Casier : occupants + paiements -->
+        <div class="mo" id="mo-casier">
+          <div class="md" style="max-width:540px">
+            <h3 id="mo-casier-t">Casier</h3>
+            <input type="hidden" id="casier-num">
+            <input type="hidden" id="casier-zone">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:12px;cursor:pointer">
+              <input type="checkbox" id="casier-club" onchange="toggleCasierClub(this.checked)">
+              <span>Casier du club <span style="color:var(--muted)">(affaires du club — affiché en gris)</span></span>
+            </label>
+            <div id="casier-occ-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+            <div style="border-top:1px solid var(--border);padding-top:12px">
+              <div class="fg" id="casier-add-cav-wrap"><label>Ajouter un cavalier</label>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <select id="casier-add-cav" style="flex:1;min-width:150px"></select>
+                  <input type="number" id="casier-add-montant" min="0" step="0.01" placeholder="Montant €" style="width:110px">
+                  <button class="btn btn-p" onclick="addCasierCavalier()">Ajouter</button>
+                </div>
+              </div>
+              <div class="fg"><label>Ajouter un objet</label>
+                <div style="display:flex;gap:6px">
+                  <input type="text" id="casier-add-objet" placeholder="Ex : couverture, protections…" style="flex:1"
+                    onkeydown="if(event.key==='Enter'){addCasierObjet()}">
+                  <button class="btn btn-p" onclick="addCasierObjet()">Ajouter</button>
+                </div>
+              </div>
+            </div>
+            <div class="mf">
+              <button class="btn btn-g" onclick="closeMo('mo-casier')">Fermer</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Casiers : disposition (lignes × colonnes par côté) -->
+        <div class="mo" id="mo-casier-layout">
+          <div class="md" style="max-width:460px">
+            <h3>⚙️ Disposition des casiers</h3>
+            <p class="no-upper" style="font-size:12px;margin-top:0">Côtés gauche et droit : les casiers sont numérotés à la
+              suite, ligne par ligne. Vous pouvez aussi ajouter d'autres zones, qui ont chacune leur propre numérotation.
+              Toute modification demande une confirmation.</p>
+            <div class="fg"><label>Côté gauche</label>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input type="number" id="cl-g-rows" min="0" max="20" style="width:80px" oninput="updateCasierLayoutPreview()"> lignes ×
+                <input type="number" id="cl-g-cols" min="0" max="12" style="width:80px" oninput="updateCasierLayoutPreview()"> colonnes
+              </div>
+            </div>
+            <div class="fg"><label>Côté droit</label>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input type="number" id="cl-d-rows" min="0" max="20" style="width:80px" oninput="updateCasierLayoutPreview()"> lignes ×
+                <input type="number" id="cl-d-cols" min="0" max="12" style="width:80px" oninput="updateCasierLayoutPreview()"> colonnes
+              </div>
+            </div>
+            <div class="fg"><label>Autres zones <span style="font-weight:400;color:var(--muted)">(numérotation indépendante)</span></label>
+              <div id="cl-zones" style="display:flex;flex-direction:column;gap:8px"></div>
+              <button type="button" class="btn btn-g sm" style="margin-top:8px" onclick="addCasiersZoneDraft()">+ Ajouter une zone de casiers</button>
+            </div>
+            <div id="cl-preview" style="font-size:12px;margin:8px 0;color:var(--muted)"></div>
+            <div id="cl-err" style="color:#b43728;font-size:12px;margin-bottom:8px;display:none"></div>
+            <div class="mf">
+              <button class="btn btn-g" onclick="closeMo('mo-casier-layout')">Annuler</button>
+              <button class="btn btn-p" onclick="applyCasiersLayout()">Appliquer…</button>
+            </div>
+          </div>
+        </div>
+
         <!-- Confirmation Oui/Non (remplace window.confirm pour les photos) -->
         <div class="mo" id="mo-confirm-ouinon">
           <div class="md" style="max-width:340px;text-align:center">
@@ -3565,6 +3658,27 @@
               <tbody id="tickets-tbody"></tbody>
             </table>
           </div>
+        </div>
+        <!-- CASIERS (admin/dev uniquement) -->
+        <div class="page" id="page-casiers">
+          <div class="ph">
+            <h2>🔐 Casiers</h2>
+            <p class="no-upper">Cliquez sur un casier pour gérer ses occupants (cavaliers ou objets) et leurs paiements.</p>
+          </div>
+          <div id="casiers-alert-page"></div>
+          <div class="sg" id="casiers-stats"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px">
+            <button class="btn btn-g" onclick="openCasiersLayout()">⚙️ Modifier la disposition</button>
+            <button class="btn btn-g" onclick="casiersNouvellePeriode()">🔄 Nouvelle période (tout remettre à « à payer »)</button>
+          </div>
+          <div class="casier-legend">
+            <span class="casier-st-free">Libre</span>
+            <span class="casier-st-paid">Tout payé</span>
+            <span class="casier-st-partial">Paiements en attente (certains ont payé)</span>
+            <span class="casier-st-none">Personne n'a payé</span>
+            <span class="casier-st-club">Affaires du club</span>
+          </div>
+          <div id="casiers-grids"></div>
         </div>
         <!-- REGISTRE RGPD (interne, admin/dev uniquement) -->
         <div class="page" id="page-registre-rgpd">
@@ -4797,7 +4911,7 @@
 
         // ── État global de l'application (rôle actif, session, cache de données) ──
         let isAdmin = false, isKenny = false, isMarine = false, isStagiaire = false, isTravaux = false, isInscriptionOnly = false, sessionToken = '', histTab = 'couples';
-        let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [], taches: [], tachesComp: [], travaux: [], inscriptions: [] };
+        let C = { grp: [], cav: [], cavGrp: [], chv: [], mon: [], sea: [], aff: [], statuts: [], stages: [], parts: [], chvS: [], seaSem: [], affSem: [], cartes: [], taches: [], tachesComp: [], travaux: [], inscriptions: [], casierOcc: [] };
         // ── Historique d'annulation (undo) ──
         let _undoStack = []; // [{ label, fn }]
         const MAX_UNDO = 15;
@@ -4870,7 +4984,10 @@
             document.getElementById('ld').style.display = 'none';
             throw new Error('Session expirée, veuillez vous reconnecter.');
           }
-          if (!r.ok) throw new Error(j.error || 'Erreur serveur'); return j;
+          if (!r.ok) throw new Error(j.error || 'Erreur serveur');
+          // Ma propre modification : je note son marqueur pour ne pas me recharger moi-même (voir « live » plus bas)
+          if (j && j.ver && j.ver.table) _live.known[j.ver.table] = j.ver.v;
+          return j;
         }
         async function dbSel(table, { select = '*', filter = [], order = [] } = {}) { const r = await dbReq({ action: 'query', method: 'select', table, select, filter, order, token: sessionToken }); return r.data || []; }
         async function dbIns(table, data) { return dbReq({ action: 'query', method: 'insert', table, data, token: sessionToken }); }
@@ -5133,6 +5250,7 @@
             document.getElementById('ld').style.display = 'none';
             document.getElementById('app').style.display = 'block';
             initRealtime();
+            startLiveRefresh();
             // Vérifier les retours non lus après chargement (admin et marine)
             // Restaurer le mode admin seulement si l'utilisateur l'avait explicitement activé
             // (flag posé par enableAdmin, effacé par logoutAdmin — indépendant du token site)
@@ -5263,6 +5381,132 @@
           } catch { /* silencieux */ }
         }
 
+        // ══════════════════════════════════════════════════════════════
+        //  MISE À JOUR AUTOMATIQUE DES LISTES
+        //  Quand quelqu'un ajoute, modifie ou supprime quelque chose (sur un autre appareil, ou via
+        //  le formulaire d'inscription…), la liste affichée ici se met à jour toute seule, en
+        //  quelques secondes — sans F5.
+        //  Principe : le serveur note, à chaque modification, qu'une table a changé (api/db.js :
+        //  lignes « ver_<table> » dans app_params). Toutes les 10 s on ne lit que ces petits
+        //  marqueurs, et on ne recharge la page affichée QUE si une table qu'elle utilise a changé :
+        //  aucun clignotement tant que rien ne bouge, et peu de trafic (pas de photos à télécharger).
+        // ══════════════════════════════════════════════════════════════
+        let _liveSilent = false;   // vrai pendant un rafraîchissement automatique : pas d'indicateur de chargement
+        const LIVE_ACTIVE_MS = 10000;        // vous utilisez l'appli : vérification toutes les 10 s
+        const LIVE_IDLE_MS = 40000;          // aucune interaction depuis 3 min (écran d'accueil…) : toutes les 40 s
+        const LIVE_IDLE_AFTER_MS = 180000;
+        const LIVE_DEFER_MAX_MS = 60000;     // saisie en cours : on attend, mais pas plus d'une minute
+        const _live = { known: {}, baseline: false, timer: null, busy: false, deferred: new Map(), lastActivity: Date.now(), started: false };
+
+        const LIVE_SEANCES = ['seances', 'affectations_seance', 'cavaliers', 'cavalier_groupes', 'equides', 'equide_statuts', 'moniteurs', 'groupes'];
+        // Pour chaque page : les tables dont elle dépend, et comment la recharger
+        const LIVE_PAGES = {
+          vue: { tables: LIVE_SEANCES, refresh: () => loadVue() },
+          seances: { tables: LIVE_SEANCES, refresh: () => loadSeances(v('sea-date')) },
+          dash: { tables: [...LIVE_SEANCES, 'stages', 'stage_participants', 'balades', 'cartes_heures', 'tickets', 'ticket_retours', 'travaux', 'casier_occupants'], refresh: () => renderDash() },
+          'taches-pub': { tables: ['taches', 'taches_completions'], refresh: () => loadTachesPub() },
+          taches: { tables: ['taches', 'taches_completions'], refresh: () => renderTachesAdmin() },
+          'balades-pub': { tables: ['balades', 'balade_participants'], refresh: () => loadBaladesPub() },
+          balades: { tables: ['balades', 'balade_participants'], refresh: () => loadBaladesAdmin() },
+          travaux: {
+            tables: ['travaux'], refresh: async () => {
+              await loadTravaux(); renderTravaux();
+              if (document.getElementById('mo-travail-rep')?.classList.contains('open')) renderTravailReponsesModal(v('travail-rep-id'));
+            }
+          },
+          casiers: { tables: ['casier_occupants', 'app_params'], refresh: () => casiersRefresh() },
+          'inscriptions-admin': { tables: ['inscriptions'], refresh: () => loadInscriptionsAdmin() },
+          tickets: { tables: ['tickets', 'ticket_retours'], refresh: () => renderTicketsPage() },
+          cartes: { tables: ['cartes_heures', 'cavaliers'], refresh: () => loadPageCartes() },
+          cavaliers: { tables: ['cavaliers', 'cavalier_groupes', 'groupes', 'cartes_heures'], refresh: () => renderCavaliers() },
+          chevaux: { tables: ['equides', 'equide_statuts'], refresh: () => renderChevaux() },
+          moniteurs: { tables: ['moniteurs'], refresh: () => renderMoniteurs() },
+          groupes: { tables: ['groupes', 'cavalier_groupes', 'cavaliers'], refresh: () => renderGroupes() },
+          stages: { tables: ['stages', 'stage_participants', 'stage_chevaux'], refresh: () => loadStages() },
+          disciplines: { tables: ['disciplines', 'discipline_icons'], refresh: () => renderDiscPage() },
+        };
+
+        // Recharge les données de base (cavaliers, chevaux…) qui ont changé, avant de redessiner la page
+        async function liveReloadCore(changed) {
+          const has = (...t) => t.some(x => changed.has(x));
+          const jobs = [];
+          if (has('cavaliers', 'cavalier_groupes')) jobs.push(loadCav());
+          if (has('equides', 'equide_statuts')) jobs.push(loadChv(), loadStatuts());
+          if (has('moniteurs')) jobs.push(loadMon());
+          if (has('groupes')) jobs.push(loadGrp());
+          if (has('cartes_heures') && (isAdmin || isKenny || isMarine)) jobs.push(loadCartes());
+          await Promise.all(jobs);
+        }
+
+        // Quelqu'un est-il en train de saisir du texte / choisir dans une liste dans la page ?
+        // (on ne redessine pas sous ses doigts ; les champs date/cases à cocher ne comptent pas)
+        function liveUserIsEditing() {
+          const a = document.activeElement;
+          if (!a || !a.closest || !a.closest('.page.active')) return false;
+          if (a.tagName === 'TEXTAREA' || a.tagName === 'SELECT') return true;
+          return a.tagName === 'INPUT' && !['date', 'checkbox', 'radio', 'button', 'submit', 'file', 'range', 'color'].includes((a.type || '').toLowerCase());
+        }
+
+        // Compare les marqueurs reçus avec ceux déjà connus : renvoie les tables qui ont changé
+        function liveDiff(next) {
+          const changed = new Set();
+          if (_live.baseline) {
+            for (const [t, ver] of Object.entries(next)) if (_live.known[t] !== ver) changed.add(t);
+          }
+          Object.assign(_live.known, next);
+          _live.baseline = true;
+          return changed;
+        }
+
+        // Recharge la page affichée si une table qu'elle utilise a changé
+        async function liveFlush(changed) {
+          const page = document.querySelector('.page.active')?.id?.replace('page-', '');
+          const cfg = LIVE_PAGES[page];
+          // Rien à recharger pour une page qui n'utilise pas ces tables (go() recharge à l'arrivée sur une page)
+          for (const t of [..._live.deferred.keys()]) if (!cfg || !cfg.tables.includes(t)) _live.deferred.delete(t);
+          if (!cfg) return false;
+          const now = Date.now();
+          for (const t of changed) if (cfg.tables.includes(t) && !_live.deferred.has(t)) _live.deferred.set(t, now);
+          if (!_live.deferred.size) return false;
+          const oldest = Math.min(..._live.deferred.values());
+          if (liveUserIsEditing() && now - oldest < LIVE_DEFER_MAX_MS) return false;   // on réessaiera au prochain passage
+          const todo = new Set(_live.deferred.keys());
+          _live.deferred.clear();
+          _liveSilent = true;
+          try { await liveReloadCore(todo); await cfg.refresh(todo); }
+          catch (e) { for (const t of todo) _live.deferred.set(t, now); }   // échec (réseau…) : on réessaiera
+          finally { _liveSilent = false; }
+          return true;
+        }
+
+        async function livePoll() {
+          if (_live.busy || document.hidden || !sessionToken) return;
+          _live.busy = true;
+          try {
+            const r = await dbReq({ action: 'versions', token: sessionToken });
+            await liveFlush(liveDiff(r.versions || {}));
+          } catch (e) { /* silencieux : réseau coupé, on réessaiera */ }
+          finally { _live.busy = false; }
+        }
+        function liveSchedule() {
+          clearTimeout(_live.timer);
+          if (document.hidden) return;
+          const idle = Date.now() - _live.lastActivity > LIVE_IDLE_AFTER_MS;
+          _live.timer = setTimeout(async () => { await livePoll(); liveSchedule(); }, idle ? LIVE_IDLE_MS : LIVE_ACTIVE_MS);
+        }
+        function startLiveRefresh() {
+          if (_live.started) return;
+          _live.started = true;
+          const onActivity = () => {
+            const wasIdle = Date.now() - _live.lastActivity > LIVE_IDLE_AFTER_MS;
+            _live.lastActivity = Date.now();
+            if (wasIdle) livePoll().then(liveSchedule);   // quelqu'un revient sur l'écran : on vérifie tout de suite
+          };
+          ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(ev => window.addEventListener(ev, onActivity, { passive: true, capture: true }));
+          document.addEventListener('visibilitychange', () => { if (document.hidden) clearTimeout(_live.timer); else livePoll().then(liveSchedule); });
+          livePoll().then(liveSchedule);
+        }
+
         function initRealtime() {
           let _pollTimer = null;
           let _lastActivity = Date.now();
@@ -5389,6 +5633,7 @@
           document.getElementById('mc').classList.add('wb'); document.getElementById('anav').style.display = 'block';
           const niAnnonces = document.getElementById('ni-annonces'); if (niAnnonces) niAnnonces.style.display = 'none';
           const niRegistre = document.getElementById('ni-registre-rgpd'); if (niRegistre) niRegistre.style.display = '';
+          const niCasiers = document.getElementById('ni-casiers'); if (niCasiers) niCasiers.style.display = '';
           document.getElementById('nom-pers-co').textContent = '🔐 Claire';
           document.getElementById('atbtn').textContent = '🔒 Quitter Claire'; document.getElementById('atbtn').classList.add('on');
           localStorage.setItem('ce_admin_active', '1');
@@ -5552,6 +5797,7 @@
           localStorage.setItem('ce_Kenny_active', '1');
           const niAnnonces = document.getElementById('ni-annonces'); if (niAnnonces) niAnnonces.style.display = '';
           const niRegistre = document.getElementById('ni-registre-rgpd'); if (niRegistre) niRegistre.style.display = '';
+          const niCasiers = document.getElementById('ni-casiers'); if (niCasiers) niCasiers.style.display = '';
           updateBannerPadding();
           renderCavaliers(); go(targetPage); toast('Mode Kenny activé', 'ok'); checkAnnonceDisplay();
         }
@@ -5572,7 +5818,7 @@
 
         // ── Nav ──
         function go(p) {
-          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches', 'balades', 'travaux', 'inscriptions-admin', 'params', 'annonces', 'registre-rgpd'];
+          const adm = ['dash', 'groupes', 'seances', 'stages', 'cavaliers', 'chevaux', 'moniteurs', 'historique', 'disciplines', 'cartes', 'tickets', 'taches', 'balades', 'travaux', 'inscriptions-admin', 'params', 'annonces', 'registre-rgpd', 'casiers'];
           // Bloquer les pages admin si pas de rôle élevé
           if (!isAdmin && !isKenny && !isMarine && !isTravaux && adm.includes(p)) return;
           // Marine : seulement séances (+ vue est déjà publique)
@@ -5587,6 +5833,8 @@
           // des informations organisationnelles qui n'ont pas vocation à être vues
           // par Marine ou le rôle Travaux.
           if (p === 'registre-rgpd' && !isAdmin && !isKenny) return;
+          // Casiers : paiements liés à des cavaliers → admin et dev uniquement
+          if (p === 'casiers' && !isAdmin && !isKenny) return;
           // Annonces : réservé au dev, même l'admin n'y a pas accès
           if (p === 'annonces' && !isKenny) return;
           document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
@@ -5616,6 +5864,7 @@
           }
           if (p === 'params') renderParamsPage();
           if (p === 'registre-rgpd') renderRegistreRgpdPage();
+          if (p === 'casiers') loadCasiersPage();
           if (p === 'travaux') loadTravauxPage();
           if (p === 'inscription') initInscriptionPage();
           if (p === 'inscriptions-admin') loadInscriptionsAdmin();
@@ -5638,8 +5887,13 @@
             || localStorage.getItem('ce_marine_active') === '1';
           const tasks = [loadGrp(), loadCav(), loadChv(), loadMon(), loadStatuts(), loadSemaine(), loadDiscIcons(), loadAppSettings(), loadTaches()];
           if (privileged) tasks.push(loadCartes()); else C.cartes = [];
+          // Casiers : admin et dev uniquement. Le .catch évite que l'app ne se charge plus
+          // si la migration SQL des casiers n'a pas encore été exécutée.
+          const adminLike = localStorage.getItem('ce_admin_active') === '1' || localStorage.getItem('ce_Kenny_active') === '1';
+          if (adminLike) tasks.push(loadCasiers().catch(() => { C.casierOcc = []; })); else C.casierOcc = [];
           await Promise.all(tasks);      // Rendu final une fois toutes les données chargées (évite les 0 cavaliers / moniteurs manquants)
           renderGroupes(); renderCavaliers(); renderMoniteurs(); renderChevaux(); popSelects();
+          renderCasiersAlert();
         }
 
         // Charge les séances + affectations de la semaine courante pour calcul heures hebdo
@@ -5703,7 +5957,10 @@
           renderSeances();
         }
         async function loadStages() {
-          C.stages = await dbSel('stages', { order: [{ col: 'date_debut', asc: true }] });
+          // Du plus récent au plus ancien. À date de début égale : celui qui finit le plus tard d'abord, puis
+          // ordre alphabétique du titre (le tri est refait ici car le serveur n'applique qu'un critère d'ordre).
+          C.stages = await dbSel('stages', { order: [{ col: 'date_debut', asc: false }] });
+          C.stages.sort((a, b) => (b.date_debut || '').localeCompare(a.date_debut || '') || (b.date_fin || '').localeCompare(a.date_fin || '') || (a.titre || '').localeCompare(b.titre || '', 'fr'));
           if (C.stages.length) {
             const iv = `(${C.stages.map(s => `"${s.id}"`).join(',')})`;
             [C.parts, C.chvS] = await Promise.all([
@@ -5755,7 +6012,7 @@
           const today = new Date().toISOString().slice(0, 10);
           document.getElementById('taches-pub-lbl').textContent = fmtL(today);
           const el = document.getElementById('taches-pub-content');
-          el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
+          if (!_liveSilent) el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
           await loadTachesCompletions(today);
           const taches = getTachesDuJour(today);
           if (!taches.length) {
@@ -6109,9 +6366,11 @@
         async function loadTravauxPage() {
           const el = document.getElementById('travaux-content');
           if (el) el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
-          const canManage = isAdmin || isKenny;
+          // Ajouter un travail : admin, dev ET rôle Travaux. Modifier / supprimer : admin et dev seulement
+          // (voir canManage dans renderTravaux), et le serveur le vérifie aussi.
+          const canAdd = isAdmin || isKenny || isTravaux;
           const newBtn = document.getElementById('travaux-new-btn');
-          if (newBtn) newBtn.style.display = canManage ? '' : 'none';
+          if (newBtn) newBtn.style.display = canAdd ? '' : 'none';
           await loadTravaux();
           renderTravaux();
         }
@@ -6154,6 +6413,10 @@
       </div>
     </div>`).join('');
         }
+
+        // ── Réponses / commentaires sur un travail ─────────────────────────
+        // Stockées en JSON dans la colonne texte travaux.reponses :
+        // [{ id, auteur, date, texte }, ...]
         function escHtml(s) {
           return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
@@ -6173,14 +6436,13 @@
             ? 'white-space:pre-line;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden'
             : 'white-space:pre-line;margin-top:2px';
           return `<div style="font-size:12px;padding:6px 10px;border:1px solid var(--border);border-radius:8px">
-    <div style="display:flex;justify-content:space-between;gap:8px">
-      <span><strong>${escHtml(r.auteur)}</strong> <span style="color:var(--muted)">· ${fmtRepDate(r.date)}</span></span>
-      ${canDelete ? `<button type="button" class="btn btn-d sm" onclick="delTravailReponse('${travailId}','${escHtml(r.id)}')">🗑</button>` : ''}
-    </div>
-    <div style="${txtStyle}">${escHtml(r.texte)}</div>
-  </div>`;
+      <div style="display:flex;justify-content:space-between;gap:8px">
+        <span><strong>${escHtml(r.auteur)}</strong> <span style="color:var(--muted)">· ${fmtRepDate(r.date)}</span></span>
+        ${canDelete ? `<button type="button" class="btn btn-d sm" onclick="delTravailReponse('${travailId}','${escHtml(r.id)}')">🗑</button>` : ''}
+      </div>
+      <div style="${txtStyle}">${escHtml(r.texte)}</div>
+    </div>`;
         }
-
         // Dans la liste : uniquement le DERNIER message (réduit) + un bouton.
         // L'historique complet s'affiche dans la fenêtre qui s'ouvre au clic.
         function renderTravailReponsesBlock(t) {
@@ -6188,15 +6450,15 @@
           const last = reps.length ? renderTravailReponseItem(reps[reps.length - 1], t.id, false, true) : '';
           const label = reps.length > 1 ? `💬 Voir les ${reps.length} messages / Répondre` : '💬 Répondre';
           return `<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">${last}
-    <div><button type="button" class="btn btn-g sm" onclick="openTravailReponse('${t.id}')">${label}</button></div>
-  </div>`;
+      <div><button type="button" class="btn btn-g sm" onclick="openTravailReponse('${t.id}')">${label}</button></div>
+    </div>`;
         }
         function renderTravailReponsesModal(id) {
           const t = C.travaux.find(x => x.id === id);
           const canManage = isAdmin || isKenny;
           const reps = travailReponses(t);
           document.getElementById('travail-rep-list').innerHTML = reps.length
-            ? [...reps].reverse().map(r => renderTravailReponseItem(r, id, canManage)).join('')
+            ? [...reps].reverse().map(r => renderTravailReponseItem(r, id, canManage)).join('')   // plus récent en haut
             : '<div style="font-size:12px;color:var(--muted)">Aucune réponse pour le moment.</div>';
         }
         function openTravailReponse(id) {
@@ -6242,6 +6504,479 @@
             toast('Réponse supprimée', 'ok');
           } catch (e) { toast('Erreur : ' + e.message, 'err'); }
         }
+
+        // ══════════════════════════════════════════════════════════════
+        //  CASIERS (admin / dev)
+        //  Table casier_occupants : un casier peut avoir PLUSIEURS occupants,
+        //  chacun étant soit un cavalier (qui paie : montant + payé oui/non),
+        //  soit un objet (couverture, protections… : pas de paiement).
+        //  Un casier est identifié par (zone, numéro) :
+        //   • zone vide = les côtés gauche / droit, numérotés à la suite (1, 2, 3…)
+        //   • zone = identifiant d'une zone supplémentaire, avec SA numérotation
+        //     (premier numéro au choix : 0, 1…)
+        //  La disposition est stockée dans app_params, clé « casiers_layout ».
+        // ══════════════════════════════════════════════════════════════
+        const CASIERS_LAYOUT_DEFAULT = { gauche: { rows: 3, cols: 4 }, droit: { rows: 3, cols: 4 }, zones: [] };
+        const CASIERS_MAX_ROWS = 20, CASIERS_MAX_COLS = 12, CASIERS_MAX_ZONES = 10, CASIERS_MAX_START = 999;
+
+        async function loadCasiers() {
+          // On relit aussi les réglages (disposition, casiers du club) : ils restent ainsi à jour
+          // si quelqu'un les a modifiés depuis un autre appareil.
+          const [occ, params] = await Promise.all([
+            dbSel('casier_occupants', { order: [{ col: 'created_at', asc: true }] }),
+            dbSel('app_params'),
+          ]);
+          C.casierOcc = occ;
+          for (const p of params) if (p.key === 'casiers_layout' || p.key === 'casiers_club') APP_SETTINGS[p.key] = p.value;
+        }
+
+        // Entier dans [min, max], sinon null (une chaîne vide est refusée)
+        function casiersIntIn(n, max, min = 0) {
+          if (n === '' || n === null || n === undefined) return null;
+          const x = Number(n);
+          return Number.isInteger(x) && x >= min && x <= max ? x : null;
+        }
+        function casiersCleanZone(z) {
+          const rows = casiersIntIn(z?.rows, CASIERS_MAX_ROWS, 1);
+          const cols = casiersIntIn(z?.cols, CASIERS_MAX_COLS, 1);
+          const start = casiersIntIn(z?.start, CASIERS_MAX_START, 0);
+          const nom = String(z?.nom ?? '').trim().slice(0, 40);
+          const id = /^[A-Za-z0-9_-]{1,40}$/.test(String(z?.id)) ? String(z.id) : null;
+          return rows !== null && cols !== null && start !== null && nom && id ? { id, nom, rows, cols, start } : null;
+        }
+        function casiersLayout() {
+          const fallback = JSON.parse(JSON.stringify(CASIERS_LAYOUT_DEFAULT));
+          try {
+            const l = JSON.parse(APP_SETTINGS.casiers_layout || 'null');
+            const g = { rows: casiersIntIn(l?.gauche?.rows, CASIERS_MAX_ROWS), cols: casiersIntIn(l?.gauche?.cols, CASIERS_MAX_COLS) };
+            const d = { rows: casiersIntIn(l?.droit?.rows, CASIERS_MAX_ROWS), cols: casiersIntIn(l?.droit?.cols, CASIERS_MAX_COLS) };
+            if ([g.rows, g.cols, d.rows, d.cols].some(x => x === null)) return fallback;
+            const zones = (Array.isArray(l.zones) ? l.zones : []).map(casiersCleanZone).filter(Boolean).slice(0, CASIERS_MAX_ZONES);
+            return { gauche: g, droit: d, zones };
+          } catch { return fallback; }
+        }
+        function casiersCounts(layout) {
+          const L = layout.gauche.rows * layout.gauche.cols;
+          const R = layout.droit.rows * layout.droit.cols;
+          const extra = layout.zones.reduce((n, z) => n + z.rows * z.cols, 0);
+          return { L, R, total: L + R, extra, all: L + R + extra };
+        }
+        const casierKey = (zone, num) => (zone || '') + '|' + num;
+        // Tous les casiers qui existent dans une disposition donnée
+        function casiersLockerKeys(layout) {
+          const keys = new Set();
+          const c = casiersCounts(layout);
+          for (let n = 1; n <= c.total; n++) keys.add(casierKey('', n));
+          for (const z of layout.zones) for (let i = 0; i < z.rows * z.cols; i++) keys.add(casierKey(z.id, z.start + i));
+          return keys;
+        }
+        function casierLabelIn(layout, zone, num) {
+          if (!zone) return `n°${num}`;
+          const z = layout.zones.find(x => x.id === zone);
+          return `n°${num} (${z ? z.nom : 'zone supprimée'})`;
+        }
+        const casierSortKey = o => [(o.zone || ''), String(o.casier_numero).padStart(4, '0')].join('|');
+
+        // Même présentation que dans le reste de l'appli : « NOM Prénom » (version courte : « NOM P. »)
+        function casierCavNom(id, short) {
+          const c = C.cav.find(x => x.id === id);
+          if (!c) return '(cavalier supprimé)';
+          const prenom = cap(c.prenom || '');
+          const nom = (c.nom || '').toUpperCase();
+          if (!nom) return prenom;
+          return short ? nom + (prenom ? ' ' + prenom.charAt(0) + '.' : '') : nom + ' ' + prenom;
+        }
+        // Tri comme ailleurs : par nom, puis par prénom (ordre alphabétique français)
+        const casierCavCompare = (a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') || (a.prenom || '').localeCompare(b.prenom || '', 'fr');
+        // Dans un casier : les cavaliers d'abord (par nom puis prénom), puis les objets (par ordre alphabétique)
+        function casierOccCmp(a, b) {
+          if (a.type !== b.type) return a.type === 'cavalier' ? -1 : 1;
+          if (a.type === 'objet') return (a.libelle || '').localeCompare(b.libelle || '', 'fr');
+          const ca = C.cav.find(x => x.id === a.cavalier_id) || {}, cb = C.cav.find(x => x.id === b.cavalier_id) || {};
+          return casierCavCompare(ca, cb);
+        }
+        // Montant affiché TEL QUEL, jamais arrondi à l'euro : 49,5 → « 49,5€ », 50 → « 50€ », 49,25 → « 49,25€ ».
+        // (Le seul calcul fait ici est d'éliminer le bruit des nombres flottants : 0,1 + 0,2 → 0,3.)
+        function fmtEuro(n) {
+          const x = Math.round((parseFloat(n) || 0) * 100) / 100;
+          return x.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + '€';
+        }
+        // ── Casiers du club (affaires du club) : liste de clés « zone|numéro » dans app_params ──
+        function casiersClubSet() {
+          try {
+            const a = JSON.parse(APP_SETTINGS.casiers_club || '[]');
+            return new Set(Array.isArray(a) ? a.filter(x => typeof x === 'string') : []);
+          } catch { return new Set(); }
+        }
+        function casiersOccByKey() {
+          const m = new Map();
+          for (const o of C.casierOcc) {
+            const k = casierKey(o.zone, o.casier_numero);
+            if (!m.has(k)) m.set(k, []);
+            m.get(k).push(o);
+          }
+          return m;
+        }
+        // Couleur d'un casier :
+        //  club    = gris   (casier désigné « du club », ou qui ne contient que des objets)
+        //  free    = jaune  (libre)
+        //  paid    = vert   (tous les cavaliers ont payé)
+        //  partial = orange (certains ont payé, d'autres non)
+        //  none    = rouge  (personne n'a payé)
+        function casierStatus(occ, isClub) {
+          if (isClub) return 'club';
+          if (!occ.length) return 'free';
+          const cavs = occ.filter(o => o.type === 'cavalier');
+          if (!cavs.length) return 'club';
+          const nPaye = cavs.filter(o => o.paye).length;
+          return nPaye === cavs.length ? 'paid' : nPaye === 0 ? 'none' : 'partial';
+        }
+
+        function casiersImpayes() {
+          return C.casierOcc.filter(o => o.type === 'cavalier' && !o.paye);
+        }
+
+        // ── Rappel « qui n'a pas payé » : tableau de bord + page Casiers + pastille de menu ──
+        function renderCasiersAlert() {
+          const layout = casiersLayout();
+          const unpaid = casiersImpayes().sort((a, b) => casierSortKey(a).localeCompare(casierSortKey(b)) || casierOccCmp(a, b));
+          const badge = document.getElementById('casiers-nav-badge');
+          if (badge) { badge.textContent = unpaid.length; badge.style.display = unpaid.length ? '' : 'none'; }
+          const build = withButton => {
+            if (!unpaid.length) return '';
+            const chips = unpaid.map(o => {
+              const m = parseFloat(o.montant);
+              const zn = o.zone ? ' (' + (layout.zones.find(z => z.id === o.zone)?.nom || 'zone supprimée') + ')' : '';
+              return `<span class="b br" style="font-size:12px;padding:4px 10px;cursor:pointer" onclick="openCasier(${o.casier_numero}, '${escHtml(o.zone || '')}')">Casier ${o.casier_numero}${escHtml(zn)} · ${escHtml(casierCavNom(o.cavalier_id, true))}${m > 0 ? ' · ' + fmtEuro(m) : ''}</span>`;
+            }).join('');
+            const total = unpaid.reduce((s, o) => s + (parseFloat(o.montant) || 0), 0);
+            return `<div style="border:2px solid #b43728;background:rgba(180,55,40,.08);border-radius:12px;padding:12px 16px;margin-bottom:16px">
+          <div style="font-weight:700;color:#b43728;font-size:14px">⚠️ Casiers : ${unpaid.length} paiement${unpaid.length > 1 ? 's' : ''} en attente${total > 0 ? ' (' + fmtEuro(total) + ')' : ''}</div>
+          <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">${chips}</div>
+          ${withButton ? '<div style="margin-top:10px"><button class="btn btn-p sm" onclick="go(\'casiers\')">Voir les casiers</button></div>' : ''}
+        </div>`;
+          };
+          const dash = document.getElementById('casiers-alert-dash'); if (dash) dash.innerHTML = build(true);
+          const page = document.getElementById('casiers-alert-page'); if (page) page.innerHTML = build(false);
+        }
+
+        // ── Grille façon plan ──  zone = '' pour les côtés gauche / droit
+        function casiersZoneHtml(titre, zone, rows, cols, start, byKey, club) {
+          const n = rows * cols;
+          if (!n) return '';
+          let cells = '';
+          for (let i = 0; i < n; i++) {
+            const num = start + i;
+            const key = casierKey(zone, num);
+            const occ = byKey.get(key) || [];
+            const st = casierStatus(occ, club.has(key));
+            const lines = [...occ].sort(casierOccCmp).map(o => o.type === 'objet'
+              ? `<div class="casier-line">📦 ${escHtml(o.libelle)}</div>`
+              : `<div class="casier-line">${o.paye ? '✅' : '⚠️'} ${escHtml(casierCavNom(o.cavalier_id, true))}</div>`).join('');
+            cells += `<div class="casier-cell casier-st-${st}" onclick="openCasier(${num}, '${escHtml(zone)}')">
+          <div class="casier-num">Casier ${num}</div>${lines || `<div class="casier-free">${st === 'club' ? 'Réservé au club' : 'Libre'}</div>`}</div>`;
+          }
+          return `<div style="margin-bottom:24px">
+        <h3 style="margin:0 0 8px">${titre}</h3>
+        <div style="display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:2px;background:#222;border:2px solid #222;border-radius:8px;overflow:hidden">${cells}</div>
+      </div>`;
+        }
+        function renderCasiersGrids() {
+          const el = document.getElementById('casiers-grids'); if (!el) return;
+          const l = casiersLayout(); const c = casiersCounts(l);
+          const byKey = casiersOccByKey(), club = casiersClubSet();
+          el.innerHTML = c.all
+            ? casiersZoneHtml('Côté gauche', '', l.gauche.rows, l.gauche.cols, 1, byKey, club)
+            + casiersZoneHtml('Côté droit', '', l.droit.rows, l.droit.cols, c.L + 1, byKey, club)
+            + l.zones.map(z => casiersZoneHtml(escHtml(z.nom), z.id, z.rows, z.cols, z.start, byKey, club)).join('')
+            : '<div class="ls">Aucun casier : configurez la disposition avec « ⚙️ Modifier la disposition ».</div>';
+        }
+        function renderCasiersStats() {
+          const el = document.getElementById('casiers-stats'); if (!el) return;
+          const l = casiersLayout(); const c = casiersCounts(l);
+          const byKey = casiersOccByKey(), club = casiersClubSet();
+          let libres = 0, loues = 0, nclub = 0;
+          for (const k of casiersLockerKeys(l)) {
+            const st = casierStatus(byKey.get(k) || [], club.has(k));
+            if (st === 'free') libres++; else if (st === 'club') nclub++; else loues++;
+          }
+          const att = casiersImpayes().length;
+          el.innerHTML = `
+        <div class="sc"><div class="lb">Casiers</div><div class="vl">${c.all}</div></div>
+        <div class="sc"><div class="lb">Libres</div><div class="vl">${libres}</div></div>
+        <div class="sc"><div class="lb">Loués</div><div class="vl">${loues}</div></div>
+        <div class="sc"><div class="lb">Club</div><div class="vl">${nclub}</div></div>
+        <div class="sc"><div class="lb">Paiements en attente</div><div class="vl" style="${att ? 'color:#b43728' : ''}">${att}</div></div>`;
+        }
+        function renderCasiersAll() {
+          renderCasiersGrids(); renderCasiersStats(); renderCasiersAlert();
+          if (document.getElementById('mo-casier')?.classList.contains('open')) renderCasierModal();
+        }
+        async function loadCasiersPage() {
+          const el = document.getElementById('casiers-grids');
+          if (el && !C.casierOcc.length) el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
+          try { await loadCasiers(); }
+          catch (e) {
+            if (el) el.innerHTML = `<div class="ls">Impossible de charger les casiers : ${escHtml(e.message)}<br>Les migrations SQL des casiers (« migration_casiers.sql », puis « migration_casiers_zones.sql » si vous aviez déjà la première version) ont-elles été exécutées dans Supabase ?</div>`;
+            return;
+          }
+          renderCasiersAll();
+        }
+
+        // ── Fenêtre d'un casier ──
+        function openCasier(num, zone) {
+          zone = zone || '';
+          document.getElementById('casier-num').value = num;
+          document.getElementById('casier-zone').value = zone;
+          const zn = zone ? ' — ' + (casiersLayout().zones.find(z => z.id === zone)?.nom || 'zone supprimée') : '';
+          document.getElementById('mo-casier-t').textContent = 'Casier ' + num + zn;
+          document.getElementById('casier-add-montant').value = '';
+          document.getElementById('casier-add-objet').value = '';
+          renderCasierModal();
+          openMo('mo-casier');
+        }
+        const casierCurrent = () => ({ num: Number(v('casier-num')), zone: v('casier-zone') || '' });
+        function renderCasierModal() {
+          const { num, zone } = casierCurrent();
+          const occ = C.casierOcc.filter(o => (o.zone || '') === zone && o.casier_numero === num);
+          const isClub = casiersClubSet().has(casierKey(zone, num));
+          const cb = document.getElementById('casier-club'); if (cb) cb.checked = isClub;
+          const wrap = document.getElementById('casier-add-cav-wrap'); if (wrap) wrap.style.display = isClub ? 'none' : '';
+          document.getElementById('casier-occ-list').innerHTML = occ.length ? [...occ].sort(casierOccCmp).map(o => {
+            if (o.type === 'objet') {
+              return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:8px">
+            <div style="flex:1;min-width:0">📦 <strong>${escHtml(o.libelle)}</strong></div>
+            <button class="btn btn-d sm" onclick="delCasierOcc('${o.id}')">🗑</button></div>`;
+            }
+            const m = parseFloat(o.montant);
+            const unpaid = !o.paye;
+            return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid ${unpaid ? '#b43728' : 'var(--border)'};border-radius:8px;${unpaid ? 'background:rgba(180,55,40,.06)' : ''}">
+          <div style="flex:1;min-width:0"><strong>${escHtml(casierCavNom(o.cavalier_id))}</strong>
+            <div style="font-size:11px;color:var(--muted)">${m > 0 ? fmtEuro(m) + ' · ' : ''}${o.paye ? 'payé' + (o.paye_le ? ' le ' + fmtDate(o.paye_le) : '') : '<span style="color:#b43728;font-weight:700">à payer</span>'}</div></div>
+          <button class="btn sm ${o.paye ? 'btn-g' : 'btn-p'}" onclick="toggleCasierPaye('${o.id}')">${o.paye ? '✅ Payé' : 'Marquer payé'}</button>
+          <button class="btn btn-d sm" onclick="delCasierOcc('${o.id}')">🗑</button></div>`;
+          }).join('') : `<div style="font-size:12px;color:var(--muted)">${isClub ? 'Casier du club (aucun objet pour le moment).' : 'Casier libre.'}</div>`;
+          const dejaLa = new Set(occ.filter(o => o.type === 'cavalier').map(o => o.cavalier_id));
+          const sel = document.getElementById('casier-add-cav');
+          const keep = sel.value;
+          sel.innerHTML = '<option value="">— Choisir un cavalier —</option>' + [...C.cav]
+            .filter(c => !dejaLa.has(c.id))
+            .sort(casierCavCompare)
+            .map(c => `<option value="${c.id}">${escHtml(casierCavNom(c.id))}</option>`).join('');
+          if (keep && !dejaLa.has(keep)) sel.value = keep;
+        }
+        // Après chaque écriture on relit la base (comme un F5) puis on redessine.
+        async function casiersRefresh() { await loadCasiers(); renderCasiersAll(); }
+
+        async function addCasierCavalier() {
+          const { num, zone } = casierCurrent();
+          if (casiersClubSet().has(casierKey(zone, num))) { toast("Ce casier est un casier du club : décochez « Casier du club » pour y mettre un cavalier", 'err'); return; }
+          const cavId = v('casier-add-cav');
+          if (!cavId) { toast('Choisissez un cavalier', 'err'); return; }
+          const mRaw = v('casier-add-montant');
+          const montant = mRaw === '' ? null : parseFloat(mRaw);
+          if (montant !== null && (isNaN(montant) || montant < 0)) { toast('Montant invalide', 'err'); return; }
+          if (montant !== null && Math.abs(montant * 100 - Math.round(montant * 100)) > 1e-6) { toast('Montant invalide : 2 décimales maximum (ex : 49,50)', 'err'); return; }
+          try {
+            await dbIns('casier_occupants', { casier_numero: num, zone: zone || null, type: 'cavalier', cavalier_id: cavId, montant, paye: false });
+            document.getElementById('casier-add-montant').value = '';
+            await casiersRefresh();
+            toast('Cavalier ajouté au casier ' + num, 'ok');
+          } catch (e) { toast('Erreur : ' + e.message, 'err'); }
+        }
+        async function addCasierObjet() {
+          const { num, zone } = casierCurrent();
+          const libelle = v('casier-add-objet').trim();
+          if (!libelle) { toast("Indiquez l'objet à ranger", 'err'); return; }
+          try {
+            await dbIns('casier_occupants', { casier_numero: num, zone: zone || null, type: 'objet', libelle, paye: false });
+            document.getElementById('casier-add-objet').value = '';
+            await casiersRefresh();
+            toast('Objet ajouté au casier ' + num, 'ok');
+          } catch (e) { toast('Erreur : ' + e.message, 'err'); }
+        }
+        // Désigne (ou retire) un casier comme « casier du club » : affiché en gris, jamais compté comme libre.
+        async function toggleCasierClub(checked) {
+          const { num, zone } = casierCurrent();
+          const cb = document.getElementById('casier-club');
+          if (checked && C.casierOcc.some(o => (o.zone || '') === zone && o.casier_numero === num && o.type === 'cavalier')) {
+            toast('Retirez d\'abord les cavaliers de ce casier pour en faire un casier du club', 'err');
+            if (cb) cb.checked = false;
+            return;
+          }
+          const key = casierKey(zone, num);
+          try {
+            // Relit la valeur la plus récente en base avant d'écrire (évite d'écraser une autre modification)
+            const fresh = await dbSel('app_params', { filter: [{ col: 'key', op: 'eq', val: 'casiers_club' }] });
+            let list = [];
+            try { const a = JSON.parse(fresh[0]?.value || '[]'); if (Array.isArray(a)) list = a.filter(x => typeof x === 'string'); } catch { }
+            const set = new Set(list);
+            if (checked) set.add(key); else set.delete(key);
+            const valid = casiersLockerKeys(casiersLayout());   // on nettoie au passage les casiers qui n'existent plus
+            const json = JSON.stringify([...set].filter(k => valid.has(k)).sort());
+            await upsertParam('casiers_club', json);
+            APP_SETTINGS.casiers_club = json;
+            renderCasiersAll();
+          } catch (e) {
+            toast('Erreur : ' + e.message, 'err');
+            if (cb) cb.checked = !checked;
+          }
+        }
+
+        async function toggleCasierPaye(id) {
+          const o = C.casierOcc.find(x => x.id === id); if (!o) return;
+          const paye = !o.paye;
+          try {
+            await dbUpd('casier_occupants', { paye, paye_le: paye ? new Date().toISOString().slice(0, 10) : null }, [{ col: 'id', op: 'eq', val: id }]);
+            await casiersRefresh();
+          } catch (e) { toast('Erreur : ' + e.message, 'err'); }
+        }
+
+        // Confirmation Oui / Non générique (les boutons déclenchent directement l'action)
+        function confirmOuiNonCb(message, onYes) {
+          document.getElementById('confirm-ouinon-msg').textContent = message;
+          document.getElementById('confirm-ouinon-oui').onclick = () => { closeMo('mo-confirm-ouinon'); onYes(); };
+          document.getElementById('confirm-ouinon-non').onclick = () => { closeMo('mo-confirm-ouinon'); };
+          openMo('mo-confirm-ouinon');
+        }
+
+        function delCasierOcc(id) {
+          const o = C.casierOcc.find(x => x.id === id); if (!o) return;
+          const qui = o.type === 'objet' ? o.libelle : casierCavNom(o.cavalier_id);
+          confirmOuiNonCb(`Retirer « ${qui} » du casier ${o.casier_numero} ?`, async () => {
+            try {
+              await dbDel('casier_occupants', [{ col: 'id', op: 'eq', val: id }]);
+              await casiersRefresh();
+              toast('Retiré du casier', 'ok');
+            } catch (e) { toast('Erreur : ' + e.message, 'err'); }
+          });
+        }
+        function casiersNouvellePeriode() {
+          confirmOuiNonCb("Nouvelle période : remettre TOUS les cavaliers en « à payer » ?\n\nÀ faire par exemple au début d'une nouvelle saison. Les occupants et objets restent dans leurs casiers.", async () => {
+            try {
+              await dbUpd('casier_occupants', { paye: false, paye_le: null }, [{ col: 'type', op: 'eq', val: 'cavalier' }]);
+              await casiersRefresh();
+              toast('Nouvelle période : tous les paiements sont à refaire', 'ok');
+            } catch (e) { toast('Erreur : ' + e.message, 'err'); }
+          });
+        }
+
+        // ── Disposition (côtés gauche/droit + zones) — toujours avec confirmation ──
+        // Brouillon des zones supplémentaires pendant l'édition (valeurs saisies, en texte)
+        let casiersDraftZones = [];
+        const casiersNewZoneId = () => 'z' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+
+        function renderCasiersDraftZones() {
+          const el = document.getElementById('cl-zones'); if (!el) return;
+          el.innerHTML = casiersDraftZones.map((z, i) => `
+        <div style="border:1px solid var(--border);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;gap:6px">
+            <input type="text" id="cl-z-${i}-nom" value="${escHtml(z.nom)}" maxlength="40" placeholder="Nom de la zone (ex : Écurie du fond)" style="flex:1" oninput="updateCasierLayoutPreview()">
+            <button type="button" class="btn btn-d sm" onclick="removeCasiersZoneDraft(${i})" title="Supprimer cette zone">🗑</button>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px">
+            <input type="number" id="cl-z-${i}-rows" value="${escHtml(z.rows)}" min="1" max="${CASIERS_MAX_ROWS}" style="width:70px" oninput="updateCasierLayoutPreview()"> lignes ×
+            <input type="number" id="cl-z-${i}-cols" value="${escHtml(z.cols)}" min="1" max="${CASIERS_MAX_COLS}" style="width:70px" oninput="updateCasierLayoutPreview()"> colonnes · numéros à partir de
+            <input type="number" id="cl-z-${i}-start" value="${escHtml(z.start)}" min="0" max="${CASIERS_MAX_START}" style="width:70px" oninput="updateCasierLayoutPreview()">
+          </div>
+        </div>`).join('');
+        }
+        function syncCasiersDraftFromInputs() {
+          casiersDraftZones = casiersDraftZones.map((z, i) => ({
+            id: z.id,
+            nom: document.getElementById(`cl-z-${i}-nom`)?.value ?? z.nom,
+            rows: document.getElementById(`cl-z-${i}-rows`)?.value ?? z.rows,
+            cols: document.getElementById(`cl-z-${i}-cols`)?.value ?? z.cols,
+            start: document.getElementById(`cl-z-${i}-start`)?.value ?? z.start,
+          }));
+        }
+        function addCasiersZoneDraft() {
+          syncCasiersDraftFromInputs();
+          if (casiersDraftZones.length >= CASIERS_MAX_ZONES) { toast(`Maximum ${CASIERS_MAX_ZONES} zones`, 'err'); return; }
+          casiersDraftZones.push({ id: casiersNewZoneId(), nom: '', rows: '2', cols: '4', start: '1' });
+          renderCasiersDraftZones();
+          updateCasierLayoutPreview();
+        }
+        function removeCasiersZoneDraft(i) {
+          syncCasiersDraftFromInputs();
+          casiersDraftZones.splice(i, 1);
+          renderCasiersDraftZones();
+          updateCasierLayoutPreview();
+        }
+
+        const CASIERS_INVALID_MSG = `Valeurs invalides (côtés : lignes 0 à ${CASIERS_MAX_ROWS}, colonnes 0 à ${CASIERS_MAX_COLS} — zones : nom obligatoire, lignes 1 à ${CASIERS_MAX_ROWS}, colonnes 1 à ${CASIERS_MAX_COLS}, premier numéro 0 à ${CASIERS_MAX_START}).`;
+        function readCasiersLayoutInputs() {
+          syncCasiersDraftFromInputs();
+          const g = { rows: casiersIntIn(v('cl-g-rows'), CASIERS_MAX_ROWS), cols: casiersIntIn(v('cl-g-cols'), CASIERS_MAX_COLS) };
+          const d = { rows: casiersIntIn(v('cl-d-rows'), CASIERS_MAX_ROWS), cols: casiersIntIn(v('cl-d-cols'), CASIERS_MAX_COLS) };
+          if ([g.rows, g.cols, d.rows, d.cols].some(x => x === null)) return null;
+          const zones = casiersDraftZones.map(casiersCleanZone);
+          if (zones.some(z => z === null)) return null;
+          return { gauche: g, droit: d, zones };
+        }
+        function updateCasierLayoutPreview() {
+          const el = document.getElementById('cl-preview'); if (!el) return;
+          const nl = readCasiersLayoutInputs();
+          if (!nl) { el.textContent = CASIERS_INVALID_MSG; return; }
+          const c = casiersCounts(nl);
+          const plural = n => n + ' casier' + (n > 1 ? 's' : '');
+          let t = `Gauche : ${plural(c.L)}${c.L ? ` (n°1 à ${c.L})` : ''} · Droit : ${plural(c.R)}${c.R ? ` (n°${c.L + 1} à ${c.L + c.R})` : ''}`;
+          for (const z of nl.zones) t += ` · ${z.nom} : ${plural(z.rows * z.cols)} (n°${z.start} à ${z.start + z.rows * z.cols - 1})`;
+          el.textContent = t + ` · Total : ${c.all}`;
+        }
+        function openCasiersLayout() {
+          const l = casiersLayout();
+          document.getElementById('cl-g-rows').value = l.gauche.rows;
+          document.getElementById('cl-g-cols').value = l.gauche.cols;
+          document.getElementById('cl-d-rows').value = l.droit.rows;
+          document.getElementById('cl-d-cols').value = l.droit.cols;
+          casiersDraftZones = l.zones.map(z => ({ id: z.id, nom: z.nom, rows: String(z.rows), cols: String(z.cols), start: String(z.start) }));
+          renderCasiersDraftZones();
+          document.getElementById('cl-err').style.display = 'none';
+          updateCasierLayoutPreview();
+          openMo('mo-casier-layout');
+        }
+        function applyCasiersLayout() {
+          const err = document.getElementById('cl-err');
+          const showErr = t => { err.textContent = t; err.style.display = ''; };
+          err.style.display = 'none';
+          const nl = readCasiersLayoutInputs();
+          if (!nl) { showErr(CASIERS_INVALID_MSG); return; }
+          const old = casiersLayout();
+          if (JSON.stringify(old) === JSON.stringify(nl)) { closeMo('mo-casier-layout'); toast('Aucun changement', 'ok'); return; }
+          const oc = casiersCounts(old), nc = casiersCounts(nl);
+
+          // Garde-fou : on ne supprime jamais un casier qui contient encore quelqu'un ou quelque chose
+          const valid = casiersLockerKeys(nl);
+          const perdus = C.casierOcc.filter(o => !valid.has(casierKey(o.zone, o.casier_numero)));
+          if (perdus.length) {
+            const labels = [...new Set(perdus.map(o => casierLabelIn(old, o.zone || '', o.casier_numero)))];
+            showErr(`Impossible : ${labels.length > 1 ? 'les casiers' : 'le casier'} ${labels.join(', ')} contien${labels.length > 1 ? 'nent' : 't'} encore des occupants ou des objets et disparaîtrai${labels.length > 1 ? 'ent' : 't'}. Videz-${labels.length > 1 ? 'les' : 'le'} d'abord.`);
+            return;
+          }
+
+          const lignes = z => `${z.rows} ligne(s) × ${z.cols} colonne(s) = ${z.rows * z.cols} casiers`;
+          let msg = `Appliquer cette nouvelle disposition ?\n\nGauche : ${lignes(nl.gauche)}\nDroit : ${lignes(nl.droit)}`;
+          for (const z of nl.zones) msg += `\n${z.nom} : ${lignes(z)} (n°${z.start} à ${z.start + z.rows * z.cols - 1})`;
+          msg += `\nTotal : ${nc.all} casiers (avant : ${oc.all})`;
+          const removedZones = old.zones.filter(z => !nl.zones.some(n => n.id === z.id));
+          if (removedZones.length) msg += `\n\nZone${removedZones.length > 1 ? 's' : ''} supprimée${removedZones.length > 1 ? 's' : ''} : ${removedZones.map(z => z.nom).join(', ')}`;
+          const mainNums = C.casierOcc.filter(o => !o.zone).map(o => o.casier_numero);
+          if (oc.L !== nc.L && mainNums.some(n => n > Math.min(oc.L, nc.L))) {
+            msg += "\n\n⚠️ Le nombre de casiers du côté gauche change : la numérotation du côté droit va être décalée. Les occupants restent rattachés au NUMÉRO de casier.";
+          }
+          confirmOuiNonCb(msg, async () => {
+            try {
+              const json = JSON.stringify(nl);
+              await upsertParam('casiers_layout', json);
+              APP_SETTINGS.casiers_layout = json;
+              closeMo('mo-casier-layout');
+              renderCasiersAll();
+              toast('Disposition mise à jour ✅', 'ok');
+            } catch (e) { showErr('Erreur : ' + e.message); }
+          });
+        }
+
         async function toggleTravail(id, checked) {
           // Ouvrir l'appareil photo tout de suite, AVANT le await réseau : sur
           // iOS Safari, un <input type=file> ne s'ouvre via .click() que si
@@ -6388,7 +7123,7 @@
           const base = v('pub-date');
           document.getElementById('pub-lbl').textContent = fmtL(base);
           const el = document.getElementById('vue-content');
-          el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
+          if (!_liveSilent) el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
           const date = base;
           const now = new Date();
           const todayStr = now.toISOString().split('T')[0];
@@ -6589,10 +7324,12 @@
           document.getElementById('s-grp').textContent = C.grp.length;
           document.getElementById('s-cav').textContent = C.cav.length;
           document.getElementById('s-chv').textContent = C.chv.length;
+          renderCasiersAlert();
+          if (isAdmin || isKenny) loadCasiers().then(renderCasiersAlert).catch(() => { });
           renderAlerts();
           const today = new Date().toISOString().split('T')[0];
           document.getElementById('s-sea').textContent = '…';
-          document.getElementById('td-sea').innerHTML = '<div class="ls"><div class="spin"></div></div>';
+          if (!_liveSilent) document.getElementById('td-sea').innerHTML = '<div class="ls"><div class="spin"></div></div>';
           dbSel('seances', { select: '*,groupes(nom,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom)', filter: [{ col: 'date', op: 'eq', val: today }], order: [{ col: 'heure' }] }).then(tc => {
             document.getElementById('s-sea').textContent = tc.length;
             document.getElementById('td-sea').innerHTML = !tc.length ? '<div class="ls">Aucune séance</div>' :
@@ -6657,7 +7394,7 @@
           const wrap = document.getElementById('td-impayes-wrap');
           const el = document.getElementById('td-impayes');
           if (!wrap || !el) return;
-          el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
+          if (!_liveSilent) el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
           wrap.style.display = 'block';
 
           const [partsImpayes, excImpayes] = await Promise.all([
@@ -9834,7 +10571,7 @@
         async function loadBaladesPub() {
           const el = document.getElementById('balades-pub-content');
           if (!el) return;
-          el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
+          if (!_liveSilent) el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
           try {
             await loadBalades();
             const today = new Date().toISOString().slice(0, 10);
@@ -9876,7 +10613,7 @@
         async function loadBaladesAdmin() {
           const el = document.getElementById('balades-admin-content');
           if (!el) return;
-          el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
+          if (!_liveSilent) el.innerHTML = '<div class="ls"><div class="spin"></div></div>';
           try {
             await loadBalades();
             renderBaladesAdmin();
@@ -10205,7 +10942,7 @@
 
         async function loadInscriptionsAdmin() {
           const t = document.getElementById('tb-insc');
-          if (t) t.innerHTML = '<tr class="er"><td colspan="6"><div class="spin"></div></td></tr>';
+          if (t && !_liveSilent) t.innerHTML = '<tr class="er"><td colspan="6"><div class="spin"></div></td></tr>';
           C_inscriptions = await dbSel('inscriptions', { order: [{ col: 'created_at', asc: false }] });
           renderInscriptionsAdmin();
         }

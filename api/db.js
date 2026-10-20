@@ -419,6 +419,32 @@ export default async function handler(req, res) {
       return res.status(200).json({ hash });
     }
 
+    // Versions : « quelles tables ont changé depuis ma dernière visite ? »
+    // Renvoie uniquement un petit marqueur par table (jamais de données). Les tables sensibles
+    // n'apparaissent que pour une session connectée (casiers : admin/dev seulement), pour ne pas
+    // laisser un visiteur anonyme deviner quand quelqu'un s'inscrit ou règle quelque chose.
+    if (body.action === 'versions') {
+      const connected = ROLES.some(r => verifyToken(body.token, r));
+      const adminLike = verifyToken(body.token, 'admin') || verifyToken(body.token, 'dev');
+      try {
+        const r = await supabaseQuery({
+          url: SUPA_URL, anon: SUPA_ANON, appKey: APP_KEY, table: 'app_params', method: 'select',
+          select: 'key,value', filter: [{ col: 'key', op: 'like', val: 'ver_*' }],
+        });
+        const SENSITIVE = ['inscriptions', 'cartes_heures', 'tickets', 'ticket_retours', 'travaux'];
+        const versions = {};
+        for (const row of (Array.isArray(r.data) ? r.data : [])) {
+          if (typeof row.key !== 'string' || !row.key.startsWith('ver_')) continue;
+          const t = row.key.slice(4);
+          if (t === 'casier_occupants' ? !adminLike : (SENSITIVE.includes(t) && !connected)) continue;
+          versions[t] = row.value;
+        }
+        return res.status(200).json({ versions });
+      } catch (e) {
+        return res.status(500).json({ error: e.message });
+      }
+    }
+
     // ── Upload icône discipline vers Supabase Storage ─────────────────
     // { action: 'upload-icon', token, discipline, fileBase64, mimeType }
     if (body.action === 'upload-icon') {
@@ -522,6 +548,13 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: 'Table protégée' });
       }
 
+      // Casiers : la table lie des cavaliers à des paiements → réservée à l'administration
+      // (admin / dev), en lecture comme en écriture. Les autres rôles (marine, travaux, stagiaire,
+      // inscription) et les visiteurs non connectés n'y ont aucun accès, même en appelant l'API directement.
+      if (body.table === 'casier_occupants' && !verifyToken(body.token, 'admin') && !verifyToken(body.token, 'dev')) {
+        return res.status(403).json({ error: "Réservé à l'administration" });
+      }
+
       // ── RGPD / sécurité : tables contenant des données personnelles ou
       // sensibles qui ne sont JAMAIS consultées par un visiteur non connecté
       // dans l'interface (inscriptions, paiements, tickets, travaux).
@@ -568,18 +601,40 @@ export default async function handler(req, res) {
         if (!isAdmin && !isDev && !ismarine && !isTravaux && !isTachesCompletionPublic && !isInscriptionPublic) {
           return res.status(403).json({ error: 'Session invalide ou expirée' });
         }
-        // Le rôle Travaux (seul, sans admin/dev) : lecture + "marquer fait" uniquement
+        // Le rôle Travaux (seul, sans admin/dev) : consulter, AJOUTER un travail, marquer fait,
+        // ajouter des photos / des réponses. Jamais modifier le contenu d'un travail ni en supprimer.
         if (isTravaux && !isAdmin && !isDev) {
           if (body.table !== 'travaux') {
             return res.status(403).json({ error: 'Accès restreint au module Travaux' });
           }
-          if (body.method !== 'update') {
-            return res.status(403).json({ error: 'Le rôle Travaux ne peut que consulter et marquer les travaux comme faits' });
-          }
-          const allowedFields = ['fait', 'completed_at', 'fait_par', 'photos', 'reponses'];
-          const dataKeys = Object.keys(body.data || {});
-          if (dataKeys.some(k => !allowedFields.includes(k))) {
-            return res.status(403).json({ error: 'Le rôle Travaux ne peut pas modifier ces champs' });
+          if (body.method === 'insert') {
+            // Création : uniquement ces champs, et toujours « pas encore fait ».
+            // (data doit être un objet simple : un tableau — insertion en lot — est refusé)
+            const INSERT_FIELDS = ['titre', 'description', 'priorite', 'photos', 'fait'];
+            const data = body.data;
+            if (!data || typeof data !== 'object' || Array.isArray(data)) {
+              return res.status(400).json({ error: 'Données invalides' });
+            }
+            if (Object.keys(data).some(k => !INSERT_FIELDS.includes(k))) {
+              return res.status(403).json({ error: 'Le rôle Travaux ne peut pas définir ces champs' });
+            }
+            if (data.fait !== undefined && data.fait !== false) {
+              return res.status(403).json({ error: 'Un nouveau travail ne peut pas être créé comme déjà fait' });
+            }
+            if (typeof data.titre !== 'string' || !data.titre.trim() || data.titre.length > 300) {
+              return res.status(400).json({ error: 'Titre requis (300 caractères maximum)' });
+            }
+            if (data.priorite !== undefined && !['basse', 'normale', 'haute'].includes(data.priorite)) {
+              return res.status(400).json({ error: 'Priorité invalide' });
+            }
+          } else if (body.method !== 'update') {
+            return res.status(403).json({ error: 'Le rôle Travaux peut consulter, ajouter un travail et marquer les travaux comme faits, mais pas en supprimer' });
+          } else {
+            const allowedFields = ['fait', 'completed_at', 'fait_par', 'photos', 'reponses'];
+            const dataKeys = Object.keys(body.data || {});
+            if (dataKeys.some(k => !allowedFields.includes(k))) {
+              return res.status(403).json({ error: 'Le rôle Travaux ne peut pas modifier ces champs' });
+            }
           }
         }
       }
@@ -597,6 +652,14 @@ export default async function handler(req, res) {
           order: body.order,    // { col, asc }[]
           single: body.single,
         });
+        // Mise à jour automatique des listes : on note que cette table vient de changer
+        // (voir bumpVersion). Un échec ici ne doit JAMAIS faire échouer la modification elle-même.
+        if (['insert', 'update', 'delete'].includes(body.method)) {
+          try {
+            const v = await bumpVersion({ url: SUPA_URL, anon: SUPA_ANON, appKey: APP_KEY, table: body.table });
+            if (v) result.ver = { table: body.table, v };
+          } catch { /* silencieux */ }
+        }
         return res.status(200).json(result);
       } catch (e) {
         return res.status(500).json({ error: e.message });
@@ -659,6 +722,24 @@ async function supabaseQuery({ url, anon, appKey, table, method, select, filter 
 
   if (!r.ok) throw new Error(typeof json === 'object' ? (json.message || JSON.stringify(json)) : json);
   return { data: json, error: null };
+}
+
+// ── Suivi des modifications (mise à jour automatique des listes) ─────────
+// Une ligne « ver_<table> » dans app_params reçoit une nouvelle valeur à chaque ajout /
+// modification / suppression réussi sur <table>. Les navigateurs ne lisent que ces petits
+// marqueurs (route « versions ») et ne rechargent une page que si une table qu'elle utilise a changé.
+async function bumpVersion({ url, anon, appKey, table }) {
+  if (typeof table !== 'string' || !/^[A-Za-z0-9_]{1,60}$/.test(table) || table === 'app_credentials') return null;
+  const key = 'ver_' + table;
+  const value = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const base = { url, anon, appKey, table: 'app_params' };
+  // Même logique que upsertParam côté navigateur : un UPDATE qui ne trouve aucune ligne RÉUSSIT
+  // (0 ligne modifiée) → on vérifie le résultat pour savoir s'il faut créer la ligne.
+  const upd = await supabaseQuery({ ...base, method: 'update', data: { value, updated_at: new Date().toISOString() }, filter: [{ col: 'key', op: 'eq', val: key }] });
+  if (!Array.isArray(upd.data) || upd.data.length === 0) {
+    await supabaseQuery({ ...base, method: 'insert', data: { key, value } });
+  }
+  return value;
 }
 
 // ── FNV32 (utilisé uniquement pour l'empreinte du 'ping', pas pour la
