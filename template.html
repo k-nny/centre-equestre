@@ -5957,7 +5957,10 @@
           renderSeances();
         }
         async function loadStages() {
-          C.stages = await dbSel('stages', { order: [{ col: 'date_debut', asc: true }] });
+          // Du plus récent au plus ancien. À date de début égale : celui qui finit le plus tard d'abord, puis
+          // ordre alphabétique du titre (le tri est refait ici car le serveur n'applique qu'un critère d'ordre).
+          C.stages = await dbSel('stages', { order: [{ col: 'date_debut', asc: false }] });
+          C.stages.sort((a, b) => (b.date_debut || '').localeCompare(a.date_debut || '') || (b.date_fin || '').localeCompare(a.date_fin || '') || (a.titre || '').localeCompare(b.titre || '', 'fr'));
           if (C.stages.length) {
             const iv = `(${C.stages.map(s => `"${s.id}"`).join(',')})`;
             [C.parts, C.chvS] = await Promise.all([
