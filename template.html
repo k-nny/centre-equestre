@@ -3742,6 +3742,38 @@
               <button class="btn btn-p" style="width:fit-content" onclick="saveRattrapParams()">Enregistrer</button>
             </div>
           </div>
+
+          <!-- Stages automatiques du mercredi (vacances scolaires) -->
+          <div class="tc" style="margin-bottom:20px">
+            <div class="tt">
+              <h3>🗓️ Stages automatiques du mercredi</h3>
+            </div>
+            <div style="padding:18px;display:flex;flex-direction:column;gap:14px">
+              <div style="font-size:13px;color:var(--muted)">
+                Chaque mercredi des vacances scolaires (Zone A), 2 stages sont créés automatiquement, à l'avance, dès qu'un
+                admin ouvre l'application. Un stage que vous supprimez n'est jamais recréé.
+              </div>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+                <input type="checkbox" id="sa-actif"> Activer la création automatique
+              </label>
+              <div class="fg"><label>Titre du stage n°1</label><input type="text" id="sa-titre1" maxlength="80"></div>
+              <div class="fg"><label>Titre du stage n°2</label><input type="text" id="sa-titre2" maxlength="80"></div>
+              <div class="fg"><label>Notes visibles par tous (facultatif, identiques pour les 2 stages)</label>
+                <textarea id="sa-notes" rows="2" placeholder="Programme, niveau requis…"></textarea></div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap">
+                Créer les stages jusqu'à
+                <input type="number" id="sa-jours" min="7" max="365"
+                  style="width:70px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-family:Arial,sans-serif">
+                jours à l'avance
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-p" onclick="saveStagesAuto()">Enregistrer</button>
+                <button class="btn btn-g" onclick="previewStagesAuto()">Voir les mercredis concernés</button>
+                <button class="btn btn-g" onclick="resetStagesAutoHistorique()">Oublier les dates déjà créées</button>
+              </div>
+              <div id="sa-result" style="font-size:12px;color:var(--muted);white-space:pre-line"></div>
+            </div>
+          </div>
           <!-- ═══════════════════════════════════════════════════════════════
     📋 INFORMATIONS SUR LES RÔLES / MOTS DE PASSE
     ═══════════════════════════════════════════════════════════════ -->
@@ -5251,6 +5283,7 @@
             document.getElementById('app').style.display = 'block';
             initRealtime();
             startLiveRefresh();
+            startStagesAutoMercredi();
             // Vérifier les retours non lus après chargement (admin et marine)
             // Restaurer le mode admin seulement si l'utilisateur l'avait explicitement activé
             // (flag posé par enableAdmin, effacé par logoutAdmin — indépendant du token site)
@@ -6977,6 +7010,175 @@
           });
         }
 
+        // ══════════════════════════════════════════════════════════════
+        //  STAGES AUTOMATIQUES DU MERCREDI (vacances scolaires)
+        //  Chaque mercredi de vacances scolaires (mêmes dates de vacances que le reste de l'appli :
+        //  VACANCES / estVac, Zone A), 2 stages sont créés à l'avance — dès qu'un admin ou le dev
+        //  ouvre l'application (puis toutes les 6 h tant qu'elle reste ouverte).
+        //  Réglages dans app_params : stages_auto_actif ('1'/'0', désactivé par défaut), stages_auto_titre1/2,
+        //  stages_auto_notes, stages_auto_jours (délai de création à l'avance).
+        //  stages_auto_faits = liste des mercredis déjà traités : un stage supprimé par la suite n'est PAS recréé.
+        //  Jamais de doublon : on relit les stages du jour juste avant d'écrire et on ne crée que ce qui manque.
+        // ══════════════════════════════════════════════════════════════
+        const STAGES_AUTO_DEFAUT = { titre1: 'Stage du mercredi — matin', titre2: 'Stage du mercredi — après-midi', jours: 60 };
+        let _stagesAutoBusy = false, _stagesAutoStarted = false;
+
+        const stagesAutoToday = () => new Date().toISOString().split('T')[0];
+        const isoPlus = (iso, n) => { const d = new Date(iso + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+        const estMercredi = iso => new Date(iso + 'T12:00:00Z').getUTCDay() === 3;
+
+        function stagesAutoConfig() {
+          const titre = (k, def) => String(APP_SETTINGS[k] ?? '').trim() || def;
+          const jours = Number.parseInt(APP_SETTINGS.stages_auto_jours, 10);
+          return {
+            actif: APP_SETTINGS.stages_auto_actif === '1',
+            titres: [titre('stages_auto_titre1', STAGES_AUTO_DEFAUT.titre1), titre('stages_auto_titre2', STAGES_AUTO_DEFAUT.titre2)],
+            notes: String(APP_SETTINGS.stages_auto_notes ?? '').trim(),
+            jours: Number.isInteger(jours) && jours >= 7 && jours <= 365 ? jours : STAGES_AUTO_DEFAUT.jours,
+          };
+        }
+        // Mercredis de vacances scolaires entre deux dates (incluses)
+        function mercredisDeVacances(from, to) {
+          const out = [];
+          for (let d = from; d <= to; d = isoPlus(d, 1)) if (estMercredi(d) && estVac(d)) out.push(d);
+          return out;
+        }
+        // Parmi les titres voulus, ceux qui n'existent pas encore ce jour-là (un stage existant n'en « couvre » qu'un)
+        function titresManquants(existants, titres) {
+          const dispo = new Map();
+          for (const st of existants) { const k = (st.titre || '').trim().toLowerCase(); dispo.set(k, (dispo.get(k) || 0) + 1); }
+          const manque = [];
+          for (const t of titres) {
+            const k = t.trim().toLowerCase();
+            if ((dispo.get(k) || 0) > 0) dispo.set(k, dispo.get(k) - 1); else manque.push(t);
+          }
+          return manque;
+        }
+        async function stagesAutoLireFaits() {
+          const r = await dbSel('app_params', { filter: [{ col: 'key', op: 'eq', val: 'stages_auto_faits' }] });
+          try {
+            const a = JSON.parse(r[0]?.value || '[]');
+            return new Set(Array.isArray(a) ? a.filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x)) : []);
+          } catch { return new Set(); }
+        }
+        // Enregistre les mercredis traités (en relisant d'abord la base : on n'écrase pas le travail d'un autre admin)
+        async function stagesAutoEcrireFaits(nouveaux) {
+          const set = await stagesAutoLireFaits();
+          for (const d of nouveaux) set.add(d);
+          const limite = isoPlus(stagesAutoToday(), -730);   // on ne garde que 2 ans d'historique
+          const json = JSON.stringify([...set].filter(d => d >= limite).sort());
+          await upsertParam('stages_auto_faits', json);
+          APP_SETTINGS.stages_auto_faits = json;
+        }
+
+        // simulate : ne rien écrire, seulement dire ce qui serait créé.  cfg : réglages à utiliser (sinon ceux enregistrés)
+        // Renvoie { dates: [{ date, titres }], crees, vacances } — ou null si rien n'est à faire (désactivé, déjà en cours)
+        async function autoStagesMercredi({ simulate = false, cfg = stagesAutoConfig() } = {}) {
+          if (_stagesAutoBusy) return null;
+          if (!simulate && !cfg.actif) return null;
+          if (!VACANCES.length) return { dates: [], crees: 0, vacances: false };
+          _stagesAutoBusy = true;
+          const rapport = { dates: [], crees: 0, vacances: true };
+          const traites = [];
+          try {
+            const today = stagesAutoToday();
+            const faits = await stagesAutoLireFaits();
+            for (const d of mercredisDeVacances(today, isoPlus(today, cfg.jours))) {
+              if (faits.has(d)) continue;
+              // relecture juste avant d'écrire : on ne crée que ce qui manque réellement ce jour-là
+              const existants = await dbSel('stages', { filter: [{ col: 'date_debut', op: 'eq', val: d }] });
+              const manque = titresManquants(existants, cfg.titres);
+              rapport.dates.push({ date: d, titres: manque });
+              if (simulate) continue;
+              for (const titre of manque) { await dbIns('stages', { titre, date_debut: d, date_fin: d, notes: cfg.notes }); rapport.crees++; }
+              traites.push(d);
+            }
+            if (!simulate && traites.length) await stagesAutoEcrireFaits(traites);
+            if (!simulate && rapport.crees) await loadStages();
+            return rapport;
+          } catch (e) {
+            // Panne en cours de route : on garde la trace des mercredis déjà terminés (sinon un stage supprimé ensuite
+            // serait recréé). Celui qui était en cours sera complété au prochain passage, sans doublon.
+            if (!simulate && traites.length) { try { await stagesAutoEcrireFaits(traites); } catch { } }
+            if (!simulate && rapport.crees) { try { await loadStages(); } catch { } }
+            throw e;
+          } finally { _stagesAutoBusy = false; }
+        }
+
+        const stagesAutoMsg = n => `${n} stage${n > 1 ? 's' : ''} créé${n > 1 ? 's' : ''} automatiquement pour les mercredis des vacances scolaires`;
+        // Lancé à l'ouverture de l'appli par un admin / le dev, puis toutes les 6 h tant qu'elle reste ouverte
+        function startStagesAutoMercredi() {
+          if (_stagesAutoStarted) return;
+          if (localStorage.getItem('ce_admin_active') !== '1' && localStorage.getItem('ce_Kenny_active') !== '1') return;
+          _stagesAutoStarted = true;
+          const run = () => autoStagesMercredi().then(r => { if (r?.crees) toast(stagesAutoMsg(r.crees), 'ok'); }).catch(e => console.warn('Stages automatiques :', e));
+          setTimeout(run, 2500);
+          setInterval(run, 6 * 3600 * 1000);
+        }
+
+        // ── Réglages (page Paramètres) ──
+        function renderStagesAutoParams() {
+          const c = stagesAutoConfig();
+          document.getElementById('sa-actif').checked = c.actif;
+          document.getElementById('sa-titre1').value = c.titres[0];
+          document.getElementById('sa-titre2').value = c.titres[1];
+          document.getElementById('sa-notes').value = c.notes;
+          document.getElementById('sa-jours').value = c.jours;
+        }
+        // Réglages saisis dans le formulaire, ou null (+ message) s'ils sont invalides
+        function lireStagesAutoForm() {
+          const t1 = v('sa-titre1').trim(), t2 = v('sa-titre2').trim();
+          const jours = Number(v('sa-jours'));
+          if (!t1 || !t2) { toast('Donnez un titre aux deux stages', 'err'); return null; }
+          if (v('sa-jours') === '' || !Number.isInteger(jours) || jours < 7 || jours > 365) { toast('Le délai doit être de 7 à 365 jours', 'err'); return null; }
+          return { actif: document.getElementById('sa-actif').checked, titres: [t1, t2], notes: v('sa-notes').trim(), jours };
+        }
+        async function saveStagesAuto() {
+          const f = lireStagesAutoForm(); if (!f) return;
+          const out = document.getElementById('sa-result');
+          try {
+            await upsertParam('stages_auto_actif', f.actif ? '1' : '0');
+            await upsertParam('stages_auto_titre1', f.titres[0]);
+            await upsertParam('stages_auto_titre2', f.titres[1]);
+            await upsertParam('stages_auto_notes', f.notes);
+            await upsertParam('stages_auto_jours', String(f.jours));
+            Object.assign(APP_SETTINGS, { stages_auto_actif: f.actif ? '1' : '0', stages_auto_titre1: f.titres[0], stages_auto_titre2: f.titres[1], stages_auto_notes: f.notes, stages_auto_jours: String(f.jours) });
+            toast('Paramètres enregistrés', 'ok');
+            out.textContent = '';
+            if (!f.actif) { out.textContent = 'Création automatique désactivée.'; return; }
+            const r = await autoStagesMercredi();
+            if (r === null) { out.textContent = 'Une création est déjà en cours, réessayez dans un instant.'; return; }
+            if (!r.vacances) { out.textContent = "Les dates de vacances n'ont pas pu être chargées (connexion ?) : rien n'a été créé pour le moment."; return; }
+            out.textContent = r.crees ? stagesAutoMsg(r.crees) + '.' : 'Rien à créer pour le moment : tous les mercredis de vacances des ' + f.jours + ' prochains jours sont déjà traités.';
+            if (r.crees) toast(stagesAutoMsg(r.crees), 'ok');
+          } catch (e) { toast('Erreur : ' + e.message, 'err'); }
+        }
+        // Montre, sans rien créer, les mercredis concernés avec les réglages actuellement saisis
+        async function previewStagesAuto() {
+          const f = lireStagesAutoForm(); if (!f) return;
+          const out = document.getElementById('sa-result');
+          out.textContent = 'Calcul en cours…';
+          try {
+            const r = await autoStagesMercredi({ simulate: true, cfg: f });
+            if (r === null) { out.textContent = 'Une création est en cours, réessayez dans un instant.'; return; }
+            if (!r.vacances) { out.textContent = "Les dates de vacances n'ont pas pu être chargées (connexion ?)."; return; }
+            if (!r.dates.length) { out.textContent = `Aucun mercredi de vacances scolaires à traiter dans les ${f.jours} prochains jours (ou tous sont déjà traités).`; return; }
+            const total = r.dates.reduce((n, d) => n + d.titres.length, 0);
+            out.textContent = `Mercredis de vacances scolaires dans les ${f.jours} prochains jours :\n`
+              + r.dates.map(d => `• ${fmtL(d.date)} : ${d.titres.length ? d.titres.length + ' stage' + (d.titres.length > 1 ? 's' : '') + ' à créer (' + d.titres.join(' ; ') + ')' : 'déjà complet'}`).join('\n')
+              + `\n→ ${total} stage${total > 1 ? 's' : ''} seraient créés.` + (f.actif ? '' : '\n(La création automatique est actuellement désactivée.)');
+          } catch (e) { out.textContent = 'Erreur : ' + e.message; }
+        }
+        function resetStagesAutoHistorique() {
+          confirmOuiNonCb("Oublier les dates déjà créées ?\n\nLes prochains mercredis de vacances dont vous aviez supprimé les stages seront recréés. Les stages qui existent déjà ne sont jamais dupliqués.", async () => {
+            try {
+              await upsertParam('stages_auto_faits', '[]');
+              APP_SETTINGS.stages_auto_faits = '[]';
+              toast('Historique effacé', 'ok');
+            } catch (e) { toast('Erreur : ' + e.message, 'err'); }
+          });
+        }
+
         async function toggleTravail(id, checked) {
           // Ouvrir l'appareil photo tout de suite, AVANT le await réseau : sur
           // iOS Safari, un <input type=file> ne s'ouvre via .click() que si
@@ -7131,8 +7333,8 @@
           document.getElementById('vac-pub').style.display = estVac(base) && !(isAdmin || isMarine) ? 'flex' : 'none';
           const today = new Date().toISOString().slice(0, 10);
           const [seaAll, seaPonctuelles, stgAll, stgAvenir] = await Promise.all([
-            dbSel('seances', { select: '*,groupes(nom,heure,moniteur_id,eleve_moniteur_id,note,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)', filter: [{ col: 'date', op: 'eq', val: date }, { col: 'nom_ponctuel', op: 'is', val: null }], order: [{ col: 'heure' }] }),
-            dbSel('seances', { select: '*,groupes(nom,heure,moniteur_id,eleve_moniteur_id,note,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)', filter: [{ col: 'date', op: 'eq', val: date }, { col: 'nom_ponctuel', op: 'neq', val: null }], order: [{ col: 'heure' }] }),
+            dbSel('seances', { select: '*,groupes(nom,heure,moniteur_id,eleve_moniteur_id,note,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)', filter: [{ col: 'date', op: 'eq', val: date }], order: [{ col: 'heure' }] }),
+            dbSel('seances', { select: '*,groupes(nom,heure,moniteur_id,eleve_moniteur_id,note,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)', filter: [{ col: 'date', op: 'eq', val: date }, { col: 'type', op: 'eq', val: 'ponctuelle' }] }),
             dbSel('stages', { filter: [{ col: 'date_debut', op: 'lte', val: date }, { col: 'date_fin', op: 'gte', val: date }] }),
             dbSel('stages', { filter: [{ col: 'date_debut', op: 'gte', val: date }], order: [{ col: 'date_debut', asc: true }] }),
           ]);
@@ -11484,6 +11686,8 @@
           document.getElementById('rm-semaines').checked = mode === 'semaines';
           document.getElementById('rm-vacances').checked = mode === 'vacances';
           document.getElementById('rattrap-semaines-val').value = semaines;
+          // Stages automatiques du mercredi
+          renderStagesAutoParams();
         }
 
         function onRattrapModeChange() {
