@@ -7130,14 +7130,16 @@
           const nowTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
           document.getElementById('vac-pub').style.display = estVac(base) && !(isAdmin || isMarine) ? 'flex' : 'none';
           const today = new Date().toISOString().slice(0, 10);
-          const [seaAll, stgAll, stgAvenir] = await Promise.all([
-            dbSel('seances', { select: '*,groupes(nom,heure,moniteur_id,eleve_moniteur_id,note,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)', filter: [{ col: 'date', op: 'eq', val: date }], order: [{ col: 'heure' }] }),
+          const [seaAll, seaPonctuelles, stgAll, stgAvenir] = await Promise.all([
+            dbSel('seances', { select: '*,groupes(nom,heure,moniteur_id,eleve_moniteur_id,note,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)', filter: [{ col: 'date', op: 'eq', val: date }, { col: 'nom_ponctuel', op: 'is', val: null }], order: [{ col: 'heure' }] }),
+            dbSel('seances', { select: '*,groupes(nom,heure,moniteur_id,eleve_moniteur_id,note,couleur),moniteur1:moniteurs!seances_moniteur_id_fkey(prenom),moniteur2:moniteurs!seances_moniteur2_id_fkey(prenom),cheval2:equides!seances_moniteur2_cheval_id_fkey(nom)', filter: [{ col: 'date', op: 'eq', val: date }, { col: 'nom_ponctuel', op: 'neq', val: null }], order: [{ col: 'heure' }] }),
             dbSel('stages', { filter: [{ col: 'date_debut', op: 'lte', val: date }, { col: 'date_fin', op: 'gte', val: date }] }),
             dbSel('stages', { filter: [{ col: 'date_debut', op: 'gte', val: date }], order: [{ col: 'date_debut', asc: true }] }),
           ]);
           C._stagesAvenir = stgAvenir;
           updateStgBanner();
-          let seances = (isAdmin || isMarine) ? seaAll : seaAll;
+          let seances = (isAdmin || isMarine) ? seaAll : seaAll.filter(s => !estVac(s.date));
+          seances = seances.concat(seaPonctuelles);
           // Filtrer les séances passées si c'est aujourd'hui (vue client)
           if (!(isAdmin || isMarine) && date === todayStr) {
             seances = seances.filter(s => {
