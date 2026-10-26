@@ -3,10 +3,6 @@
   "outputDirectory": ".",
   "installCommand": "echo 'no install needed'",
   "functions": {
-    "api/ffe-news.js": {
-      "memory": 128,
-      "maxDuration": 15
-    },
     "api/db.js": {
       "memory": 128,
       "maxDuration": 10
