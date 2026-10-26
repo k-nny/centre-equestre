@@ -13,7 +13,7 @@
 
 const HOME = 'https://www.ffe.com/';
 const CANDIDATES = [
-  'https://www.ffe.com/actualites',
+  'https://www.ffe.com/actualites/feed',
 ];
 const MAX_ITEMS = 8;
 
