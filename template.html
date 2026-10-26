@@ -7560,7 +7560,11 @@
           const box = document.getElementById('ffe-news'); if (!box) return;
           const items = (data && data.items) || [];
           if (!items.length) {
-            box.innerHTML = '<div style="padding:10px 0">Les actualités ne sont pas disponibles pour le moment.'
+            const dern = data && data.latest ? new Date(data.latest).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '';
+            const msg = data && data.stale
+              ? 'Le flux de la FFE n\'est plus mis à jour (dernière actualité : ' + dern + ').'
+              : 'Les actualités ne sont pas disponibles pour le moment.';
+            box.innerHTML = '<div style="padding:10px 0">' + msg
               + ' <a href="https://www.ffe.com/" target="_blank" rel="noopener noreferrer" style="color:var(--accent,#b8860b);font-weight:600">Voir les actualités sur ffe.com ↗</a>'
               + ' <button type="button" class="btn" style="margin-left:8px" onclick="loadFfeNews(true)">Réessayer</button></div>';
             return;
