@@ -89,6 +89,61 @@ async function discoverFeedUrls() {
   return [...new Set([...urls, ...CANDIDATES])];
 }
 
+const NEWS_URL = 'https://www.ffe.com/actualites';
+
+// Lecture de la page « Actualités » du site (Drupal, pas de flux RSS à jour).
+// Chaque article : <h3><a href="/actualites/...">Titre</a></h3>, une date JJ/MM/AAAA,
+// une vignette et des étiquettes (catégorie / discipline) placées avant le titre.
+function parseActualitesPage(html) {
+  const re = /<h3[^>]*>\s*<a[^>]+href=["']([^"']*\/actualites\/[^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  const hits = [];
+  let m;
+  while ((m = re.exec(html))) hits.push({ href: m[1], title: clean(m[2]), start: m.index, end: re.lastIndex });
+
+  const seen = new Set();
+  const items = [];
+  let prevEnd = 0;
+  hits.forEach((h, idx) => {
+    let link = '';
+    try { link = new URL(decodeEntities(h.href), NEWS_URL).href; } catch { /* ignore */ }
+    if (!h.title || !isFfeUrl(link) || seen.has(link)) return;
+    seen.add(link);
+
+    // Date : première date JJ/MM/AAAA entre ce titre et le titre suivant
+    const next = hits[idx + 1] ? hits[idx + 1].start : html.length;
+    const after = html.slice(h.end, next);
+    const dm = after.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    const date = dm ? new Date(`${dm[3]}-${dm[2]}-${dm[1]}T12:00:00Z`) : null;
+
+    // Vignette + étiquettes : région située entre l'article précédent et ce titre
+    const before = html.slice(prevEnd, h.start);
+    const imgs = [...before.matchAll(/<img\b[^>]*>/gi)];
+    const lastImg = imgs.length ? imgs[imgs.length - 1] : null;
+    let image = '';
+    const srcM = lastImg && lastImg[0].match(/\ssrc=["']([^"']+)["']/i);
+    if (srcM) { try { image = new URL(decodeEntities(srcM[1]), NEWS_URL).href; } catch { /* ignore */ } }
+    const tagsHtml = lastImg ? before.slice(lastImg.index + lastImg[0].length) : '';
+    const tagsText = clean(tagsHtml.replace(/<\/(div|li|span|p|a)>/gi, '$& | '));
+    const tags = tagsText.split('|').map((t) => t.trim()).filter((t) => t && t.length <= 40 && !/^>/.test(t)).slice(0, 3);
+
+    if (dm) prevEnd = h.end + after.indexOf(dm[0]) + dm[0].length; else prevEnd = h.end;
+    items.push({
+      title: h.title,
+      link,
+      date: date && !isNaN(date) ? date.toISOString() : null,
+      summary: '',
+      image: /^https:\/\/(?:[\w-]+\.)*ffe\.com\//.test(image) ? image : '',
+      tags,
+    });
+  });
+  return items;
+}
+
+async function scrapeActualites() {
+  const items = parseActualitesPage(await fetchText(NEWS_URL, 7000));
+  return items.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+}
+
 const MAX_AGE_DAYS = 180; // un flux dont la dernière actu a plus de 6 mois est considéré périmé
 
 const newest = (items) => items.reduce((m, i) => (i.date && i.date > m ? i.date : m), '');
@@ -98,6 +153,13 @@ export default async function handler(req, res) {
   // Cache CDN 30 min : évite de solliciter ffe.com à chaque affichage
   res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
 
+  // 1) Page « Actualités » de ffe.com (source principale, à jour)
+  try {
+    const items = (await scrapeActualites()).slice(0, MAX_ITEMS);
+    if (items.length) return res.status(200).json({ items, feedUrl: NEWS_URL, home: HOME });
+  } catch { /* on tente les flux RSS en secours */ }
+
+  // 2) Secours : flux RSS/Atom
   const explicit = process.env.FFE_NEWS_FEED_URL && isFfeUrl(process.env.FFE_NEWS_FEED_URL)
     ? [process.env.FFE_NEWS_FEED_URL] : null;
   const urls = explicit || await discoverFeedUrls();
