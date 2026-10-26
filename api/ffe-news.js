@@ -13,6 +13,10 @@
 
 const HOME = 'https://www.ffe.com/';
 const CANDIDATES = [
+  'https://www.ffe.com/feed',
+  'https://www.ffe.com/rss',
+  'https://www.ffe.com/rss.xml',
+  'https://www.ffe.com/feed.xml',
   'https://www.ffe.com/actualites/feed',
 ];
 const MAX_ITEMS = 8;
@@ -52,9 +56,9 @@ const tag = (block, name) => {
   return m ? m[1] : '';
 };
 
-function parseFeed(xml) {
+function parseFeed(xml, max = MAX_ITEMS) {
   const blocks = xml.match(/<item[\s>][\s\S]*?<\/item>/gi) || xml.match(/<entry[\s>][\s\S]*?<\/entry>/gi) || [];
-  return blocks.slice(0, MAX_ITEMS).map((b) => {
+  return blocks.slice(0, max).map((b) => {
     let link = clean(tag(b, 'link'));
     if (!link) { const m = b.match(/<link[^>]*href=["']([^"']+)["']/i); link = m ? decodeEntities(m[1]) : ''; }
     const rawDate = clean(tag(b, 'pubDate') || tag(b, 'published') || tag(b, 'updated') || tag(b, 'dc:date'));
@@ -85,18 +89,38 @@ async function discoverFeedUrls() {
   return [...new Set([...urls, ...CANDIDATES])];
 }
 
+const MAX_AGE_DAYS = 180; // un flux dont la dernière actu a plus de 6 mois est considéré périmé
+
+const newest = (items) => items.reduce((m, i) => (i.date && i.date > m ? i.date : m), '');
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   // Cache CDN 30 min : évite de solliciter ffe.com à chaque affichage
-  res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=86400');
+  res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
 
-  for (const url of await discoverFeedUrls()) {
+  const explicit = process.env.FFE_NEWS_FEED_URL && isFfeUrl(process.env.FFE_NEWS_FEED_URL)
+    ? [process.env.FFE_NEWS_FEED_URL] : null;
+  const urls = explicit || await discoverFeedUrls();
+
+  // On lit tous les flux candidats et on garde celui dont l'actu la plus récente est la plus fraîche
+  const results = (await Promise.all(urls.map(async (url) => {
     try {
-      const items = parseFeed(await fetchText(url));
-      if (items.length) return res.status(200).json({ items, feedUrl: url, home: HOME });
-    } catch { /* on essaie l'adresse suivante */ }
+      const items = parseFeed(await fetchText(url), 30)
+        .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      return items.length ? { url, items, latest: newest(items) } : null;
+    } catch { return null; }
+  }))).filter(Boolean).sort((a, b) => b.latest.localeCompare(a.latest));
+
+  const best = results[0];
+  const limit = new Date(Date.now() - MAX_AGE_DAYS * 864e5).toISOString();
+  if (best && best.latest && best.latest >= limit) {
+    const oneYear = new Date(Date.now() - 365 * 864e5).toISOString();
+    const recent = best.items.filter((i) => i.date && i.date >= oneYear); // on écarte les vieilles entrées
+    return res.status(200).json({ items: recent.slice(0, MAX_ITEMS), feedUrl: best.url, home: HOME });
   }
-  // Pas de flux trouvé : le front affichera un lien vers ffe.com
+  // Aucun flux, ou flux périmé : le front affichera un lien vers ffe.com
   res.setHeader('Cache-Control', 's-maxage=300');
-  return res.status(200).json({ items: [], feedUrl: null, home: HOME });
+  return res.status(200).json({
+    items: [], feedUrl: best ? best.url : null, stale: !!best, latest: best ? best.latest : null, home: HOME,
+  });
 }
