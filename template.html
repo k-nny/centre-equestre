@@ -2387,6 +2387,7 @@
             <span class="ic">✅</span> Tâches du jour
           </button>
           <button class="ni" data-p="balades-pub" onclick="go('balades-pub')"><span class="ic">🦄</span>Balades</button>
+          <button class="ni" data-p="ffe-actus" onclick="go('ffe-actus')"><span class="ic">📰</span>Actus FFE</button>
           <button class="ni" data-p="inscription" onclick="go('inscription')"><span
               class="ic">📄</span>Inscription</button>
           <div id="anav" style="display:none">
@@ -2468,6 +2469,24 @@
         </div>
 
         <!-- CONTRAT D'INSCRIPTION -->
+        <!-- ACTUALITÉS FFE (vue publique) -->
+        <div class="page" id="page-ffe-actus">
+          <div class="ph">
+            <h2>📰 Actualités de la FFE</h2>
+            <p class="no-upper">Les dernières nouvelles de la Fédération Française d'Équitation.</p>
+          </div>
+          <div class="tc">
+            <div class="tt">
+              <h3>Dernières actualités</h3>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button type="button" class="btn btn-p" onclick="loadFfeNews(true)">🔄 Actualiser</button>
+                <a href="https://www.ffe.com/" target="_blank" rel="noopener noreferrer"
+                  style="font-size:12px;color:var(--muted);text-decoration:none">ffe.com ↗</a>
+              </div>
+            </div>
+            <div id="ffe-news" style="padding:6px 18px 12px;font-size:13px;color:var(--muted)">Chargement…</div>
+          </div>
+        </div>
         <div class="page" id="page-inscription">
           <div class="ph" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
             <div>
@@ -5857,7 +5876,7 @@
           // Marine : seulement séances (+ vue est déjà publique)
           if (isMarine && !isAdmin && !isKenny && !['seances'].includes(p) && adm.includes(p)) return;
           // Stagiaire : seulement balades-pub, taches-pub et vue (la page publique du site) — aucune autre page admin
-          if (isStagiaire && p !== 'balades-pub' && p != 'taches-pub' && p !== 'vue') return;
+          if (isStagiaire && p !== 'balades-pub' && p != 'taches-pub' && p !== 'ffe-actus' && p !== 'vue') return;
           // Travaux : uniquement la page travaux, aucune autre
           if (isTravaux && !isAdmin && !isKenny && p !== 'travaux') return;
           // Inscription (kiosque) : uniquement le formulaire public, aucune autre page
@@ -5890,6 +5909,7 @@
           if (p === 'tickets') renderTicketsPage();
           if (p === 'taches-pub') loadTachesPub();
           if (p === 'balades-pub') loadBaladesPub();
+          if (p === 'ffe-actus') loadFfeNews();
           if (p === 'balades') loadBaladesAdmin();
           if (p === 'taches') {
             document.getElementById('taches-date').value = new Date().toISOString().slice(0, 10);
@@ -7524,6 +7544,35 @@
         // ══════════════════════════════════════════════════
         //  DASHBOARD
         // ══════════════════════════════════════════════════
+        // ── Actualités FFE (via /api/ffe-news, mises en cache 30 min côté navigateur) ──
+        let _ffeNews = null, _ffeNewsAt = 0;
+        async function loadFfeNews(force) {
+          const box = document.getElementById('ffe-news'); if (!box) return;
+          if (!force && _ffeNews && Date.now() - _ffeNewsAt < 30 * 60 * 1000) { renderFfeNews(_ffeNews); return; }
+          try {
+            const r = await fetch('/api/ffe-news');
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            _ffeNews = await r.json(); _ffeNewsAt = Date.now();
+          } catch (e) { _ffeNews = { items: [], error: true }; }
+          renderFfeNews(_ffeNews);
+        }
+        function renderFfeNews(data) {
+          const box = document.getElementById('ffe-news'); if (!box) return;
+          const items = (data && data.items) || [];
+          if (!items.length) {
+            box.innerHTML = '<div style="padding:10px 0">Les actualités ne sont pas disponibles pour le moment.'
+              + ' <a href="https://www.ffe.com/" target="_blank" rel="noopener noreferrer" style="color:var(--accent,#b8860b);font-weight:600">Voir les actualités sur ffe.com ↗</a>'
+              + ' <button type="button" class="btn" style="margin-left:8px" onclick="loadFfeNews(true)">Réessayer</button></div>';
+            return;
+          }
+          box.innerHTML = items.slice(0, 8).map(i => {
+            const date = i.date ? new Date(i.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+            const titre = escHtml(i.title);
+            const lien = i.link ? `<a href="${escHtml(i.link)}" target="_blank" rel="noopener noreferrer" style="color:var(--text);font-weight:700;text-decoration:none">${titre} ↗</a>` : `<strong style="color:var(--text)">${titre}</strong>`;
+            return `<div style="padding:10px 0;border-bottom:1px solid var(--border)">${date ? `<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">${date}</div>` : ''}${lien}${i.summary ? `<div style="margin-top:3px;line-height:1.45">${escHtml(i.summary)}</div>` : ''}</div>`;
+          }).join('');
+        }
+
         function renderDash() {
           document.getElementById('s-grp').textContent = C.grp.length;
           document.getElementById('s-cav').textContent = C.cav.length;
