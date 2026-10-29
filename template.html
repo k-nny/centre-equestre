@@ -8559,17 +8559,18 @@
         let APP_SETTINGS = { prix_heure_carte: 0 };
 
         async function loadAppSettings() {
+          // Deux lectures indépendantes : si app_settings échoue, app_params (règles de
+          // rattrapage, stages auto, etc.) doit quand même être chargé.
           try {
             const r = await dbSel('app_settings', {});
             r.forEach(s => {
               if (s.key === 'prix_heure_carte') APP_SETTINGS.prix_heure_carte = parseFloat(s.value) || 0;
             });
-            // Charger aussi app_params
-            const p = await dbSel('app_params', {});
-            p.forEach(s => {
-              APP_SETTINGS[s.key] = s.value;
-            });
           } catch (e) { console.warn('app_settings non chargé', e); }
+          try {
+            const p = await dbSel('app_params', {});
+            p.forEach(s => { APP_SETTINGS[s.key] = s.value; });
+          } catch (e) { console.warn('app_params non chargé', e); }
         }
 
         async function savePrixHeureGlobal() {
@@ -11429,14 +11430,14 @@
             }
 
             // Envoi de l'email uniquement si une adresse a été renseignée dans le formulaire
-            if (i.cav_mail) {
+            if (i.cav_mail || i.resp_mail) {
               if (btn) btn.textContent = '⏳ Génération du PDF…';
               const pdfBase64 = await generateInscriptionPdfBase64(i);
               if (btn) btn.textContent = '⏳ Envoi de l\'email…';
               const nomComplet = `${cap(i.cav_prenom || '')}${i.cav_nom ? ' ' + i.cav_nom.toUpperCase() : ''}`;
               await dbReq({
                 action: 'send-inscription-email', token: sessionToken,
-                toEmail: i.cav_mail, pdfBase64, cavNom: nomComplet
+                toEmail: i.cav_mail ? i.cav_mail : i.resp_mail, pdfBase64, cavNom: nomComplet
               });
             }
 
@@ -11679,13 +11680,30 @@
         // ══════════════════════════════════════════════════
         //  PARAMÈTRES (règles de rattrapage)
         // ══════════════════════════════════════════════════
-        function renderParamsPage() {
-          // Rattrapages
-          const mode = APP_SETTINGS.rattrap_mode || 'semaines';
-          const semaines = APP_SETTINGS.rattrap_semaines || '8';
+        function getRattrapSemaines() {
+          const n = parseInt(APP_SETTINGS.rattrap_semaines, 10);
+          return Number.isFinite(n) && n >= 1 ? Math.min(n, 52) : 8;
+        }
+
+        function applyRattrapParamsToForm() {
+          const mode = APP_SETTINGS.rattrap_mode === 'vacances' ? 'vacances' : 'semaines';
           document.getElementById('rm-semaines').checked = mode === 'semaines';
           document.getElementById('rm-vacances').checked = mode === 'vacances';
-          document.getElementById('rattrap-semaines-val').value = semaines;
+          document.getElementById('rattrap-semaines-val').value = getRattrapSemaines();
+        }
+
+        // Relit les règles directement en base (valeur réellement enregistrée)
+        async function loadRattrapParams() {
+          const rows = await dbSel('app_params', {});
+          for (const r of rows) {
+            if (r.key === 'rattrap_mode' || r.key === 'rattrap_semaines') APP_SETTINGS[r.key] = r.value;
+          }
+        }
+
+        function renderParamsPage() {
+          // Affichage immédiat avec ce qu'on a en mémoire, puis resynchronisation avec la base
+          applyRattrapParamsToForm();
+          loadRattrapParams().then(applyRattrapParamsToForm).catch(e => console.warn('rattrap params', e));
           // Stages automatiques du mercredi
           renderStagesAutoParams();
         }
@@ -11696,13 +11714,23 @@
 
         async function saveRattrapParams() {
           const mode = document.querySelector('input[name="rattrap-mode"]:checked')?.value || 'semaines';
-          const semaines = document.getElementById('rattrap-semaines-val').value || '8';
-
-          await upsertParam('rattrap_mode', mode);
-          await upsertParam('rattrap_semaines', semaines);
-          APP_SETTINGS.rattrap_mode = mode;
-          APP_SETTINGS.rattrap_semaines = semaines;
-          toast('Paramètres enregistrés', 'ok');
+          const n = parseInt(document.getElementById('rattrap-semaines-val').value, 10);
+          if (!Number.isFinite(n) || n < 1 || n > 52) {
+            toast('Entrez un nombre de semaines entre 1 et 52', 'err');
+            return;
+          }
+          try {
+            await upsertParam('rattrap_mode', mode);
+            await upsertParam('rattrap_semaines', String(n));
+            APP_SETTINGS.rattrap_mode = mode;
+            APP_SETTINGS.rattrap_semaines = String(n);
+            // Vérifie que la base contient bien la valeur saisie
+            await loadRattrapParams();
+            applyRattrapParamsToForm();
+            toast('Paramètres enregistrés', 'ok');
+          } catch (e) {
+            toast('Erreur : paramètres non enregistrés (' + e.message + ')', 'err');
+          }
         }
 
         async function upsertParam(key, value) {
@@ -11720,22 +11748,24 @@
           }
         }
 
-        function isAbsenceRattrapable(dateSeance) {
-          const mode = APP_SETTINGS.rattrap_mode || 'semaines';
-          const today = new Date().toISOString().slice(0, 10);
-          const seanceDate = new Date(dateSeance + 'T00:00:00');
+        // Date locale au format AAAA-MM-JJ (toISOString() est en UTC et décale d'un jour en France)
+        const isoLocal = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-          if (mode === 'semaines') {
-            const semaines = parseInt(APP_SETTINGS.rattrap_semaines || '8');
-            const limite = new Date(seanceDate);
-            limite.setDate(limite.getDate() + semaines * 7);
-            return today <= limite.toISOString().slice(0, 10);
-          } else {
-            // Mode vacances : rattrapable jusqu'aux prochaines vacances après la date de séance
+        function isAbsenceRattrapable(dateSeance) {
+          if (!dateSeance) return true;
+          const today = isoLocal(new Date());
+
+          if (APP_SETTINGS.rattrap_mode === 'vacances' && VACANCES.length) {
+            // Rattrapable jusqu'aux prochaines vacances après la date de séance
             const prochainesVac = VACANCES.find(([debut]) => debut > dateSeance);
             if (!prochainesVac) return true; // pas de vacances trouvées → pas de limite
             return today < prochainesVac[0];
           }
+
+          // Mode semaines (ou calendrier des vacances indisponible)
+          const limite = new Date(dateSeance + 'T00:00:00');
+          limite.setDate(limite.getDate() + getRattrapSemaines() * 7);
+          return today <= isoLocal(limite);
         }
       </script>
 </body>
