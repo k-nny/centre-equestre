@@ -319,6 +319,7 @@ export default async function handler(req, res) {
         from: `"Les Écuries de l'Octroi" <${process.env.GMAIL_USER}>`,
         to: toEmail,
         // replyTo: "reservation@lesecuriesdeloctroi.com",
+        cc: "kenny.dodey@gmail.com",
         replyTo: "kenny.dodey@gmail.com",
         subject: `Votre contrat d'inscription — ${nomLabel}`,
         html,
