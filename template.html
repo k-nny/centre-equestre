@@ -587,18 +587,64 @@
       overflow: hidden;
     }
 
-    .casier-cell:hover { filter: brightness(.96); }
+    .casier-cell:hover {
+      filter: brightness(.96);
+    }
+
     /* États d'un casier */
-    .casier-st-free    { background: linear-gradient(rgba(250, 204, 21, .45), rgba(250, 204, 21, .45)), var(--surface); }
-    .casier-st-paid    { background: linear-gradient(rgba(34, 170, 85, .35), rgba(34, 170, 85, .35)), var(--surface); }
-    .casier-st-partial { background: linear-gradient(rgba(245, 140, 30, .40), rgba(245, 140, 30, .40)), var(--surface); }
-    .casier-st-none    { background: linear-gradient(rgba(215, 50, 45, .38), rgba(215, 50, 45, .38)), var(--surface); }
-    .casier-st-club    { background: linear-gradient(rgba(120, 120, 120, .35), rgba(120, 120, 120, .35)), var(--surface); }
-    .casier-legend { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; margin: 0 0 16px; }
-    .casier-legend span { padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); }
-    .casier-num { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
-    .casier-line { font-size: 12px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .casier-free { font-size: 11px; color: var(--muted); font-style: italic; }
+    .casier-st-free {
+      background: linear-gradient(rgba(250, 204, 21, .45), rgba(250, 204, 21, .45)), var(--surface);
+    }
+
+    .casier-st-paid {
+      background: linear-gradient(rgba(34, 170, 85, .35), rgba(34, 170, 85, .35)), var(--surface);
+    }
+
+    .casier-st-partial {
+      background: linear-gradient(rgba(245, 140, 30, .40), rgba(245, 140, 30, .40)), var(--surface);
+    }
+
+    .casier-st-none {
+      background: linear-gradient(rgba(215, 50, 45, .38), rgba(215, 50, 45, .38)), var(--surface);
+    }
+
+    .casier-st-club {
+      background: linear-gradient(rgba(120, 120, 120, .35), rgba(120, 120, 120, .35)), var(--surface);
+    }
+
+    .casier-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 12px;
+      margin: 0 0 16px;
+    }
+
+    .casier-legend span {
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+
+    .casier-num {
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+
+    .casier-line {
+      font-size: 12px;
+      line-height: 1.35;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .casier-free {
+      font-size: 11px;
+      color: var(--muted);
+      font-style: italic;
+    }
 
     /* ── Modal ── */
     .mo {
@@ -2489,7 +2535,7 @@
               <div>
                 <h4>🐴 Cavalier</h4>
                 <div class="contrat-fr2">
-                  <div class="contrat-field"><label>Prénom *</label><input type="text" id="insc-cav-prenom"></div>
+                  <div class="contrat-field"><label>Prénom</label><input type="text" id="insc-cav-prenom"></div>
                   <div class="contrat-field"><label>Nom</label><input type="text" id="insc-cav-nom"></div>
                 </div>
                 <div class="contrat-fr2">
@@ -2505,6 +2551,10 @@
                   </div>
                 </div>
                 <div class="contrat-field"><label>Adresse</label><textarea id="insc-cav-adresse" rows="2"></textarea>
+                  <div class="contrat-fr2">
+                    <div class="contrat-field"><label>Code Postal</label><input type="text" id="insc-cav-cp"></div>
+                    <div class="contrat-field"><label>Ville</label><input type="text" id="insc-cav-ville"></div>
+                  </div>
                 </div>
                 <div class="contrat-field"><label>Mail</label><input type="email" id="insc-cav-mail"></div>
                 <div class="contrat-field"><label>Téléphone</label><input type="tel" id="insc-cav-tel"></div>
@@ -2515,6 +2565,10 @@
                 <div class="contrat-field"><label>Parenté</label><input type="text" id="insc-resp-parente"
                     placeholder="Père, mère, tuteur…"></div>
                 <div class="contrat-field"><label>Adresse</label><textarea id="insc-resp-adresse" rows="2"></textarea>
+                  <div class="contrat-fr2">
+                    <div class="contrat-field"><label>Code Postal</label><input type="text" id="insc-resp-cp"></div>
+                    <div class="contrat-field"><label>Ville</label><input type="text" id="insc-resp-ville"></div>
+                  </div>
                 </div>
                 <div class="contrat-field"><label>Mail</label><input type="email" id="insc-resp-mail"></div>
                 <div class="contrat-field"><label>Téléphone</label><input type="tel" id="insc-resp-tel"></div>
@@ -3212,9 +3266,12 @@
           <div class="md" style="max-width:520px">
             <h3 id="mo-travail-rep-t">💬 Réponses</h3>
             <input type="hidden" id="travail-rep-id">
-            <div id="travail-rep-list" style="display:flex;flex-direction:column;gap:8px;max-height:40vh;overflow-y:auto;margin-bottom:12px"></div>
+            <div id="travail-rep-list"
+              style="display:flex;flex-direction:column;gap:8px;max-height:40vh;overflow-y:auto;margin-bottom:12px">
+            </div>
             <div class="fg"><label>Votre réponse</label>
-              <textarea id="travail-rep-txt" rows="3" placeholder="Ex : mesures prises, remarques sur la validation..."></textarea>
+              <textarea id="travail-rep-txt" rows="3"
+                placeholder="Ex : mesures prises, remarques sur la validation..."></textarea>
             </div>
             <div class="mf">
               <button class="btn btn-g" onclick="closeMo('mo-travail-rep')">Fermer</button>
@@ -3238,7 +3295,8 @@
               <div class="fg" id="casier-add-cav-wrap"><label>Ajouter un cavalier</label>
                 <div style="display:flex;gap:6px;flex-wrap:wrap">
                   <select id="casier-add-cav" style="flex:1;min-width:150px"></select>
-                  <input type="number" id="casier-add-montant" min="0" step="0.01" placeholder="Montant €" style="width:110px">
+                  <input type="number" id="casier-add-montant" min="0" step="0.01" placeholder="Montant €"
+                    style="width:110px">
                   <button class="btn btn-p" onclick="addCasierCavalier()">Ajouter</button>
                 </div>
               </div>
@@ -3260,24 +3318,32 @@
         <div class="mo" id="mo-casier-layout">
           <div class="md" style="max-width:460px">
             <h3>⚙️ Disposition des casiers</h3>
-            <p class="no-upper" style="font-size:12px;margin-top:0">Côtés gauche et droit : les casiers sont numérotés à la
-              suite, ligne par ligne. Vous pouvez aussi ajouter d'autres zones, qui ont chacune leur propre numérotation.
+            <p class="no-upper" style="font-size:12px;margin-top:0">Côtés gauche et droit : les casiers sont numérotés à
+              la
+              suite, ligne par ligne. Vous pouvez aussi ajouter d'autres zones, qui ont chacune leur propre
+              numérotation.
               Toute modification demande une confirmation.</p>
             <div class="fg"><label>Côté gauche</label>
               <div style="display:flex;gap:8px;align-items:center">
-                <input type="number" id="cl-g-rows" min="0" max="20" style="width:80px" oninput="updateCasierLayoutPreview()"> lignes ×
-                <input type="number" id="cl-g-cols" min="0" max="12" style="width:80px" oninput="updateCasierLayoutPreview()"> colonnes
+                <input type="number" id="cl-g-rows" min="0" max="20" style="width:80px"
+                  oninput="updateCasierLayoutPreview()"> lignes ×
+                <input type="number" id="cl-g-cols" min="0" max="12" style="width:80px"
+                  oninput="updateCasierLayoutPreview()"> colonnes
               </div>
             </div>
             <div class="fg"><label>Côté droit</label>
               <div style="display:flex;gap:8px;align-items:center">
-                <input type="number" id="cl-d-rows" min="0" max="20" style="width:80px" oninput="updateCasierLayoutPreview()"> lignes ×
-                <input type="number" id="cl-d-cols" min="0" max="12" style="width:80px" oninput="updateCasierLayoutPreview()"> colonnes
+                <input type="number" id="cl-d-rows" min="0" max="20" style="width:80px"
+                  oninput="updateCasierLayoutPreview()"> lignes ×
+                <input type="number" id="cl-d-cols" min="0" max="12" style="width:80px"
+                  oninput="updateCasierLayoutPreview()"> colonnes
               </div>
             </div>
-            <div class="fg"><label>Autres zones <span style="font-weight:400;color:var(--muted)">(numérotation indépendante)</span></label>
+            <div class="fg"><label>Autres zones <span style="font-weight:400;color:var(--muted)">(numérotation
+                  indépendante)</span></label>
               <div id="cl-zones" style="display:flex;flex-direction:column;gap:8px"></div>
-              <button type="button" class="btn btn-g sm" style="margin-top:8px" onclick="addCasiersZoneDraft()">+ Ajouter une zone de casiers</button>
+              <button type="button" class="btn btn-g sm" style="margin-top:8px" onclick="addCasiersZoneDraft()">+
+                Ajouter une zone de casiers</button>
             </div>
             <div id="cl-preview" style="font-size:12px;margin:8px 0;color:var(--muted)"></div>
             <div id="cl-err" style="color:#b43728;font-size:12px;margin-bottom:8px;display:none"></div>
@@ -3663,13 +3729,15 @@
         <div class="page" id="page-casiers">
           <div class="ph">
             <h2>🔐 Casiers</h2>
-            <p class="no-upper">Cliquez sur un casier pour gérer ses occupants (cavaliers ou objets) et leurs paiements.</p>
+            <p class="no-upper">Cliquez sur un casier pour gérer ses occupants (cavaliers ou objets) et leurs paiements.
+            </p>
           </div>
           <div id="casiers-alert-page"></div>
           <div class="sg" id="casiers-stats"></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px">
             <button class="btn btn-g" onclick="openCasiersLayout()">⚙️ Modifier la disposition</button>
-            <button class="btn btn-g" onclick="casiersNouvellePeriode()">🔄 Nouvelle période (tout remettre à « à payer »)</button>
+            <button class="btn btn-g" onclick="casiersNouvellePeriode()">🔄 Nouvelle période (tout remettre à « à payer
+              »)</button>
           </div>
           <div class="casier-legend">
             <span class="casier-st-free">Libre</span>
@@ -3750,7 +3818,8 @@
             </div>
             <div style="padding:18px;display:flex;flex-direction:column;gap:14px">
               <div style="font-size:13px;color:var(--muted)">
-                Chaque mercredi des vacances scolaires (Zone A), 2 stages sont créés automatiquement, à l'avance, dès qu'un
+                Chaque mercredi des vacances scolaires (Zone A), 2 stages sont créés automatiquement, à l'avance, dès
+                qu'un
                 admin ouvre l'application. Un stage que vous supprimez n'est jamais recréé.
               </div>
               <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
@@ -3759,7 +3828,8 @@
               <div class="fg"><label>Titre du stage n°1</label><input type="text" id="sa-titre1" maxlength="80"></div>
               <div class="fg"><label>Titre du stage n°2</label><input type="text" id="sa-titre2" maxlength="80"></div>
               <div class="fg"><label>Notes visibles par tous (facultatif, identiques pour les 2 stages)</label>
-                <textarea id="sa-notes" rows="2" placeholder="Programme, niveau requis…"></textarea></div>
+                <textarea id="sa-notes" rows="2" placeholder="Programme, niveau requis…"></textarea>
+              </div>
               <div style="display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap">
                 Créer les stages jusqu'à
                 <input type="number" id="sa-jours" min="7" max="365"
@@ -11094,11 +11164,15 @@
             cav_naissance: v('insc-cav-naissance') || null,
             cav_sexe: v('insc-cav-sexe') || null,
             cav_adresse: v('insc-cav-adresse').trim() || null,
+            cav_cp: v('insc-cav-cp').trim() || null,
+            cav_ville: v('insc-cav-ville').trim() || null,
             cav_mail: v('insc-cav-mail').trim() || null,
             cav_tel: v('insc-cav-tel').trim() || null,
             resp_nom: v('insc-resp-nom').trim() || null,
             resp_parente: v('insc-resp-parente').trim() || null,
             resp_adresse: v('insc-resp-adresse').trim() || null,
+            resp_cp: v('insc-resp-cp').trim() || null,
+            resp_ville: v('insc-resp-ville').trim() || null,
             resp_mail: v('insc-resp-mail').trim() || null,
             resp_tel: v('insc-resp-tel').trim() || null,
             urgence1_nom: v('insc-urg1-nom').trim() || null,
