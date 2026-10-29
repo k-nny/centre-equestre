@@ -11430,14 +11430,14 @@
             }
 
             // Envoi de l'email uniquement si une adresse a été renseignée dans le formulaire
-            if (i.cav_mail) {
+            if (i.cav_mail || i.resp_mail) {
               if (btn) btn.textContent = '⏳ Génération du PDF…';
               const pdfBase64 = await generateInscriptionPdfBase64(i);
               if (btn) btn.textContent = '⏳ Envoi de l\'email…';
               const nomComplet = `${cap(i.cav_prenom || '')}${i.cav_nom ? ' ' + i.cav_nom.toUpperCase() : ''}`;
               await dbReq({
                 action: 'send-inscription-email', token: sessionToken,
-                toEmail: i.cav_mail, pdfBase64, cavNom: nomComplet
+                toEmail: i.cav_mail ? i.cav_mail : i.resp_mail, pdfBase64, cavNom: nomComplet
               });
             }
 

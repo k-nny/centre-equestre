@@ -318,7 +318,8 @@ export default async function handler(req, res) {
       await transporter.sendMail({
         from: `"Les Écuries de l'Octroi" <${process.env.GMAIL_USER}>`,
         to: toEmail,
-        replyTo: "reservation@lesecuriesdeloctroi.com",
+        // replyTo: "reservation@lesecuriesdeloctroi.com",
+        replyTo: "kenny.dodey@gmail.com",
         subject: `Votre contrat d'inscription — ${nomLabel}`,
         html,
         attachments: [
