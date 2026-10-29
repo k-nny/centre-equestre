@@ -11269,7 +11269,7 @@
         <div style="font-size:13px;line-height:1.7">
           <strong>${cap(i.cav_prenom || '')}${i.cav_nom ? ' ' + i.cav_nom.toUpperCase() : ''}</strong>${i.cav_sexe ? ' · ' + (i.cav_sexe === 'F' ? 'Féminin' : 'Masculin') : ''}${i.cav_naissance ? ' · né(e) le ' + fmtDate(i.cav_naissance) : ''}<br>
           ${i.cav_adresse ? i.cav_adresse.replace(/\n/g, '<br>') + '<br>' : ''}
-          ${i.cav_cp ? i.cav_cp : '' + ', ' + i.cav_ville ? i.cav_ville : ''}
+          ${i.cav_cp + ', ' + i.cav_ville}
           ${i.cav_mail ? '✉️ ' + i.cav_mail + ' · ' : ''}${i.cav_tel ? '📞 ' + i.cav_tel : ''}
         </div>
       </div>
@@ -11278,7 +11278,7 @@
         <div style="font-size:13px;line-height:1.7">
           ${i.resp_nom ? '<strong>' + i.resp_nom + '</strong>' + (i.resp_parente ? ' (' + i.resp_parente + ')' : '') + '<br>' : '<span style="color:var(--muted)">—</span><br>'}
           ${i.resp_adresse ? i.resp_adresse.replace(/\n/g, '<br>') + '<br>' : ''}
-          ${i.resp_cp ? i.resp_cp : '' + ', ' + i.resp_ville ? i.resp_ville : ''}
+          ${i.resp_cp + ', ' + i.resp_ville}
           ${i.resp_mail ? '✉️ ' + i.resp_mail + ' · ' : ''}${i.resp_tel ? '📞 ' + i.resp_tel : ''}
         </div>
       </div>
