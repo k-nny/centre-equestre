@@ -11269,6 +11269,7 @@
         <div style="font-size:13px;line-height:1.7">
           <strong>${cap(i.cav_prenom || '')}${i.cav_nom ? ' ' + i.cav_nom.toUpperCase() : ''}</strong>${i.cav_sexe ? ' · ' + (i.cav_sexe === 'F' ? 'Féminin' : 'Masculin') : ''}${i.cav_naissance ? ' · né(e) le ' + fmtDate(i.cav_naissance) : ''}<br>
           ${i.cav_adresse ? i.cav_adresse.replace(/\n/g, '<br>') + '<br>' : ''}
+          ${i.cav_cp + ', ' + i.cav_ville}
           ${i.cav_mail ? '✉️ ' + i.cav_mail + ' · ' : ''}${i.cav_tel ? '📞 ' + i.cav_tel : ''}
         </div>
       </div>
@@ -11277,6 +11278,7 @@
         <div style="font-size:13px;line-height:1.7">
           ${i.resp_nom ? '<strong>' + i.resp_nom + '</strong>' + (i.resp_parente ? ' (' + i.resp_parente + ')' : '') + '<br>' : '<span style="color:var(--muted)">—</span><br>'}
           ${i.resp_adresse ? i.resp_adresse.replace(/\n/g, '<br>') + '<br>' : ''}
+          ${i.resp_cp + ', ' + i.resp_ville}
           ${i.resp_mail ? '✉️ ' + i.resp_mail + ' · ' : ''}${i.resp_tel ? '📞 ' + i.resp_tel : ''}
         </div>
       </div>
@@ -11336,12 +11338,16 @@
           setVal('#insc-cav-naissance', insc.cav_naissance);
           setVal('#insc-cav-sexe', insc.cav_sexe);
           setVal('#insc-cav-adresse', insc.cav_adresse);
+          setVal('#insc-cav-cp', insc.cav_cp);
+          setVal('#insc-cav-ville', insc.cav_ville);
           setVal('#insc-cav-mail', insc.cav_mail);
           setVal('#insc-cav-tel', insc.cav_tel);
           // Responsable légal
           setVal('#insc-resp-nom', insc.resp_nom);
           setVal('#insc-resp-parente', insc.resp_parente);
           setVal('#insc-resp-adresse', insc.resp_adresse);
+          setVal('#insc-resp-cp', insc.resp_cp);
+          setVal('#insc-resp-ville', insc.resp_ville);
           setVal('#insc-resp-mail', insc.resp_mail);
           setVal('#insc-resp-tel', insc.resp_tel);
           // Urgence
