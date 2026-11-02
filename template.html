@@ -3377,9 +3377,22 @@
               <button class="btn btn-g" onclick="closeMo('mo-insc-detail')">Fermer</button>
               <button class="btn btn-g sm" onclick="printInscription(v('insc-detail-id'))">🖨️ Imprimer / PDF</button>
               <button class="btn btn-d sm" onclick="delInscriptionAdmin()">🗑 Supprimer</button>
+              <button class="btn btn-g sm" id="insc-resend-btn" style="display:none" onclick="openResendInsc()">📧 Renvoyer le mail</button>
               <button class="btn btn-p" id="insc-approve-btn" onclick="approuverInscription()">✅ Approuver & créer le
                 cavalier</button>
             </div>
+          </div>
+        </div>
+
+        <div class="mo" id="mo-insc-resend">
+          <div class="md" style="max-width:440px">
+            <h3>📧 Renvoyer le contrat par email</h3>
+            <input type="hidden" id="insc-resend-id">
+            <p class="no-upper" style="font-size:12px;color:var(--muted);margin:-6px 0 14px">Le PDF du contrat validé
+              est régénéré
+              et envoyé en pièce jointe. À qui l'envoyer ?</p>
+            <div id="insc-resend-opts" style="display:flex;flex-direction:column;gap:8px"></div>
+            <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-insc-resend')">Annuler</button></div>
           </div>
         </div>
 
@@ -11313,6 +11326,9 @@
             if (i.approuve) { approveBtn.style.display = 'none'; }
             else { approveBtn.style.display = ''; approveBtn.disabled = false; approveBtn.textContent = '✅ Approuver & créer le cavalier'; }
           }
+          // Renvoi du mail : seulement une fois le contrat validé
+          const resendBtn = document.getElementById('insc-resend-btn');
+          if (resendBtn) resendBtn.style.display = i.approuve ? '' : 'none';
           openMo('mo-insc-detail');
         }
 
@@ -11560,6 +11576,51 @@
               + 'Vous pouvez réessayer : cette inscription reste disponible et pourra être revalidée.');
             if (btn) { btn.disabled = false; btn.textContent = '✅ Approuver & créer le cavalier'; }
           }
+        }
+
+        // ── Renvoi du contrat validé par email : cavalier, écuries, ou les deux ──
+        const ECURIES_MAIL = 'reservation@lesecuriesdeloctroi.com';
+        let _resendBusy = false;
+        const inscMailCavalier = i => (i.cav_mail || i.resp_mail || '').trim();
+
+        function openResendInsc() {
+          const id = v('insc-detail-id');
+          const i = C_inscriptions.find(x => x.id === id);
+          if (!i || !i.approuve) { toast("Le contrat doit d'abord être approuvé", 'err'); return; }
+          document.getElementById('insc-resend-id').value = id;
+          const cavMail = inscMailCavalier(i);
+          const opt = (choice, label, sub, disabled) => `<button type="button" class="btn ${disabled ? 'btn-g' : 'btn-p'}"
+            style="width:100%;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 14px"
+            ${disabled ? 'disabled' : ''} onclick="resendInscriptionMail('${choice}')">
+            <span>${label}</span><span style="font-size:11px;font-weight:400;opacity:.85">${sub}</span></button>`;
+          document.getElementById('insc-resend-opts').innerHTML =
+            opt('cavalier', '🐴 Au cavalier', cavMail ? escHtml(cavMail) : 'Aucune adresse email renseignée', !cavMail)
+            + opt('ecuries', "🏠 Aux Écuries", ECURIES_MAIL, false)
+            + opt('les2', '📨 Aux deux', cavMail ? escHtml(cavMail) + ' + ' + ECURIES_MAIL : 'Aucune adresse email pour le cavalier', !cavMail);
+          openMo('mo-insc-resend');
+        }
+
+        async function resendInscriptionMail(choice) {
+          if (_resendBusy) return;
+          const i = C_inscriptions.find(x => x.id === v('insc-resend-id'));
+          if (!i || !i.approuve) return;
+          const cavMail = inscMailCavalier(i);
+          if (choice !== 'ecuries' && !cavMail) { toast("Aucune adresse email pour le cavalier", 'err'); return; }
+          const dest = choice === 'cavalier' ? [cavMail] : choice === 'ecuries' ? [ECURIES_MAIL] : [cavMail, ECURIES_MAIL];
+          const uniques = [...new Set(dest.map(d => d.toLowerCase()))];
+          _resendBusy = true;
+          document.querySelectorAll('#insc-resend-opts button').forEach(b => b.disabled = true);
+          toast('Génération du PDF et envoi en cours…', 'warn');
+          try {
+            const pdfBase64 = await generateInscriptionPdfBase64(i);
+            const nomComplet = `${cap(i.cav_prenom || '')}${i.cav_nom ? ' ' + i.cav_nom.toUpperCase() : ''}`;
+            await dbReq({ action: 'send-inscription-email', token: sessionToken, toEmail: uniques.join(', '), pdfBase64, cavNom: nomComplet });
+            closeMo('mo-insc-resend');
+            toast('Email envoyé à ' + uniques.join(' et ') + ' ✅', 'ok');
+          } catch (e) {
+            toast("Erreur : l'email n'a pas été envoyé (" + e.message + ')', 'err');
+            document.querySelectorAll('#insc-resend-opts button').forEach(b => b.disabled = false);
+          } finally { _resendBusy = false; }
         }
 
         async function delInscriptionAdmin() {
