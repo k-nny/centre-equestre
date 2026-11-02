@@ -3384,6 +3384,18 @@
           </div>
         </div>
 
+        <div class="mo" id="mo-insc-resend">
+          <div class="md" style="max-width:440px">
+            <h3>📧 Renvoyer le contrat par email</h3>
+            <input type="hidden" id="insc-resend-id">
+            <p class="no-upper" style="font-size:12px;color:var(--muted);margin:-6px 0 14px">Le PDF du contrat validé
+              est régénéré
+              et envoyé en pièce jointe. À qui l'envoyer ?</p>
+            <div id="insc-resend-opts" style="display:flex;flex-direction:column;gap:8px"></div>
+            <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-insc-resend')">Annuler</button></div>
+          </div>
+        </div>
+
         <!-- Choix en cas de cavalier déjà existant (prénom+nom identiques) -->
         <div class="mo" id="mo-cav-duplicate">
           <div class="md" style="max-width:440px">
