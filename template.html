@@ -11326,6 +11326,9 @@
             if (i.approuve) { approveBtn.style.display = 'none'; }
             else { approveBtn.style.display = ''; approveBtn.disabled = false; approveBtn.textContent = '✅ Approuver & créer le cavalier'; }
           }
+          // Renvoi du mail : seulement une fois le contrat validé
+          const resendBtn = document.getElementById('insc-resend-btn');
+          if (resendBtn) resendBtn.style.display = i.approuve ? '' : 'none';
           openMo('mo-insc-detail');
         }
 
