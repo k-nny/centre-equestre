@@ -2397,6 +2397,17 @@
   .insc-doc .insc-reglement a { color: #3d6b24 !important; }
   .insc-doc .reg-footer { font-style: normal; color: #000 !important; font-size: 8.5pt !important; text-align: right; }
 }
+  
+/* ═══ Impression : garder les colonnes (la page A4 < 768px déclenchait les règles mobiles) ═══ */
+@media print {
+  .insc-doc .contrat-2col { display: grid !important; grid-template-columns: 1fr 1fr !important; }
+  .insc-doc .contrat-2col::before { display: block !important; }
+  .insc-doc .contrat-bottom { display: grid !important; grid-template-columns: 1fr 1fr !important; align-items: end; }
+  .insc-doc .contrat-fr2 { display: grid !important; grid-template-columns: 1.4fr 1fr !important; }
+  .insc-doc .rib-box { grid-template-columns: 1.2fr 2fr 1fr !important; }
+  .insc-doc .cav-checkgrid { grid-template-columns: 1fr 1fr !important; }
+}
+.rib-hint { background: rgba(180,100,20,.08); border: 1px dashed #b46414; color: #b46414; border-radius: 8px; padding: 8px 12px; font-size: 12px; margin-bottom: 10px; }
   </style>
   <!-- Génération de PDF côté client (contrat d'inscription envoyé par email à l'approbation) -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -2740,6 +2751,7 @@
             </div>
 
             <!-- Règlement par virement -->
+            <div id="rib-admin-hint" class="rib-hint no-print" style="display:none">⚠️ RIB non configuré : le bloc virement n'apparaît pas sur le formulaire. Renseignez-le dans Paramètres → « RIB du centre ».</div>
             <div class="contrat-sec" id="insc-virement-sec" style="display:none">
               <h4>🏦 Règlement par virement bancaire</h4>
               <div class="rib-box">
@@ -2753,9 +2765,7 @@
             <!-- Signature établissement + validation -->
             <div class="contrat-bottom">
               <div class="contrat-signature-officiel">
-                <div class="sig-date">À Châteauneuf, le <span id="insc-date-sig" class="sig-date-val"></span></div>
                 <div class="sig-box"><img src="Signature.png" alt="Signature du chef d'établissement"></div>
-                <div class="sig-name"><strong>Claire MATHEVET</strong> — Responsable</div>
               </div>
               <div class="contrat-validation">
                 <label class="contrat-chk">
@@ -2764,7 +2774,7 @@
                   signant ci-dessous, cela représente la signature du présent contrat d'inscription.
                 </label>
                 <div class="signature-pad-wrap">
-                  <label>Ma signature (précédée de la mention « Lu et approuvé ») :</label>
+                  <label>Ma signature :</label>
                   <canvas id="insc-signature-canvas"></canvas>
                   <div class="signature-pad-actions">
                     <span>Dessinez avec le doigt ou la souris</span>
@@ -11185,6 +11195,8 @@
           const sec = document.getElementById('insc-virement-sec'); if (!sec) return;
           const iban = (APP_SETTINGS.rib_iban || '').trim();
           sec.style.display = iban ? '' : 'none';
+          const hint = document.getElementById('rib-admin-hint');
+          if (hint) hint.style.display = (!iban && (isAdmin || isKenny)) ? '' : 'none';
           document.getElementById('rib-titulaire').textContent = APP_SETTINGS.rib_titulaire || '';
           document.getElementById('rib-iban').textContent = fmtIban(iban);
           document.getElementById('rib-bic').textContent = (APP_SETTINGS.rib_bic || '').toUpperCase();
@@ -11552,6 +11564,7 @@
           if (dateSigEl && insc.created_at) dateSigEl.textContent = new Date(insc.created_at).toLocaleDateString('fr-FR');
 
           // Lecture seule + retrait des boutons d'action (Imprimer/Valider)
+          clone.querySelectorAll('.no-print').forEach(e => e.remove());
           clone.querySelectorAll('input, textarea, select').forEach(el => el.disabled = true);
           const actions = clone.querySelector('.contrat-actions'); if (actions) actions.remove();
           return clone;
