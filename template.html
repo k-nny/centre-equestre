@@ -10812,7 +10812,7 @@
           const msg = v('td-retour-msg').trim();
           if (!msg) { return; }
 
-          const auteur = isKenny ? 'Kenny' : isAdmin ? 'Admin' : 'Utilisateur';
+          const auteur = isKenny ? 'Kenny' : 'Admin';
 
           await dbIns('ticket_retours', {
             ticket_id: ticketId,
