@@ -2321,6 +2321,93 @@
       text-align: center;
       color: var(--muted);
     }
+  
+/* ── Contrat compact (écran) ── */
+.contrat-card { padding: 18px 26px; }
+.contrat-top { margin-bottom: 12px; padding-bottom: 8px; }
+.contrat-sec { margin-bottom: 10px; }
+.contrat-sec > h4 { margin-bottom: 5px; }
+.contrat-field { margin-bottom: 6px; }
+.contrat-chk { margin-bottom: 5px; font-size: 12.5px; line-height: 1.35; }
+.contrat-txt { font-size: 12.5px; line-height: 1.4; margin-bottom: 5px; }
+.contrat-bottom { margin-top: 14px; padding-top: 12px; }
+#insc-signature-canvas { height: 90px; }
+.rib-box { display: grid; grid-template-columns: 1.2fr 2fr 1fr; gap: 6px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 13px; }
+.rib-box span { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+.rib-box strong { font-family: monospace; font-size: 13px; word-break: break-all; }
+@media (max-width: 768px) { .rib-box { grid-template-columns: 1fr; } }
+
+/* ═══ CONTRAT : fiche (page 1) + règlement (pages 2-3) ═══ */
+.insc-reglement { margin-top: 30px; padding-top: 22px; border-top: 3px solid var(--gold); }
+.reg-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.reg-logo { font-weight: 800; color: var(--gold); }
+.reg-titre { font-size: 22px; font-weight: 800; text-transform: uppercase; color: var(--cream); }
+.sig-date { font-size: 12px; margin-bottom: 4px; }
+.sig-date-val { display: inline-block; min-width: 90px; border-bottom: 1px solid var(--border); }
+.sig-name { font-size: 12px; margin-top: 4px; }
+.reg-footer { text-align: right; }
+
+@page { size: A4; margin: 10mm 11mm; }
+
+@media print {
+  :root { --print-green: #4f8a2e; --fiche-fs: 8.4pt; --reg-fs: 8.8pt; }
+  body { background: #fff !important; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #page-inscription .ph, .no-print { display: none !important; }
+  body.print-fiche .insc-reglement { display: none !important; }
+  body.print-reglement .insc-fiche { display: none !important; }
+  .contrat-card.insc-doc { padding: 0 !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; max-width: none !important; background: #fff !important; }
+
+  .insc-doc .contrat-top { border-bottom: none !important; margin: 0 0 6px !important; padding: 0 !important; }
+  .insc-doc .contrat-top .titre, .insc-doc .contrat-top .saison { color: var(--print-green) !important; font-size: 17pt !important; line-height: 1.1 !important; }
+  .insc-doc .contrat-top .titre .logo-h { font-size: 16pt !important; }
+  .insc-doc .contrat-sec { margin-bottom: 5px !important; }
+  .insc-doc .contrat-sec > h4 { color: var(--print-green) !important; font-size: 10pt !important; margin: 0 0 2px !important; letter-spacing: 0 !important; }
+  .insc-doc .contrat-2col { gap: 0 18px !important; }
+  .insc-doc .contrat-2col::before { background: var(--print-green) !important; }
+
+  .insc-doc .contrat-field { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 4px; margin: 0 0 2px !important; }
+  .insc-doc .contrat-field > .contrat-fr2 { flex: 0 0 100%; }
+  .insc-doc .contrat-field label { font-size: var(--fiche-fs) !important; color: #000 !important; font-weight: 400 !important; white-space: nowrap; margin: 0 !important; }
+  .insc-doc .contrat-field label::after { content: " :"; }
+  .insc-doc .contrat-field input, .insc-doc .contrat-field textarea, .insc-doc .contrat-field select { flex: 1; min-width: 0; background: transparent !important; border: none !important; border-bottom: 1px solid #000 !important; border-radius: 0 !important; font-size: var(--fiche-fs) !important; padding: 0 2px !important; appearance: none; -webkit-appearance: none; resize: none; overflow: hidden; }
+  .insc-doc .contrat-fr2 { gap: 8px !important; }
+
+  .insc-doc .contrat-chk, .insc-doc .contrat-txt { font-size: var(--fiche-fs) !important; line-height: 1.28 !important; margin: 0 0 2px !important; }
+  .insc-doc .contrat-chk { gap: 5px !important; }
+  .insc-doc .contrat-chk input[type="checkbox"] { width: 9px !important; height: 9px !important; margin-top: 2px !important; accent-color: #000; }
+  .insc-doc .contrat-chk .sub { font-size: var(--fiche-fs) !important; }
+
+  .insc-doc .rib-box { background: none !important; border: 1px solid #888 !important; padding: 3px 8px !important; gap: 2px 10px !important; font-size: 8.5pt !important; }
+  .insc-doc .rib-box strong { font-size: 8.5pt !important; }
+
+  .insc-doc .contrat-bottom { margin-top: 6px !important; padding-top: 4px !important; border-top: none !important; gap: 12px !important; }
+  .insc-doc .contrat-validation { background: none !important; border: none !important; padding: 0 !important; }
+  .insc-doc .sig-date, .insc-doc .sig-name { font-size: var(--fiche-fs) !important; }
+  .insc-doc .sig-date-val { border-bottom: 1px solid #000; }
+  .insc-doc .contrat-footer { border-top: none !important; font-style: italic; color: #555 !important; font-size: 8pt !important; margin-top: 6px !important; }
+
+  .insc-doc .insc-reglement { break-before: page; border-top: none !important; margin-top: 0 !important; padding-top: 0 !important; }
+  body.print-reglement .insc-doc .insc-reglement { break-before: auto; }
+  .insc-doc .reg-head { margin-bottom: 6px !important; }
+  .insc-doc .reg-logo { color: #3f4a2f !important; font-size: 11pt; }
+  .insc-doc .reg-titre { color: var(--print-green) !important; font-size: 20pt; line-height: 1; }
+  .insc-doc .insc-reglement .contrat-sec { margin-bottom: 4px !important; break-inside: auto !important; }
+  .insc-doc .insc-reglement .contrat-sec > h4 { font-size: 10pt !important; margin: 0 0 1px !important; break-after: avoid; }
+  .insc-doc .insc-reglement .contrat-txt { font-size: var(--reg-fs) !important; line-height: 1.28 !important; margin: 0 !important; text-align: justify; orphans: 2; widows: 2; }
+  .insc-doc .insc-reglement a { color: #3d6b24 !important; }
+  .insc-doc .reg-footer { font-style: normal; color: #000 !important; font-size: 8.5pt !important; text-align: right; }
+}
+  
+/* ═══ Impression : garder les colonnes (la page A4 < 768px déclenchait les règles mobiles) ═══ */
+@media print {
+  .insc-doc .contrat-2col { display: grid !important; grid-template-columns: 1fr 1fr !important; }
+  .insc-doc .contrat-2col::before { display: block !important; }
+  .insc-doc .contrat-bottom { display: grid !important; grid-template-columns: 1fr 1fr !important; align-items: end; }
+  .insc-doc .contrat-fr2 { display: grid !important; grid-template-columns: 1.4fr 1fr !important; }
+  .insc-doc .rib-box { grid-template-columns: 1.2fr 2fr 1fr !important; }
+  .insc-doc .cav-checkgrid { grid-template-columns: 1fr 1fr !important; }
+}
+.rib-hint { background: rgba(180,100,20,.08); border: 1px dashed #b46414; color: #b46414; border-radius: 8px; padding: 8px 12px; font-size: 12px; margin-bottom: 10px; }
   </style>
   <!-- Génération de PDF côté client (contrat d'inscription envoyé par email à l'approbation) -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -2520,10 +2607,17 @@
               <h2>📄 Contrat d'inscription</h2>
               <p class="no-upper">À remplir, cocher et valider en ligne — remplace la version papier.</p>
             </div>
-            <button class="btn btn-g" onclick="window.print()">🖨️ Imprimer / PDF</button>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-g" onclick="printContrat('all')">🖨️ Tout (3 pages)</button>
+              <button class="btn btn-g" onclick="printContrat('fiche')">📄 Fiche seule</button>
+              <button class="btn btn-g" onclick="printContrat('reglement')">📖 Règlement seul</button>
+            </div>
           </div>
 
-          <div class="contrat-card" id="contrat-card">
+          <div class="contrat-card insc-doc" id="contrat-card">
+
+            <!-- ═════ FICHE D'INSCRIPTION (page 1) ═════ -->
+            <section class="insc-fiche">
 
             <div class="contrat-top">
               <div class="titre"><span class="logo-h">🐴</span>Contrat<br>d'inscription</div>
@@ -2607,35 +2701,17 @@
                 site de la FFE et je l'envoie via le site dès le renouvellement de ma licence (septembre).</label>
             </div>
 
-            <!-- Droit à l'image -->
             <div class="contrat-sec">
-              <h4>📷 Droit à l'image</h4>
+              <h4>📋 Autorisations</h4>
               <label class="contrat-chk"><input type="checkbox" id="insc-chk-image">
-                J'accepte l'utilisation de mon image et/ou celle de mon enfant par Les Écuries de l'Octroi dans le cadre
-                de la pratique de ses activités équestres.</label>
-            </div>
-
-            <!-- Groupe WhatsApp -->
-            <div class="contrat-sec">
-              <h4>💬 Groupe WhatsApp</h4>
+                <span><strong>Droit à l'image :</strong> j'accepte l'utilisation de mon image et/ou celle de mon enfant par Les Écuries de l'Octroi dans le cadre de ses activités équestres.</span></label>
               <label class="contrat-chk"><input type="checkbox" id="insc-chk-whatsapp">
-                J'accepte de faire partie du groupe de mon cours et/ou celui de mon enfant afin d'être informé(e) des
-                activités et modifications de planning.</label>
-            </div>
-
-            <!-- Fichier informatique -->
-            <div class="contrat-sec">
-              <h4>💾 Fichier informatique</h4>
+                <span><strong>Groupe WhatsApp :</strong> j'accepte de faire partie du groupe de mon cours et/ou celui de mon enfant afin d'être informé(e) des activités et modifications de planning.</span></label>
               <label class="contrat-chk"><input type="checkbox" id="insc-chk-fichier">
-                J'accepte d'être recensé(e) dans le fichier informatique de l'établissement et bénéficie auprès de
-                celui-ci d'un droit d'accès et de rectification, conformément à la loi du 6 janvier 1978
-                modifiée.</label>
-              <p class="contrat-txt" style="font-size:12px;color:var(--muted);margin-top:6px">
-                Les informations recueillies dans ce formulaire (identité, coordonnées, contact d'urgence, avis
-                médical, signature) sont utilisées par Les Écuries de l'Octroi pour gérer votre inscription et
-                assurer la sécurité des cavaliers. Pour le détail complet (durée de conservation, prestataires
-                techniques, vos droits) : <a href="#" onclick="showPrivacyPolicy();return false;"
-                  style="text-decoration:underline">consultez notre politique de confidentialité</a>.
+                <span><strong>Fichier informatique :</strong> j'accepte d'être recensé(e) dans le fichier informatique de l'établissement et bénéficie d'un droit d'accès et de rectification (loi du 6 janvier 1978 modifiée).</span></label>
+              <p class="contrat-txt" style="font-size:11px;color:var(--muted);margin-top:4px">
+                Données utilisées pour gérer votre inscription et la sécurité des cavaliers.
+                <a href="#" onclick="showPrivacyPolicy();return false;" style="text-decoration:underline">Politique de confidentialité</a>.
               </p>
             </div>
 
@@ -2643,8 +2719,7 @@
             <div class="contrat-sec">
               <h4>📖 Règlement intérieur</h4>
               <label class="contrat-chk"><input type="checkbox" id="insc-chk-reglement">
-                Je reconnais avoir pris connaissance du Règlement Intérieur dont un
-                exemplaire accompagne ce contrat et en accepter toutes les dispositions.</label>
+                <span>Je reconnais avoir pris connaissance du Règlement Intérieur dont un exemplaire accompagne ce contrat et en accepter toutes les dispositions. <a href="#insc-reglement" class="no-print" style="text-decoration:underline">Lire le règlement ↓</a></span></label>
             </div>
 
             <!-- Licence FFE -->
@@ -2675,13 +2750,22 @@
               </div>
             </div>
 
+            <!-- Règlement par virement -->
+            <div id="rib-admin-hint" class="rib-hint no-print" style="display:none">⚠️ RIB non configuré : le bloc virement n'apparaît pas sur le formulaire. Renseignez-le dans Paramètres → « RIB du centre ».</div>
+            <div class="contrat-sec" id="insc-virement-sec" style="display:none">
+              <h4>🏦 Règlement par virement bancaire</h4>
+              <div class="rib-box">
+                <div><span>Titulaire</span><strong id="rib-titulaire"></strong></div>
+                <div><span>IBAN</span><strong id="rib-iban"></strong></div>
+                <div><span>BIC</span><strong id="rib-bic"></strong></div>
+              </div>
+              <p class="contrat-txt" style="margin-top:4px"><em>Si vous choisissez le virement bancaire, merci d'indiquer le nom du cavalier en référence.</em></p>
+            </div>
+
             <!-- Signature établissement + validation -->
             <div class="contrat-bottom">
               <div class="contrat-signature-officiel">
-                <div class="sig-box">
-                  <!-- Image fixe, ne change jamais — remplacer le src par la vraie signature scannée si besoin -->
-                  <img src="Signature.png" alt="Signature du chef d'établissement">
-                </div>
+                <div class="sig-box"><img src="Signature.png" alt="Signature du chef d'établissement"></div>
               </div>
               <div class="contrat-validation">
                 <label class="contrat-chk">
@@ -2700,8 +2784,21 @@
               </div>
             </div>
 
-            <div class="contrat-bottom" id="reglement-interieur">
-              <h4>📖 Règlement Intérieur</h4>
+            <div class="contrat-actions">
+              <button class="btn btn-p" onclick="saveInscription()">✅ Valider mon inscription</button>
+            </div>
+            <div class="contrat-footer">
+              12 allée de l’Octroi, 42800 CHATEAUNEUF. <a href="tel:+33781312927" style="color:#1e7a40">07.81.31.29.27</a> ·
+              <a href="mailto:reservation@lesecuriesdeloctroi.com" style="color:#1e7a40">reservation@lesecuriesdeloctroi.com</a> ·
+              <a href="https://www.loctroi.ffe.com" target="_blank" rel="noopener noreferrer" style="color:#1e7a40">www.loctroi.ffe.com</a>
+            </div>
+            </section>
+
+            <!-- ═════ RÈGLEMENT INTÉRIEUR (pages 2-3) ═════ -->
+            <section class="insc-reglement" id="insc-reglement">
+            <div class="reg-head">
+              <div class="reg-logo">🐴 Les Écuries de l'Octroi</div>
+              <div class="reg-titre">Règlement Intérieur</div>
             </div>
 
             <div class="contrat-sec" id="article1">
@@ -2916,17 +3013,10 @@
                 en accepter toutes les dispositions.</p>
             </div>
 
-            <div class="contrat-actions">
-              <button class="btn btn-p" onclick="saveInscription()">✅ Valider mon inscription</button>
+            <div class="contrat-footer reg-footer">
+              Claire MATHEVET. Les Écuries de l’Octroi. Règlement intérieur en vigueur au 1<sup>er</sup> septembre 2026
             </div>
-            <div class="contrat-footer" id="insc-footer">
-              Claire MATHEVET. Les Écuries de l’Octroi. Règlement intérieur en vigueur au 1er septembre 2026<br />
-              12 allée de l’Octroi, 42800 CHATEAUNEUF. <a href="tel:+33781312927"
-                style="color: #1e7a40;">07.81.31.29.27</a> · <a href="mailto:reservation@lesecuriesdeloctroi.com"
-                style="color: #1e7a40;">reservation@lesecuriesdeloctroi.com</a> · <a href="https://www.loctroi.ffe.com"
-                target="_blank" rel="noopener noreferrer" style="color: #1e7a40;">www.loctroi.ffe.com</a>
-            </div>
-
+            </section>
           </div>
         </div>
 
@@ -3377,22 +3467,9 @@
               <button class="btn btn-g" onclick="closeMo('mo-insc-detail')">Fermer</button>
               <button class="btn btn-g sm" onclick="printInscription(v('insc-detail-id'))">🖨️ Imprimer / PDF</button>
               <button class="btn btn-d sm" onclick="delInscriptionAdmin()">🗑 Supprimer</button>
-              <button class="btn btn-g sm" id="insc-resend-btn" style="display:none" onclick="openResendInsc()">📧 Renvoyer le mail</button>
               <button class="btn btn-p" id="insc-approve-btn" onclick="approuverInscription()">✅ Approuver & créer le
                 cavalier</button>
             </div>
-          </div>
-        </div>
-
-        <div class="mo" id="mo-insc-resend">
-          <div class="md" style="max-width:440px">
-            <h3>📧 Renvoyer le contrat par email</h3>
-            <input type="hidden" id="insc-resend-id">
-            <p class="no-upper" style="font-size:12px;color:var(--muted);margin:-6px 0 14px">Le PDF du contrat validé
-              est régénéré
-              et envoyé en pièce jointe. À qui l'envoyer ?</p>
-            <div id="insc-resend-opts" style="display:flex;flex-direction:column;gap:8px"></div>
-            <div class="mf"><button class="btn btn-g" onclick="closeMo('mo-insc-resend')">Annuler</button></div>
           </div>
         </div>
 
@@ -3860,6 +3937,19 @@
           <!-- ═══════════════════════════════════════════════════════════════
     📋 INFORMATIONS SUR LES RÔLES / MOTS DE PASSE
     ═══════════════════════════════════════════════════════════════ -->
+
+          <div class="tc" style="margin-bottom:20px">
+            <div class="tt"><h3>🏦 RIB du centre (contrat d'inscription)</h3></div>
+            <div style="padding:18px;display:flex;flex-direction:column;gap:12px">
+              <div class="fg"><label>Titulaire</label><input type="text" id="rib-in-titulaire" maxlength="80" placeholder="Les Écuries de l'Octroi"></div>
+              <div class="fg"><label>IBAN</label><input type="text" id="rib-in-iban" maxlength="42" placeholder="FR76 …"></div>
+              <div class="fg"><label>BIC</label><input type="text" id="rib-in-bic" maxlength="11" placeholder="XXXXFRPP"></div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-p" onclick="saveRib()">Enregistrer</button>
+                <button class="btn btn-g" onclick="clearRib()">Retirer le RIB du contrat</button>
+              </div>
+            </div>
+          </div>
 
           <div class="tc" style="margin-bottom:20px">
             <div class="tt">
@@ -8654,6 +8744,7 @@
             const p = await dbSel('app_params', {});
             p.forEach(s => { APP_SETTINGS[s.key] = s.value; });
           } catch (e) { console.warn('app_params non chargé', e); }
+          renderRib();
         }
 
         async function savePrixHeureGlobal() {
@@ -10721,7 +10812,7 @@
           const msg = v('td-retour-msg').trim();
           if (!msg) { return; }
 
-          const auteur = isKenny ? 'Kenny' : isAdmin ? 'Admin' : 'Utilisateur';
+          const auteur = isKenny ? 'Kenny' : 'Admin';
 
           await dbIns('ticket_retours', {
             ticket_id: ticketId,
@@ -11098,9 +11189,78 @@
         // ══════════════════════════════════════════════════
         //  CONTRAT D'INSCRIPTION
         // ══════════════════════════════════════════════════
+        function fmtIban(s) { return (s || '').replace(/\s+/g, '').toUpperCase().replace(/(.{4})/g, '$1 ').trim(); }
+
+        function renderRib() {
+          const sec = document.getElementById('insc-virement-sec'); if (!sec) return;
+          const iban = (APP_SETTINGS.rib_iban || '').trim();
+          sec.style.display = iban ? '' : 'none';
+          const hint = document.getElementById('rib-admin-hint');
+          if (hint) hint.style.display = (!iban && (isAdmin || isKenny)) ? '' : 'none';
+          document.getElementById('rib-titulaire').textContent = APP_SETTINGS.rib_titulaire || '';
+          document.getElementById('rib-iban').textContent = fmtIban(iban);
+          document.getElementById('rib-bic').textContent = (APP_SETTINGS.rib_bic || '').toUpperCase();
+        }
+
+        function ibanValide(s) {
+          s = (s || '').replace(/\s+/g, '').toUpperCase();
+          if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(s)) return false;
+          let rem = 0;
+          for (const ch of s.slice(4) + s.slice(0, 4)) {
+            const n = ch >= 'A' ? ch.charCodeAt(0) - 55 : +ch;
+            rem = Number(String(rem) + n) % 97;
+          }
+          return rem === 1;
+        }
+
+        function renderRibParams() {
+          const g = id => document.getElementById(id);
+          if (!g('rib-in-titulaire')) return;
+          g('rib-in-titulaire').value = APP_SETTINGS.rib_titulaire || '';
+          g('rib-in-iban').value = fmtIban(APP_SETTINGS.rib_iban || '');
+          g('rib-in-bic').value = APP_SETTINGS.rib_bic || '';
+        }
+
+        async function saveRib() {
+          const titulaire = v('rib-in-titulaire').trim();
+          const iban = v('rib-in-iban').replace(/\s+/g, '').toUpperCase();
+          const bic = v('rib-in-bic').replace(/\s+/g, '').toUpperCase();
+          if (!titulaire) { toast('Indiquez le titulaire', 'err'); return; }
+          if (!ibanValide(iban)) { toast('IBAN invalide (vérifiez la saisie)', 'err'); return; }
+          if (!/^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/.test(bic)) { toast('BIC invalide', 'err'); return; }
+          try {
+            await upsertParam('rib_titulaire', titulaire);
+            await upsertParam('rib_iban', iban);
+            await upsertParam('rib_bic', bic);
+            Object.assign(APP_SETTINGS, { rib_titulaire: titulaire, rib_iban: iban, rib_bic: bic });
+            renderRib(); renderRibParams();
+            toast('RIB enregistré ✅', 'ok');
+          } catch (e) { toast('Erreur : ' + e.message, 'err'); }
+        }
+
+        function clearRib() {
+          confirmOuiNonCb("Retirer le RIB du contrat d'inscription ?", async () => {
+            try {
+              for (const k of ['rib_titulaire', 'rib_iban', 'rib_bic']) { await upsertParam(k, ''); APP_SETTINGS[k] = ''; }
+              renderRib(); renderRibParams();
+              toast('RIB retiré', 'ok');
+            } catch (e) { toast('Erreur : ' + e.message, 'err'); }
+          });
+        }
+
+        // Impression du formulaire public : 'all' (3 pages) | 'fiche' | 'reglement'
+        function printContrat(part = 'all') {
+          document.body.classList.remove('print-fiche', 'print-reglement');
+          if (part === 'fiche') document.body.classList.add('print-fiche');
+          if (part === 'reglement') document.body.classList.add('print-reglement');
+          window.print();
+        }
+        window.addEventListener('afterprint', () => document.body.classList.remove('print-fiche', 'print-reglement'));
+
         function initInscriptionPage() {
           const el = document.getElementById('insc-saison');
           if (el) el.textContent = 'Saison ' + getAnneeScolaire().replace('-', '/');
+          renderRib();
           initSignaturePad();
         }
 
@@ -11326,9 +11486,6 @@
             if (i.approuve) { approveBtn.style.display = 'none'; }
             else { approveBtn.style.display = ''; approveBtn.disabled = false; approveBtn.textContent = '✅ Approuver & créer le cavalier'; }
           }
-          // Renvoi du mail : seulement une fois le contrat validé
-          const resendBtn = document.getElementById('insc-resend-btn');
-          if (resendBtn) resendBtn.style.display = i.approuve ? '' : 'none';
           openMo('mo-insc-detail');
         }
 
@@ -11403,8 +11560,11 @@
           if (sigActions) sigActions.remove();
           const saisonEl = clone.querySelector('#insc-saison');
           if (saisonEl) saisonEl.textContent = 'Saison ' + (insc.saison ? insc.saison.replace('-', '/') : '—');
+          const dateSigEl = clone.querySelector('#insc-date-sig');
+          if (dateSigEl && insc.created_at) dateSigEl.textContent = new Date(insc.created_at).toLocaleDateString('fr-FR');
 
           // Lecture seule + retrait des boutons d'action (Imprimer/Valider)
+          clone.querySelectorAll('.no-print').forEach(e => e.remove());
           clone.querySelectorAll('input, textarea, select').forEach(el => el.disabled = true);
           const actions = clone.querySelector('.contrat-actions'); if (actions) actions.remove();
           return clone;
@@ -11576,51 +11736,6 @@
               + 'Vous pouvez réessayer : cette inscription reste disponible et pourra être revalidée.');
             if (btn) { btn.disabled = false; btn.textContent = '✅ Approuver & créer le cavalier'; }
           }
-        }
-
-        // ── Renvoi du contrat validé par email : cavalier, écuries, ou les deux ──
-        const ECURIES_MAIL = 'reservation@lesecuriesdeloctroi.com';
-        let _resendBusy = false;
-        const inscMailCavalier = i => (i.cav_mail || i.resp_mail || '').trim();
-
-        function openResendInsc() {
-          const id = v('insc-detail-id');
-          const i = C_inscriptions.find(x => x.id === id);
-          if (!i || !i.approuve) { toast("Le contrat doit d'abord être approuvé", 'err'); return; }
-          document.getElementById('insc-resend-id').value = id;
-          const cavMail = inscMailCavalier(i);
-          const opt = (choice, label, sub, disabled) => `<button type="button" class="btn ${disabled ? 'btn-g' : 'btn-p'}"
-            style="width:100%;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 14px"
-            ${disabled ? 'disabled' : ''} onclick="resendInscriptionMail('${choice}')">
-            <span>${label}</span><span style="font-size:11px;font-weight:400;opacity:.85">${sub}</span></button>`;
-          document.getElementById('insc-resend-opts').innerHTML =
-            opt('cavalier', '🐴 Au cavalier', cavMail ? escHtml(cavMail) : 'Aucune adresse email renseignée', !cavMail)
-            + opt('ecuries', "🏠 Aux Écuries", ECURIES_MAIL, false)
-            + opt('les2', '📨 Aux deux', cavMail ? escHtml(cavMail) + ' + ' + ECURIES_MAIL : 'Aucune adresse email pour le cavalier', !cavMail);
-          openMo('mo-insc-resend');
-        }
-
-        async function resendInscriptionMail(choice) {
-          if (_resendBusy) return;
-          const i = C_inscriptions.find(x => x.id === v('insc-resend-id'));
-          if (!i || !i.approuve) return;
-          const cavMail = inscMailCavalier(i);
-          if (choice !== 'ecuries' && !cavMail) { toast("Aucune adresse email pour le cavalier", 'err'); return; }
-          const dest = choice === 'cavalier' ? [cavMail] : choice === 'ecuries' ? [ECURIES_MAIL] : [cavMail, ECURIES_MAIL];
-          const uniques = [...new Set(dest.map(d => d.toLowerCase()))];
-          _resendBusy = true;
-          document.querySelectorAll('#insc-resend-opts button').forEach(b => b.disabled = true);
-          toast('Génération du PDF et envoi en cours…', 'warn');
-          try {
-            const pdfBase64 = await generateInscriptionPdfBase64(i);
-            const nomComplet = `${cap(i.cav_prenom || '')}${i.cav_nom ? ' ' + i.cav_nom.toUpperCase() : ''}`;
-            await dbReq({ action: 'send-inscription-email', token: sessionToken, toEmail: uniques.join(', '), pdfBase64, cavNom: nomComplet });
-            closeMo('mo-insc-resend');
-            toast('Email envoyé à ' + uniques.join(' et ') + ' ✅', 'ok');
-          } catch (e) {
-            toast("Erreur : l'email n'a pas été envoyé (" + e.message + ')', 'err');
-            document.querySelectorAll('#insc-resend-opts button').forEach(b => b.disabled = false);
-          } finally { _resendBusy = false; }
         }
 
         async function delInscriptionAdmin() {
@@ -11847,6 +11962,7 @@
           loadRattrapParams().then(applyRattrapParamsToForm).catch(e => console.warn('rattrap params', e));
           // Stages automatiques du mercredi
           renderStagesAutoParams();
+          renderRibParams();
         }
 
         function onRattrapModeChange() {
